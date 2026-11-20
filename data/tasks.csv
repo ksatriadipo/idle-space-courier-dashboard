@@ -193,7 +193,7 @@ UXC-091,RC UX/content and store asset gate,GATE,production,P0,PLANNED,RC,,regist
 UXC-092,Full Vision content gate,GATE,production,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0,0,0,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
 AST-WP-01,"UI icon set v1 (nav, currency, stats, states)",TASK,art-audio,P1,QA_PASS,M2-Q04b,QA_PASS,registry approval PENDING,,D-124,1,3,8,2026-11-23,2026-11-23,2026-11-21,2026-11-21,
 AST-WP-02,"Cozy component kit (USS): cards, chips, pips, bars, buttons",TASK,engineering,P0,DONE,M2-Q04b,DIRECTOR_ACCEPTED,registry approval APPROVED,,,1,1.83,3.62,,,,,
-AST-WP-03,Readability fix for 3 weak skin pairs (Blender),TASK,art-audio,P2,READY,M2,,registry approval PENDING,,D-124,0.47,0.83,1.53,,,,,
+AST-WP-03,Readability fix for 3 weak skin pairs (Blender),TASK,art-audio,P2,QA_PASS,M2,QA_PASS,registry approval PENDING,,D-124,0.47,0.83,1.53,,,2026-11-21,2026-11-21,
 AST-WP-04,"Thumbnail set (rockets, skins, album items)",TASK,art-audio,P1,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.47,0.83,1.53,,,,,
 AST-WP-05,Skin VFX final pass for shipped packs,TASK,art-audio,P1,PLANNED,M2,,registry approval PENDING,,,0.62,1.4,4.73,,,,,
 AST-WP-06,A6 idle animation runtime tuning,TASK,art-audio,P2,PLANNED,M2,,registry approval PENDING,,,0.62,1.4,4.73,,,,,
