@@ -28,7 +28,7 @@
       <p class="lede">Built from a sanitised public snapshot of the project tracker (D-083). Technical, device and Director acceptance are separate gates and are never merged.</p>
       <p class="meta" id="meta"></p>
       <nav class="jump" aria-label="Dashboard sections">
-        <a href="#status">Overview</a><a href="#galaxy">Galaxy</a><a href="#tracker">Tracker</a><a href="#timeline">Timeline</a><a href="#blockers">Blockers</a><a href="#sources">Sources</a>
+        <a href="#status">Overview</a><a href="#reality">Reality</a><a href="#galaxy">Galaxy</a><a href="#tracker">Tracker</a><a href="#timeline">Timeline</a><a href="#blockers">Blockers</a><a href="#sources">Sources</a>
       </nav>
     </div>
     <div class="hero-art" id="hero-art" data-scene="fallback" role="img" aria-label="Illustration: an Idle Space Courier rocket floating above a small planet. Decorative.">
@@ -70,8 +70,34 @@
   <section id="status" class="band" aria-labelledby="h-status">
     <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg><h2 id="h-status">Mission Overview</h2></div>
     <div class="overview" id="ov-tiles"></div>
-    <h3 class="sub">Status of executable tasks</h3>
+    <div id="reality" class="card reality" aria-labelledby="h-reality">
+      <h3 id="h-reality">Progress reality <span class="badge">LAUNCH SCOPE</span></h3>
+      <p class="rsum" id="reality-summary"></p>
+      <div class="tiles" id="reality-tiles"></div>
+      <h4 class="rh">Base effort over launch scope</h4>
+      <div class="rbar" id="reality-bar" role="img" aria-label="Base effort over launch scope"></div>
+      <div class="legend" id="reality-legend"></div>
+      <p class="note" id="reality-effort-note"></p>
+      <p class="note" id="reality-reasons"></p>
+      <p class="note" id="reality-deferred"></p>
+      <details class="defs" open><summary>How progress is measured (D-100)</summary>
+        <dl>
+          <div><dt>Executable task</dt><dd>Node type is not EPIC or PARENT. Containers are never counted.</dd></div>
+          <div><dt>Launch scope</dt><dd>Executable and milestone is not POST-LAUNCH / DEFERRED. Every denominator on this page is launch scope unless it says otherwise.</dd></div>
+          <div><dt>Deferred</dt><dd>Executable rows in POST-LAUNCH / DEFERRED. Shown on a separate line, never as launch backlog.</dd></div>
+          <div><dt>DONE (fully accepted)</dt><dd>Status DONE or RELEASED.</dd></div>
+          <div><dt>Director accepted, not yet DONE</dt><dd>Status DIRECTOR_ACCEPTED, its own bucket (a subset of technically complete).</dd></div>
+          <div><dt>Technically complete</dt><dd>Status IMPLEMENTED, QA_PASS or DIRECTOR_ACCEPTED (not DONE). Reason for not DONE: device NOT TESTED if the device status says so, otherwise awaiting Director acceptance (IMPLEMENTED / QA_PASS), otherwise other.</dd></div>
+          <div><dt>In progress / not started</dt><dd>IN_PROGRESS / PLANNED or READY.</dd></div>
+          <div><dt>Hold / blocked</dt><dd>HOLD or BLOCKED within launch scope.</dd></div>
+          <div><dt>Effort-weighted progress</dt><dd>Base effort (effort_base_h) summed over launch scope, split into DONE / technically complete / remaining. Rows with zero or empty effort (decisions, gates) are counted above but carry no weight.</dd></div>
+          <div><dt>Critical path</dt><dd>Not published in the public data, so the PROVISIONAL launch forecast dates are shown instead.</dd></div>
+        </dl>
+      </details>
+    </div>
+    <h3 class="sub">Launch scope by status</h3>
     <div class="tiles" id="kpi-tiles"></div>
+    <p class="note" id="kpi-deferred"></p>
     <p class="note">Executable tasks are tasks, requirement items, gates, sessions and decisions. Epics and parent rows (node type EPIC / PARENT) are excluded so parent and child effort is never counted twice.</p>
   </section>
 
@@ -83,24 +109,27 @@
       <div class="legend" id="galaxy-legend"></div>
       <p class="note" id="galaxy-note"></p>
     </div>
+    <div class="card" id="milestones">
+      <h3>Progress by milestone <span class="badge">LAUNCH SCOPE</span></h3>
+      <div class="wrap"><table class="mst">
+        <thead><tr><th scope="col">Milestone</th><th scope="col" class="num">Executable</th><th scope="col" class="num">DONE</th><th scope="col" class="num">Director accepted</th><th scope="col" class="num">Technically complete</th><th scope="col" class="num">In progress</th><th scope="col" class="num">Not started</th><th scope="col" class="num">Hold / blocked</th><th scope="col" class="num">Remaining base h</th><th scope="col" class="num">DONE %</th></tr></thead>
+        <tbody id="ms-body"></tbody>
+        <tfoot id="ms-foot"></tfoot>
+      </table></div>
+      <p class="note">Denominator per row = executable launch tasks in that milestone. Technically complete includes the Director-accepted column (not DONE); DONE + technically complete + in progress + not started + hold / blocked = executable. Remaining base h = base effort of rows that are neither DONE nor technically complete.</p>
+      <p class="note" id="ms-deferred"></p>
+    </div>
     <div class="grid2">
-      <div class="card" id="milestones">
-        <h3>Progress by milestone</h3>
-        <div class="wrap"><table>
-          <thead><tr><th scope="col">Milestone</th><th scope="col" class="num">Tasks</th><th scope="col" class="num">Done</th><th scope="col" class="num">Technical</th><th scope="col" class="num">Active</th><th scope="col" class="num">Hold / blocked</th><th scope="col" class="num">Done %</th></tr></thead>
-          <tbody id="ms-body"></tbody>
-        </table></div>
-      </div>
       <div class="card" id="workstreams">
         <h3>Tasks by workstream</h3>
         <div class="chart" id="ws-chart"></div>
         <div class="legend" id="ws-legend"></div>
       </div>
-    </div>
-    <div id="ladder" class="card" aria-labelledby="h-ladder">
-      <h3 id="h-ladder">Acceptance ladder</h3>
-      <div class="chart" id="ladder-chart"></div>
-      <p class="note">Highest rung reached per executable task, derived by the tracker from three independent fields: status (technical), acceptance status (technical acceptance by decision) and device status (pass on a device). DONE is counted separately because the definition of done differs per task.</p>
+      <div id="ladder" class="card" aria-labelledby="h-ladder">
+        <h3 id="h-ladder">Acceptance ladder</h3>
+        <div class="chart" id="ladder-chart"></div>
+        <p class="note">Highest rung reached per executable task, derived by the tracker from three independent fields: status (technical), acceptance status (technical acceptance by decision) and device status (pass on a device). DONE is counted separately because the definition of done differs per task.</p>
+      </div>
     </div>
   </section>
 

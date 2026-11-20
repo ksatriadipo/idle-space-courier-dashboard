@@ -620,15 +620,15 @@
   }
   function takeaway(k, fc) {
     var base = fc.filter(function (x) { return x.scenario === 'base'; })[0];
-    return k.done + ' of ' + k.total + ' executable tasks are done (' + k.pct_done + '%), ' + k.in_progress + ' are in progress and ' +
-      k.hold_blocked + ' are on hold or blocked. The provisional base forecast puts public launch on ' + fmtDate(base && base.launch) + '.';
+    return k.done + ' of ' + k.total + ' executable launch tasks are DONE (' + k.pct_done + '%), ' + k.in_progress + ' are in progress and ' +
+      k.hold_blocked + ' are on hold or blocked (deferred work excluded). The provisional base forecast puts public launch on ' + fmtDate(base && base.launch) + '.';
   }
 
   // ---- D-090 additions (pure): hero status, overview cards, galaxy route, decisions, register sort
   function projectStatus(k) {
     if (k.blocked > 0) return { label: 'In flight · ' + k.blocked + ' blocked', tone: 'bad' };
     if (k.hold > 0) return { label: 'In flight · ' + k.hold + ' on hold', tone: 'warn' };
-    if (k.total && k.done === k.total) return { label: 'All executable tasks done', tone: 'good' };
+    if (k.total && k.done === k.total) return { label: 'All launch tasks done', tone: 'good' };
     return { label: 'In flight', tone: 'good' };
   }
 
@@ -638,15 +638,15 @@
   }
 
   function overview(c) {
-    var k = c.kpi, aw = activeWorkstreams(c.ws);
+    var k = c.reality.kpi, aw = activeWorkstreams(c.ws);   // D-100: launch-scope denominators
     var by = {};
     c.forecast.forEach(function (f) { by[f.scenario] = f.launch; });
     return [
-      { key: 'progress', label: 'Overall progress', value: k.pct_done + '%', detail: k.done + ' of ' + k.total + ' executable tasks done',
+      { key: 'progress', label: 'Overall progress', value: k.pct_done + '%', detail: k.done + ' of ' + k.total + ' launch tasks DONE',
         bar: k.total ? k.done / k.total : 0, bar2: k.total ? (k.done + k.technical) / k.total : 0, tone: 'good' },
-      { key: 'done', label: 'Completed tasks', value: String(k.done), unit: '/ ' + k.total, detail: k.technical + ' more technically complete, not yet done', tone: 'teal' },
-      { key: 'workstreams', label: 'Active workstreams', value: String(aw.active), unit: '/ ' + aw.total, detail: k.in_progress + ' tasks in progress', tone: 'violet' },
-      { key: 'blockers', label: 'Blockers', value: String(k.blocked), detail: k.blocked + ' blocked · ' + k.hold + ' on hold', tone: k.blocked ? 'bad' : (k.hold ? 'warn' : 'good') },
+      { key: 'done', label: 'Completed tasks', value: String(k.done), unit: '/ ' + k.total, detail: k.technical + ' more technically complete, not yet DONE', tone: 'teal' },
+      { key: 'workstreams', label: 'Active workstreams', value: String(aw.active), unit: '/ ' + aw.total, detail: k.in_progress + ' launch tasks in progress', tone: 'violet' },
+      { key: 'blockers', label: 'Blockers', value: String(k.blocked), detail: k.blocked + ' blocked · ' + k.hold + ' on hold (launch scope)', tone: k.blocked ? 'bad' : (k.hold ? 'warn' : 'good') },
       { key: 'forecast', label: 'Forecast · PROVISIONAL', value: fmtDate(by.base), detail: 'Base (P50); optimistic ' + fmtDate(by.opt) + ', conservative ' + fmtDate(by.cons), tone: 'warn', provisional: true }
     ];
   }
@@ -713,15 +713,105 @@
     }).map(function (o) { return o.r; });
   }
 
+  // ---- D-100 "progress reality" (pure): launch-scope denominators, separate buckets, effort weighting
+  // Executable = node_type not EPIC/PARENT. Launch scope = executable and milestone not POST-LAUNCH/DEFERRED.
+  var DEFERRED_RE = /POST-LAUNCH|DEFERRED/;
+  function isDeferred(r) { return DEFERRED_RE.test(r.milestone || ''); }
+  function isLaunch(r) { return isExec(r) && !isDeferred(r); }
+  // Mutually exclusive buckets: every launch row lands in exactly one.
+  function bucket(st) {
+    if (has(DONE, st)) return 'done';
+    if (st === 'DIRECTOR_ACCEPTED') return 'director_accepted';
+    if (st === 'IMPLEMENTED' || st === 'QA_PASS') return 'tech_pending';
+    if (st === 'IN_PROGRESS') return 'in_progress';
+    if (st === 'PLANNED' || st === 'READY') return 'not_started';
+    if (st === 'HOLD') return 'hold';
+    if (st === 'BLOCKED') return 'blocked';
+    return 'other';
+  }
+  // Why a technically complete row is not DONE (null when the row is not technically complete).
+  function techReason(r) {
+    if (!has(TECH, r.status)) return null;
+    if (String(r.device_status || '').trim().toUpperCase() === 'NOT TESTED') return 'device_not_tested';
+    if (r.status !== 'DIRECTOR_ACCEPTED') return 'awaiting_director';
+    return 'other';
+  }
+  // Effort in integer hundredths of an hour, so sums are exact and reproducible in Python.
+  function effC(v) { var x = num(v); return x === null ? 0 : Math.round(x * 100); }
+  function emptyCounts() {
+    return { total: 0, done: 0, director_accepted: 0, tech_pending: 0, in_progress: 0, not_started: 0, hold: 0, blocked: 0, other: 0 };
+  }
+  function finishCounts(o) {
+    o.technical = o.director_accepted + o.tech_pending;          // technical completion includes Director accepted (not DONE)
+    o.hold_blocked = o.hold + o.blocked;
+    o.remaining = o.total - o.done - o.technical;
+    o.pct_done = o.total ? r1(o.done / o.total * 100) : 0;
+    o.pct_done_or_tech = o.total ? r1((o.done + o.technical) / o.total * 100) : 0;
+    return o;
+  }
+  function launchKpi(tasks) {
+    var o = emptyCounts(), reasons = { device_not_tested: 0, awaiting_director: 0, other: 0 };
+    tasks.filter(isLaunch).forEach(function (r) {
+      o.total++; o[bucket(r.status)]++;
+      var why = techReason(r); if (why) reasons[why]++;
+    });
+    o.reasons = reasons;
+    o.containers = tasks.filter(function (r) { return !isExec(r); }).length;
+    var d = emptyCounts();
+    tasks.filter(function (r) { return isExec(r) && isDeferred(r); }).forEach(function (r) { d.total++; d[bucket(r.status)]++; });
+    o.deferred = finishCounts(d);
+    return finishCounts(o);
+  }
+  function effortSplit(tasks) {
+    var c = { total: 0, done: 0, technical: 0, remaining: 0 }, zero = 0, rows = 0;
+    tasks.filter(isLaunch).forEach(function (r) {
+      var e = effC(r.effort_base_h), b = bucket(r.status);
+      rows++;
+      if (!e) zero++;
+      c.total += e;
+      if (b === 'done') c.done += e; else if (b === 'director_accepted' || b === 'tech_pending') c.technical += e; else c.remaining += e;
+    });
+    return { total_h: c.total / 100, done_h: c.done / 100, technical_h: c.technical / 100, remaining_h: c.remaining / 100,
+      zero_effort: zero, rows: rows, weighted_rows: rows - zero };
+  }
+  function launchMilestones(tasks) {
+    var g = {}, order = [];
+    tasks.filter(isLaunch).forEach(function (r) {
+      var m = r.milestone || '(none)';
+      if (!g[m]) { g[m] = emptyCounts(); g[m].milestone = m; g[m].rem_c = 0; order.push(m); }
+      var b = bucket(r.status);
+      g[m].total++; g[m][b]++;
+      if (b !== 'done' && b !== 'director_accepted' && b !== 'tech_pending') g[m].rem_c += effC(r.effort_base_h);
+    });
+    return order.map(function (m) {
+      var o = finishCounts(g[m]); o.remaining_h = o.rem_c / 100; delete o.rem_c; return o;
+    }).sort(function (a, b) { return b.total - a.total || (a.milestone < b.milestone ? -1 : 1); });
+  }
+  function fmtH(h) { return (Math.round(h * 10) / 10).toFixed(1).replace(/\.0$/, ''); }
+  // One sentence for readers. The public data has no critical path, so the forecast dates stand in (never an invented path).
+  function realitySummary(lk, eff, fc) {
+    var by = {}; fc.forEach(function (f) { by[f.scenario] = f.launch; });
+    return lk.total + ' executable launch tasks: ' + lk.done + ' DONE, ' + lk.technical + ' technically complete but not DONE (' +
+      lk.director_accepted + ' of them Director accepted), ' + lk.in_progress + ' in progress, ' + lk.not_started + ' not started, ' +
+      lk.hold_blocked + ' on hold or blocked. Base effort remaining: ' + fmtH(eff.remaining_h) + ' h of ' + fmtH(eff.total_h) + ' h. ' +
+      'Critical path: not in the public data; launch forecast (PROVISIONAL) base ' + fmtDate(by.base) + ', optimistic ' + fmtDate(by.opt) +
+      ', conservative ' + fmtDate(by.cons) + '.';
+  }
+  function progressReality(tasks, fc) {
+    var lk = launchKpi(tasks), eff = effortSplit(tasks);
+    return { kpi: lk, effort: eff, milestones: launchMilestones(tasks), summary: realitySummary(lk, eff, fc), critical_path: null };
+  }
+
   function computeAll(data) {
     var tasks = data.tasks, runs = data.runs, schedule = data.schedule;
     var k = kpi(tasks), fc = forecast(schedule);
+    var reality = progressReality(tasks, fc);
     var out = {
       kpi: k, ladder: ladder(tasks), forecast: fc, ms: msProgress(tasks), ws: wsStatus(tasks),
       gantt: ganttBase(schedule, tasks), resByDate: resByDate(runs), resTotal: resTotal(runs),
-      active: activeRows(tasks), hold: holdRows(tasks), takeaway: takeaway(k, fc)
+      active: activeRows(tasks), hold: holdRows(tasks), takeaway: takeaway(reality.kpi, fc), reality: reality
     };
-    out.status = projectStatus(k);
+    out.status = projectStatus(reality.kpi);
     out.overview = overview(out);
     out.galaxy = galaxy(out.ms, out.gantt);
     out.decisionsHold = decisionRefs(out.hold);
@@ -798,19 +888,56 @@
     $('snap-text').textContent = 'Snapshot ' + m.snapshot.replace('T', ' ');
     renderOverview();
     $('meta').textContent = 'Snapshot ' + m.snapshot.replace('T', ' ') + ' (tracker changelog) · source commit ' + m.source_commit + ' · forecast ' + m.forecast.label;
-    var k = c.kpi;
+    var k = c.reality.kpi;
     fill('kpi-tiles', [
-      tile(k.total, 'Executable tasks'), tile(k.done, 'Done or released', 'ok'),
-      tile(k.technical, 'Implemented, QA pass or Director accepted, not yet done', 'ok'),
-      tile(k.in_progress, 'In progress'), tile(k.hold, 'On hold (waits for a Director GO)', 'warn'),
-      tile(k.blocked, 'Blocked', 'bad'), tile(k.pct_done + '%', 'Completion by task count (done ÷ executable)')
+      tile(k.total, 'Executable launch tasks (denominator)'), tile(k.done, 'DONE or released', 'ok'),
+      tile(k.director_accepted, 'Director accepted, not yet DONE', 'ok'),
+      tile(k.tech_pending, 'Implemented or QA pass, not yet DONE', 'ok'),
+      tile(k.in_progress, 'In progress'), tile(k.not_started, 'Not started (planned or ready)'),
+      tile(k.hold, 'On hold (waits for a Director GO)', 'warn'),
+      tile(k.blocked, 'Blocked', 'bad'), tile(k.pct_done + '%', 'Completion by task count (DONE ÷ launch tasks)')
     ]);
+    $('kpi-deferred').textContent = deferredLine(k);
+    renderReality();
     $('fc-label').textContent = m.forecast.label;
     var names = { opt: 'Optimistic', base: 'Base (P50)', cons: 'Conservative' };
     fill('fc-tiles', c.forecast.map(function (f) {
       return tile(fmtDate(f.launch), names[f.scenario] + ' · ' + m.forecast.label.toLowerCase(), f.scenario === 'cons' ? 'warn' : '');
     }));
     $('fc-note').textContent = m.forecast.note;
+  }
+
+  function deferredLine(k) {
+    var d = k.deferred;
+    return 'Not in the denominator: ' + d.total + ' deferred executable rows (POST-LAUNCH / DEFERRED, not launch backlog: ' + d.done + ' DONE, ' +
+      d.technical + ' technically complete, ' + d.in_progress + ' in progress, ' + d.not_started + ' not started, ' + d.hold_blocked + ' on hold or blocked) and ' +
+      k.containers + ' container rows (EPIC / PARENT, never counted).';
+  }
+  function baseLaunch(fc) { var b = fc.filter(function (f) { return f.scenario === 'base'; })[0]; return b ? b.launch : null; }
+  var R_SEG = [['done_h', 'DONE', 'var(--good)'], ['technical_h', 'Technically complete', 'var(--series-1)'], ['remaining_h', 'Remaining', 'var(--neutral)']];
+  function renderReality() {
+    var R = state.calc.reality, k = R.kpi, e = R.effort;
+    $('reality-summary').textContent = R.summary;
+    fill('reality-tiles', [
+      tile(k.total, 'Executable launch tasks'), tile(k.done, 'DONE (fully accepted)', 'ok'),
+      tile(k.technical, 'Technically complete, not DONE', 'ok'), tile(k.not_started, 'Not started'),
+      tile(fmtH(e.remaining_h) + ' h', 'Base effort remaining'), tile(fmtDate(baseLaunch(state.calc.forecast)), 'Launch forecast, base · PROVISIONAL (no critical path in the public data)', 'warn')
+    ]);
+    var bar = $('reality-bar'), tot = e.total_h || 1;
+    bar.replaceChildren();
+    bar.setAttribute('aria-label', 'Base effort over launch scope: ' + R_SEG.map(function (s) { return s[1].toLowerCase() + ' ' + fmtH(e[s[0]]) + ' h'; }).join(', ') +
+      ' of ' + fmtH(e.total_h) + ' h');
+    R_SEG.forEach(function (s) {
+      var seg = el('span', { title: s[1] + ': ' + fmtH(e[s[0]]) + ' h' }); seg.style.width = (e[s[0]] / tot * 100) + '%'; seg.style.background = s[2]; bar.appendChild(seg);
+    });
+    fill('reality-legend', R_SEG.map(function (s) {
+      var i = el('i'); i.style.background = s[2]; return el('span', {}, [i, s[1] + ' ' + fmtH(e[s[0]]) + ' h (' + (e.total_h ? r1(e[s[0]] / e.total_h * 100) : 0) + '%)']);
+    }));
+    $('reality-effort-note').textContent = 'Effort weighting covers ' + e.weighted_rows + ' of ' + e.rows + ' launch tasks; ' + e.zero_effort +
+      ' launch rows have zero or empty base effort (mostly decisions, gates and sessions) and do not move this bar.';
+    $('reality-reasons').textContent = 'Why ' + k.technical + ' technically complete tasks are not DONE: device NOT TESTED ' + k.reasons.device_not_tested +
+      ' · awaiting Director acceptance ' + k.reasons.awaiting_director + ' · other (Director accepted, remaining definition of done) ' + k.reasons.other + '.';
+    $('reality-deferred').textContent = deferredLine(k);
   }
 
   var ICONS = {
@@ -989,11 +1116,19 @@
   function renderTables() {
     var c = state.calc, b;
     b = $('ms-body'); b.replaceChildren();
-    c.ms.forEach(function (r) {
+    var lm = c.reality.milestones, sum = emptyCounts(), remC = 0;
+    lm.forEach(function (r) {
       var tr = b.insertRow();
-      td(tr, r.milestone); td(tr, r.total, 'num'); td(tr, r.done, 'num'); td(tr, r.technical, 'num'); td(tr, r.active, 'num');
-      td(tr, r.hold_blocked, 'num'); td(tr, r.pct + '%', 'num');
+      td(tr, r.milestone); td(tr, r.total, 'num'); td(tr, r.done, 'num'); td(tr, r.director_accepted, 'num'); td(tr, r.technical, 'num');
+      td(tr, r.in_progress, 'num'); td(tr, r.not_started, 'num'); td(tr, r.hold_blocked, 'num'); td(tr, fmtH(r.remaining_h), 'num'); td(tr, r.pct_done + '%', 'num');
+      Object.keys(sum).forEach(function (key) { sum[key] += r[key]; }); remC += Math.round(r.remaining_h * 100);
     });
+    finishCounts(sum);
+    var ft = $('ms-foot'); ft.replaceChildren();
+    var tr = ft.insertRow();
+    td(tr, 'Launch scope'); td(tr, sum.total, 'num'); td(tr, sum.done, 'num'); td(tr, sum.director_accepted, 'num'); td(tr, sum.technical, 'num');
+    td(tr, sum.in_progress, 'num'); td(tr, sum.not_started, 'num'); td(tr, sum.hold_blocked, 'num'); td(tr, fmtH(remC / 100), 'num'); td(tr, sum.pct_done + '%', 'num');
+    $('ms-deferred').textContent = deferredLine(c.reality.kpi);
     b = $('active-body'); b.replaceChildren();
     c.active.forEach(function (r) {
       var tr = b.insertRow(); td(tr, r.task_id, 'id'); titleTd(tr, r); td(tr, r.workstream); td(tr, r.milestone); td(tr, fmtDate(r.actual_start)); td(tr, r.acceptance_status);
@@ -1203,6 +1338,8 @@
     filterRegister: filterRegister, distinct: distinct, parseQuery: parseQuery, takeaway: takeaway, computeAll: computeAll, datasetFromTexts: datasetFromTexts,
     fmtDate: fmtDate, isExec: isExec, RUNGS: RUNGS, boot: boot,
     projectStatus: projectStatus, activeWorkstreams: activeWorkstreams, overview: overview, galaxy: galaxy, galaxyLayout: galaxyLayout,
-    decisionRefs: decisionRefs, sortRegister: sortRegister, SORT_KEYS: SORT_KEYS
+    decisionRefs: decisionRefs, sortRegister: sortRegister, SORT_KEYS: SORT_KEYS,
+    isDeferred: isDeferred, isLaunch: isLaunch, bucket: bucket, techReason: techReason, launchKpi: launchKpi, effortSplit: effortSplit,
+    launchMilestones: launchMilestones, realitySummary: realitySummary, progressReality: progressReality, fmtH: fmtH
   };
 });
