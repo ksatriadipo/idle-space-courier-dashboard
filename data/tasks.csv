@@ -6,7 +6,7 @@ EP-FLEET,Epic EP-FLEET (2 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,
 EP-MAP,Epic EP-MAP (1 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,
 EP-SKIN,Epic EP-SKIN (2 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,
 EP-DISC,Epic EP-DISC (8 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,
-EP-SECTOR,Epic EP-SECTOR (3 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,
+EP-SECTOR,Epic EP-SECTOR (3 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,
 EP-PROJ,Epic EP-PROJ (11 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,
 EP-DEF,Epic EP-DEF (2 items),EPIC,epic,,HOLD,,,,,,,,,,,,,
 EP-MON,Epic EP-MON (5 items),EPIC,epic,,HOLD,,,,,,,,,,,,,
@@ -15,7 +15,7 @@ EPIC-TEC-Q04A,Epic EPIC-TEC-Q04A (11 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,
 EPIC-TEC-SAVE,Epic EPIC-TEC-SAVE (6 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,
 EPIC-TEC-API,Epic EPIC-TEC-API (5 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,
 EPIC-TEC-PORT,Epic EPIC-TEC-PORT (10 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,
-EPIC-TEC-ART,Epic EPIC-TEC-ART (7 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,
+EPIC-TEC-ART,Epic EPIC-TEC-ART (7 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,
 EPIC-TEC-PERF,Epic EPIC-TEC-PERF (7 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,
 EPIC-TEC-REL,Epic EPIC-TEC-REL (13 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,
 EPIC-TEC-QA,Epic EPIC-TEC-QA (7 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,
@@ -56,10 +56,10 @@ SYS-024,DISCOVERY: effort for discovery sim hook,TASK,design,P1,PLANNED,MLG-A,,r
 SYS-025,Chapter content plan sectors 2-4,TASK,design,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
 SYS-026,DISCOVERY: chapter content volume and art cost,TASK,design,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
 SYS-027,Per-save seed decision (Q11),DECISION,design,P2,PLANNED,MLG-A,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,
-SYS-028,Discovery reveal and card design input,REQUIREMENT,design,P2,READY,M2,,registry approval APPROVED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,
+SYS-028,Discovery reveal and card design input,REQUIREMENT,design,P2,IMPLEMENTED,M2,IMPLEMENTED,"design input: single reveal, batch main reveal + summary, inbox silhouettes, badge 28/44 dp, SFX cues; consistent with D-021, D-096/GL-10, C3 prototype; waiting for a Director look",,,0.25,0.5,1,2026-11-23,2026-11-23,2026-11-20,2026-11-20,
 SYS-029,Sector reward table v2 (existing kinds only),TASK,design,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,
 SYS-030,Reveal merging rule for coincident rewards,TASK,design,P2,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,
-SYS-031,SectorStars unlock rule type (design input),REQUIREMENT,design,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,
+SYS-031,SectorStars unlock rule type (design input),REQUIREMENT,design,P1,IMPLEMENTED,M2,IMPLEMENTED,"design record of UnlockRule.SectorStars=8 as implemented in [branch] (semantics, validation, archived-sector cases, GL-1/GL-2 evidence); waiting for a Director look",,,0.25,0.5,1,,,2026-11-20,2026-11-20,
 SYS-032,Galactic Projects structure approval,DECISION,design,P1,QA_PASS,MLG-B,QA_PASS,lead-gated doc; Director review PENDING,,D-059;D-069,0.25,0.5,1,2026-11-23,2026-11-23,,,
 SYS-033,Sim what-if: project credit stages,TASK,design,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.8,2.3,6.6,2026-11-23,2026-11-27,,,
 SYS-034,DISCOVERY: effort for project sim override,TASK,design,P1,PLANNED,MLG-B,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,
@@ -78,13 +78,13 @@ SYS-046,Willingness-to-pay survey design,TASK,design,P3,HOLD,POST-LAUNCH/DEFERRE
 SYS-047,Legacy ad placements disposition (Q9),TASK,design,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
 SYS-048,Target play-span definition (Q4),TASK,design,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,
 SYS-049,Telemetry decision (Q1),DECISION,design,P2,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,
-TEC-001,Hot-file ownership register and handoff protocol,TASK,production,P0,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,
-TEC-002,Re-serialisation noise guard script,TASK,release,P1,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,
+TEC-001,Hot-file ownership register and handoff protocol,TASK,production,P0,QA_PASS,M2-Q04a,QA_PASS,Hot-file register adopted by the lead as the integration owner rule (D-101 batch),,,0.25,0.5,1,2026-11-23,2026-11-23,2026-11-20,2026-11-20,
+TEC-002,Re-serialisation noise guard script,TASK,release,P1,QA_PASS,M2-Q04a,QA_PASS,reports rewritten files; --restore-noise restores noise only; non-zero exit on unexpected diffs,,,0.25,0.5,1,2026-11-23,2026-11-23,2026-11-20,2026-11-20,none
 TEC-003,DISCOVERY: windowless offscreen capture,TASK,engineering,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,1.28,2.3,4.85,,,,,
 TEC-004,Offscreen capture harness for AutoShot states,TASK,engineering,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,D-094,1.28,2.3,4.85,,,,,
-TEC-005,Consolidated production save fingerprint tool,TASK,qa,P0,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,
+TEC-005,Consolidated production save fingerprint tool,TASK,qa,P0,QA_PASS,M2-Q04a,QA_PASS,unchanged when only proto.*/ui2proto change; changed when save-v4.json touched; D-064 analytics config = noise only; never writes in save folder,,,0.25,0.5,1,2026-11-23,2026-11-23,2026-11-20,2026-11-20,none
 TEC-006,Unity batch runner wrapper,TASK,release,P0,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,
-TEC-007,QA partial convention and expected-count registry,TASK,qa,P1,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,
+TEC-007,QA partial convention and expected-count registry,TASK,qa,P1,QA_PASS,M2-Q04a,QA_PASS,"counts verified against [path] per branch: 1012 [branch] (qa.md[commit]), 979 baker[commit], 965 [branch]; Stab 16, BuildQa 10, c0 [commit]..[commit], m1 [commit]..76758915 (CRLF run output); partial convention written",,,0.25,0.5,1,2026-11-23,2026-11-23,2026-11-20,2026-11-20,
 TEC-008,Refresh integration readiness docs after S2,TASK,production,P2,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,
 TEC-010,S2: merge Home Station 2.0 revision onto int,TASK,engineering,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.62,1.4,4.73,,,,,
 TEC-011,"S3a: port album model, catalog and validator",TASK,engineering,P0,QA_PASS,M2-Q04a,QA_PASS,covered by the M2-Q04a exit gate TEC-110 (D-041 PASS WITH CONDITIONS); own approval PENDING,,D-041,1.35,3.2,12.2,2026-11-23,2026-11-24,,,
@@ -98,7 +98,7 @@ TEC-018,Director phone pass on the Q04a APK (manual acceptance),SESSION,design,P
 TEC-019,G3 phone check of the skin-fix APK (manual),SESSION,design,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0,0,0,,,,,
 TEC-020,Supervised graphical acceptance session,SESSION,qa,P0,READY,M2-Q04a,,registry approval PENDING,,D-094,0,0,0,2026-11-23,2026-11-26,,,
 TEC-030,Save compatibility fixture suite (headless),TASK,qa,P0,QA_PASS,M2-Q04b,QA_PASS,lead gate PASS; post-merge PASS (D-047); approval PENDING in registry,,,1.28,2.3,4.85,,,,,
-TEC-031,Serialized enum reservation register,TASK,engineering,P0,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,
+TEC-031,Serialized enum reservation register,TASK,engineering,P0,QA_PASS,M2-Q04a,QA_PASS,"every serialized enum with values, persistence and next free int; checker fails on renumbering",,D-102,0.25,0.5,1,2026-11-23,2026-11-23,2026-11-20,2026-11-20,
 TEC-032,Schema change framework (only if a schema feature is approved),TASK,engineering,P2,PLANNED,MLG-B,,registry approval PENDING,,,1.28,2.3,4.85,,,,,
 TEC-033,Save size and write-time logging on device,TASK,engineering,P2,PLANNED,M2,,registry approval NOT_REQUIRED,,,0.8,2.3,6.6,,,,,
 TEC-034,DISCOVERY: dev-to-release save policy,TASK,engineering,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,
@@ -118,13 +118,13 @@ TEC-056,"Idle Defense port (visual-only, no saved turret state)",TASK,engineerin
 TEC-057,Garage / Shop port,TASK,engineering,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,4.65,11.3,45.8,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
 TEC-058,DISCOVERY: offline contracts experiment status,TASK,engineering,P3,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,
 TEC-059,DISCOVERY: technical design for Planning A systems,TASK,engineering,P1,QA_PASS,MLG-B,QA_PASS,§6 option A (schema 5) APPROVED as architectural baseline (D-069 D1); runtime HOLD,,D-069,0.25,0.5,1,2026-11-23,2026-11-24,,,
-TEC-060,Art import standard for factory assets,TASK,art-audio,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,
+TEC-060,Art import standard for factory assets,TASK,art-audio,P1,QA_PASS,M2-Q04b,QA_PASS,"standard written from Home 2.0 import (13 FBX .meta, HomeStationArtSetup), budgets, Android textures, PROC-001, D-070, checklist; re-import identity check is in the checklist (needs Unity run by TEC-061)",,,0.25,0.5,1,2026-11-23,2026-11-23,2026-11-20,2026-11-20,
 TEC-061,Re-import [worker] and A6 kits and re-capture,TASK,art-audio,P1,PLANNED,M2,,registry approval NOT_REQUIRED,,D-094,1,1.83,3.62,2026-11-23,2026-11-26,,,waits for TEC-060 (art import standard)
 TEC-062,Import LP T4 prop removal,TASK,art-audio,P2,BLOCKED,MLG-A,,registry approval NOT_REQUIRED,,,1,1.83,3.62,2026-11-23,2026-11-25,,,art change not committed
 TEC-063,Import Cinder Socket_Turret re-export,TASK,art-audio,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,1,1.83,3.62,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
 TEC-064,"Import sector reward art (livery, drone, Pathfinder hull)",TASK,art-audio,P3,BLOCKED,M2,,registry approval PENDING,,,1,1.83,3.62,,,,,sector reward art not produced; depends on TEC-052 scope (HOLD)
-TEC-065,Emission keyword check over all emissive materials,TASK,qa,P1,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,1.35,2.1,4.73,,,,,
-TEC-066,Resources/ usage audit,TASK,engineering,P3,PLANNED,M2,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,
+TEC-065,Emission keyword check over all emissive materials,TASK,qa,P1,QA_PASS,M2-Q04a,QA_PASS,fails on emission without _EMISSION and on GI flags None with emission; reverse case warned,,,1.35,2.1,4.73,,,2026-11-20,2026-11-20,in-Editor StabilityQa extension and FBX-embedded materials remain a Unity follow-up
+TEC-066,Resources/ usage audit,TASK,engineering,P3,QA_PASS,M2,QA_PASS,every Resources/ asset has an owner and a reason,,,0.25,0.5,1,,,2026-11-20,2026-11-20,none
 TEC-070,S2-B device baseline session (manual),SESSION,design,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0,0,0,,,,,
 TEC-071,Per-feature Android budgets,TASK,android-perf,P1,PLANNED,M2-Q04b,,registry approval PENDING,,D-072,0.5,1.5,4,2026-11-23,2026-11-24,,,
 TEC-072,"DevPerfLogger: CPU/GPU frame time, draw calls, memory",TASK,android-perf,P1,DONE,M2-Q04b,TECHNICAL_ACCEPTED,technical accepted (D-059); device numbers recorded by the logger in the clean E1 baseline (D-072),,D-059;D-068;D-072,0.8,2.3,6.6,,,,,
@@ -146,7 +146,7 @@ TEC-090,DISCOVERY: crash reporting and analytics,TASK,engineering,P2,PLANNED,MLG
 TEC-098,DISCOVERY: effort calibration in agent-hours,TASK,production,P1,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,
 TEC-100,Headless full-suite runner,TASK,qa,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,1.35,2.1,4.73,2026-11-23,2026-11-26,,,
 TEC-101,EconomySim identity gate automation,TASK,qa,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,1.35,2.1,4.73,,,,,
-TEC-102,Manual acceptance checklist template and BLOCKED register,TASK,qa,P1,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,
+TEC-102,Manual acceptance checklist template and BLOCKED register,TASK,qa,P1,QA_PASS,M2-Q04a,QA_PASS,"template [path] consistent with EVIDENCE-FIRST-QA; register: 5 tracker BLOCKED rows + Q04a check-level items (A-7, T50-D01..D04, Q04 foundation s7) with [path]; cites D-094",,,0.25,0.5,1,,,2026-11-20,2026-11-20,
 TEC-103,Flaky-test fixes,TASK,qa,P2,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,1.35,2.1,4.73,,,,,
 TEC-104,DISCOVERY: Unity Test Framework adoption,TASK,qa,P3,PLANNED,M2,,registry approval PENDING,,,1.28,2.3,4.85,,,,,
 TEC-105,Touch-target and Android back automated checks,TASK,qa,P2,QA_PASS,M2-Q04b,QA_PASS,post-merge PASS GameplayQa 503/503; approval PENDING in registry,,,1.35,2.1,4.73,,,,,
@@ -230,7 +230,7 @@ TEC-050-GATE,TEC-050 technical gate: lead re-audit + full re-regression + 2nd de
 W2B3-APK1,Baseline dev APK built from [branch],TASK,release,P0,DONE,M2-Q04b,QA_PASS,"build Succeeded, sha256 [hash], fp unchanged (lead)",,D-069,0,0,0,,,2026-11-20,2026-11-20,
 W2B3-E1,"Device baseline E1 (clean run s2-20261120-131742, S2 / 6 AUTO / 600 s)",SESSION,android-perf,P0,DONE,M2-Q04b,DIRECTOR_ACCEPTED,E1 ACCEPTED (D-072); preliminary s2-20261120-125735 kept as PROTOCOL DEVIATION (D-071),PASS,D-071;D-072,0,0,0,,,2026-11-20,2026-11-20,
 W2B3-DES,"W2-B3 read-only design: schema 5 migration, SectorStars compatibility, TEC-050 preflight",TASK,design,P1,QA_PASS,M2-Q04b,QA_PASS,lead gate PASS (3 docs); risks R1-R4 recorded,,D-069,0,0,0,,,2026-11-20,2026-11-20,
-W2B3-R4,R4 SectorStars: enum slot 8 + pin + rule + fixtures (FX-10),TASK,engineering,P1,HOLD,MLG-B,,,,D-049;D-069;D-081,1,1.5,4,2026-11-23,2026-11-27,,,technical preparation + fixture design APPROVED (D-069 D3); enum implementation HOLD (D-049 item 15)
+W2B3-R4,R4 SectorStars: enum slot 8 + pin + rule + fixtures (FX-10),TASK,engineering,P1,HOLD,MLG-B,,,,D-049;D-069;D-081;D-102,1,1.5,4,2026-11-23,2026-11-27,,,technical preparation + fixture design APPROVED (D-069 D3); enum implementation HOLD (D-049 item 15)
 W2B3-SCH5,"Schema 5 batch: global.projects + P6.2 delivery counter (from P6.1 built) + O4d last-find; fixtures 4->5, downgrade, reload",TASK,engineering,P1,HOLD,MLG-B,,,,D-064;D-069;D-081,3,6,16,2026-11-27,2026-12-02,,,"Option A approved as baseline (D-069 D1); runtime/save implementation HOLD until migration design, fixtures and file ownership verified"
 W2B-P62,P6.2 gate redesign simulation (Lighthouse calibration),TASK,design,P0,DONE,MLG-B,DIRECTOR_ACCEPTED,ACCEPTED as simulation/design gate (D-064); no runtime approval,,D-064,0,0,0,,,,2026-11-20,
 W2B-V1PT,V1 paper playtest (Director with 2-4 testers),SESSION,design,P1,READY,MLG-B,,,,D-052;D-053;D-059,0,0,0,2026-11-23,2026-11-25,,,
@@ -292,11 +292,11 @@ GLT-057,GL100 rocket acceptance rounds ch02-ch10 (2-4 review rounds),TASK,gl100-
 GLT-058,"GL100 UI zone sheets ch02-ch10, UI-10 reveal cams s90/s95/s99, MOD-9 L module list",TASK,gl100-art,P3,PLANNED,GL100-P3D,,,,,1,3,8,2026-12-04,2026-12-04,,,
 GLT-059,GL100 registry + gallery maintenance (per integration round; lead single writer),TASK,gl100-qa,P2,IN_PROGRESS,GL100-P3D,,,,D-067,0,0,0,,,,,
 GLT-060,"GL100 registry fixes: DESIGN RECORD lifecycle mapping, stale ui.backdrop/A5/A12 findings",TASK,gl100-qa,P3,DONE,GL100-P3D,QA_PASS,,,D-100,0.3,0.7,1.5,,,2026-11-20,2026-11-20,
-GLT-070,"P3-A zone reward track: ZoneRewardDefinition, state-based zone-complete rule, reward.zone.sNN (absorbs TEC-052)",TASK,gl100-runtime,P0,IN_PROGRESS,GL100-P3A,,,,D-062;D-097,2.5,5,12,2026-11-24,2026-11-27,2026-11-20,,
-GLT-071,"P3-A TEC-054 Body scope: distinct-body path, 16 class sockets, on-demand load, body.any.sNN verified",TASK,gl100-runtime,P0,IN_PROGRESS,GL100-P3A,,,,D-062;D-097,2.5,6,15,2026-11-24,2026-11-27,2026-11-20,,
-GLT-072,"P3-A claim / reveal panel (CLAIM, CLAIM & EQUIP, skip, Low Effects)",TASK,gl100-runtime,P0,PLANNED,GL100-P3A,,,,D-062,1.5,3.5,9,2026-11-27,2026-12-02,,,
-GLT-073,"P3-A baker extension: silhouette, phone-size render, contact sheet",TASK,gl100-runtime,P1,IN_PROGRESS,GL100-P3A,,"GameplayQa all PASS (965 + new BAKER rows), StabilityQa 16/16, BuildQa 10/10, c0/m1 byte-identical, fingerprint unchanged, -bakeCheck clean, sample contact sheet DESKTOP/headless",,D-062;D-097,0.7,1.5,4,2026-11-24,2026-11-27,2026-11-20,,
-GLT-074,"P3-A GL100 save fixtures: claims, new slot, kill-mid-reveal, downgrade, unclaimed reward",TASK,gl100-qa,P0,IN_PROGRESS,GL100-P3A,,,,D-062;D-097,1,2,5,2026-11-27,2026-12-02,2026-11-20,,
+GLT-070,"P3-A zone reward track: ZoneRewardDefinition, state-based zone-complete rule, reward.zone.sNN (absorbs TEC-052)",TASK,gl100-runtime,P0,QA_PASS,GL100-P3A,QA_PASS,"zone track reward.zone.sNN, state-based ZoneComplete incl. archived zones, manual claim via ledger, cosmetic only (Credits unchanged), no save field; s01-s04 payload = content (SYS-029/P3-B); zone-task data P3-C",,D-062;D-097;D-102,2.5,5,12,2026-11-24,2026-11-27,2026-11-20,2026-11-20,none
+GLT-071,"P3-A TEC-054 Body scope: distinct-body path, 16 class sockets, on-demand load, body.any.sNN verified",TASK,gl100-runtime,P0,QA_PASS,GL100-P3A,QA_PASS,"body.any.sNN verified (class modules, equip, preview, save) with placeholder meshes; no rocket art imported; production-id freeze awaits GLT-075 / P3-B art",,D-062;D-097;D-098;D-102,2.5,6,15,2026-11-24,2026-11-27,2026-11-20,2026-11-20,none
+GLT-072,"P3-A claim / reveal panel (CLAIM, CLAIM & EQUIP, skip, Low Effects)",TASK,gl100-runtime,P0,IN_PROGRESS,GL100-P3A,,,,D-062,1.5,3.5,9,2026-11-27,2026-12-02,2026-11-20,,
+GLT-073,"P3-A baker extension: silhouette, phone-size render, contact sheet",TASK,gl100-runtime,P1,QA_PASS,GL100-P3A,QA_PASS,T+R met (technical/regression); visual uniqueness not judged (D-061 needs produced assets); not DIRECTOR_ACCEPTED,,D-062;D-097,0.7,1.5,4,2026-11-24,2026-11-27,2026-11-20,2026-11-20,
+GLT-074,"P3-A GL100 save fixtures: claims, new slot, kill-mid-reveal, downgrade, unclaimed reward",TASK,gl100-qa,P0,QA_PASS,GL100-P3A,QA_PASS,"new slot KEY rocket.<class>.body in world.equipped, no new field, schema 4",,D-062;D-097,1,2,5,2026-11-27,2026-12-02,2026-11-20,2026-11-20,none
 GLT-075,P3-A exit gate (lead audit + regression; zones 1-4 unchanged refs),GATE,gl100-qa,P0,PLANNED,GL100-P3A,,,,D-062,0,0,0,2026-12-02,2026-12-04,,,
 GLT-080,"Director: P3-B GO (5-zone vertical slice, 5 rockets)",DECISION,director,P0,PLANNED,GL100-P3B,,,,D-062;D-096,0,0,0,2026-12-04,2026-12-07,,,
 GLT-081,P3-B 5 rockets s01-s05 through the full pipeline (spec -> assets -> art QA),TASK,gl100-art,P0,PLANNED,GL100-P3B,,,,D-062,1,2.5,6,2026-12-07,2026-12-07,,,
