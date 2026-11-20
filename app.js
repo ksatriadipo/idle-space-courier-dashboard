@@ -714,10 +714,10 @@
   }
 
   // ---- D-100 "progress reality" (pure): launch-scope denominators, separate buckets, effort weighting
-  // Executable = node_type not EPIC/PARENT. Launch scope = executable and milestone not POST-LAUNCH/DEFERRED.
+  // Executable = node_type not EPIC/PARENT. Launch scope = executable, milestone not POST-LAUNCH/DEFERRED, status not CANCELLED (D-117).
   var DEFERRED_RE = /POST-LAUNCH|DEFERRED/;
   function isDeferred(r) { return DEFERRED_RE.test(r.milestone || ''); }
-  function isLaunch(r) { return isExec(r) && !isDeferred(r); }
+  function isLaunch(r) { return isExec(r) && !isDeferred(r) && r.status !== 'CANCELLED'; }   // D-117: CANCELLED rows stay in the registry, never in a launch denominator
   // Mutually exclusive buckets: every launch row lands in exactly one.
   function bucket(st) {
     if (has(DONE, st)) return 'done';
