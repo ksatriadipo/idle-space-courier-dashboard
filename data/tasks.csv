@@ -63,7 +63,7 @@ SYS-031,SectorStars unlock rule type (design input),REQUIREMENT,design,P1,DIRECT
 SYS-032,Galactic Projects structure approval,DECISION,design,P1,QA_PASS,MLG-B,QA_PASS,lead-gated doc; Director review PENDING,,D-059;D-069,0.25,0.5,1,2026-11-23,2026-11-23,,,
 SYS-033,Sim what-if: project credit stages,TASK,design,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.8,2.3,6.6,2026-11-23,2026-11-30,,,
 SYS-034,DISCOVERY: effort for project sim override,TASK,design,P1,PLANNED,MLG-B,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,
-SYS-035,C0-style gate timing for all project gates,TASK,design,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.8,2.3,6.6,2026-11-23,2026-11-30,,,
+SYS-035,C0-style gate timing for all project gates,TASK,design,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.8,2.3,6.6,2026-11-23,2026-11-27,,,
 SYS-036,"Project content: names, narrative, stage text",TASK,design,P2,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,,,,,
 SYS-037,Project data configuration spec (ProjectCatalog),TASK,design,P2,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-30,,,
 SYS-038,"New rule types: archetype tier count, MkReached (design input)",REQUIREMENT,design,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
@@ -107,13 +107,13 @@ TEC-040,RouteView presentation-extension API design,TASK,engineering,P0,QA_PASS,
 TEC-041,Implement RouteView extension API (no behaviour change),TASK,engineering,P0,DONE,M2-Q04b,TECHNICAL_ACCEPTED,W2-B2 technical accepted (D-059); W2-B2 closed (D-068),,D-059;D-068,1.28,2.3,4.85,,,,,
 TEC-042,SliceHud split plan for UX2,TASK,engineering,P1,QA_PASS,M2-Q04b,QA_PASS,split plan executed by TEC-050 P0-P3,,D-049;D-050,0.25,0.5,1,,,,,
 TEC-043,"Cosmetic layer extension design (Kit/Fit, model layer)",TASK,engineering,P1,PLANNED,M2,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-27,,,
-TEC-044,Collection Sync order contract and test,TASK,engineering,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,1.28,2.3,4.85,2026-11-23,2026-11-30,,,
+TEC-044,Collection Sync order contract and test,TASK,engineering,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,1.28,2.3,4.85,2026-11-23,2026-11-27,,,
 TEC-050,UX2 Map HUD port (SliceHud split),PARENT,engineering,P1,IN_PROGRESS,M2-Q04b,TECHNICAL_ACCEPTED,TECHNICAL ACCEPTED at [commit] (D-080); DEVICE VALIDATED PENDING; FULL ACCEPTANCE PENDING; A-7 PENDING,NOT TESTED (A-7 BLOCKED),D-072;D-075;D-076;D-080,0,0,0,2026-11-23,2026-11-23,2026-11-20,,FULL ACCEPTANCE pending device evidence (W2B3-ADB1) and A-7 (TEC-050-A7); D2 conditional (QD-07)
 TEC-051,UX2 overlay restyle (optional),TASK,engineering,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,1.17,2.73,10.33,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
-TEC-052,Sector rewards phase A port,TASK,engineering,P1,HOLD,M2-Q04b,,"architectural scope approved, not implementation GO",,D-062;D-069;D-081,0.62,1.4,4.73,2026-11-30,2026-12-03,,,scope approved: one canonical zone reward track reward.zone.sNN (D-069 D4); implementation HOLD; merges into GL100 P3-A GLT-070
-TEC-053,LP-0 Living Planets port (Cinder),TASK,engineering,P1,BLOCKED,M2-Q04b,,registry approval PENDING,,D-081,1.35,3.2,12.2,2026-11-24,2026-12-01,,,G-LP0 Director gate
-TEC-054,Skin effects / Workshop Expansion port,TASK,engineering,P1,HOLD,M2,,"architectural scope approved, not implementation GO",,D-062;D-069;D-081,2.82,6.8,27.13,2026-12-01,2026-12-04,,,scope approved: one attachment architecture with Body scope (D-069 D5); implementation HOLD; Body path in GLT-071
-TEC-055,MD-1 Meaningful Deliveries port,TASK,engineering,P1,BLOCKED,MLG-A,,registry approval PENDING,,D-081,1.9,4.53,17.8,2026-12-03,2026-12-07,,,Director choice: offline option + seed option; C0 spacing report
+TEC-052,Sector rewards phase A port,TASK,engineering,P1,HOLD,M2-Q04b,,"architectural scope approved, not implementation GO",,D-062;D-069;D-081,0.62,1.4,4.73,2026-11-27,2026-12-03,,,scope approved: one canonical zone reward track reward.zone.sNN (D-069 D4); implementation HOLD; merges into GL100 P3-A GLT-070
+TEC-053,LP-0 Living Planets port (Cinder),TASK,engineering,P1,BLOCKED,M2-Q04b,,registry approval PENDING,,D-081,1.35,3.2,12.2,2026-11-24,2026-11-30,,,G-LP0 Director gate
+TEC-054,Skin effects / Workshop Expansion port,TASK,engineering,P1,HOLD,M2,,"architectural scope approved, not implementation GO",,D-062;D-069;D-081,2.82,6.8,27.13,2026-11-30,2026-12-04,,,scope approved: one attachment architecture with Body scope (D-069 D5); implementation HOLD; Body path in GLT-071
+TEC-055,MD-1 Meaningful Deliveries port,TASK,engineering,P1,BLOCKED,MLG-A,,registry approval PENDING,,D-081,1.9,4.53,17.8,2026-12-03,2026-12-04,,,Director choice: offline option + seed option; C0 spacing report
 TEC-056,"Idle Defense port (visual-only, no saved turret state)",TASK,engineering,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,1.53,3.67,14.07,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
 TEC-057,Garage / Shop port,TASK,engineering,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,4.65,11.3,45.8,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
 TEC-058,DISCOVERY: offline contracts experiment status,TASK,engineering,P3,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,
@@ -154,10 +154,10 @@ TEC-110,M2-Q04a technical exit gate,GATE,production,P0,DONE,M2-Q04a,DIRECTOR_ACC
 TEC-111,M2-Q04b technical exit gate,GATE,production,P1,PLANNED,M2-Q04b,,registry approval PENDING,,,0,0,0,2026-12-03,2026-12-04,,,
 TEC-112,M2 complete (G4) technical gate,GATE,production,P1,PLANNED,M2,,registry approval PENDING,,,0,0,0,2026-12-04,2026-12-07,,,
 TEC-113,DISCOVERY: Queue 04 benchmarks 04.6-04.10 scope,TASK,production,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,
-TEC-114,Minimum Lovable Game technical gate,GATE,production,P1,PLANNED,MLG-B,,registry approval PENDING,,,0,0,0,2026-12-15,2026-12-16,,,
+TEC-114,Minimum Lovable Game technical gate,GATE,production,P1,PLANNED,MLG-B,,registry approval PENDING,,,0,0,0,2026-12-14,2026-12-15,,,
 TEC-115,Release candidate technical gate,GATE,production,P0,PLANNED,RC,,registry approval PENDING,,,0,0,0,2027-01-15,2027-01-18,,,
 UXC-001,UX information architecture v1 adoption,TASK,design,P0,PLANNED,M2-Q04b,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-25,,,
-UXC-002,DISCOVERY: Director screenshot findings root cause,TASK,engineering,P0,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-25,,,
+UXC-002,DISCOVERY: Director screenshot findings root cause,TASK,engineering,P0,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-24,,,
 UXC-003,Map HUD readability fixes (Director findings) inside the UX2 port,TASK,engineering,P0,PLANNED,M2-Q04b,,registry approval PENDING,,,1,1.83,3.62,2026-12-02,2026-12-04,,,
 UXC-004,Single goal surface: mission card hierarchy spec (incl. star-3 visibility),TASK,design,P0,PLANNED,M2-Q04b,,registry approval PENDING,,,0.25,0.5,1,2026-11-25,2026-12-02,,,
 UXC-005,Star-3 / contract visibility UI implementation,TASK,engineering,P0,QA_PASS,M2,TECHNICAL_ACCEPTED,TECHNICAL ACCEPTED (D-085); device NOT TESTED; S4/S5 moved to QD-02 (D-084); MissionCard 2 slots conditionally accepted (D-084),,D-049;D-069;D-072;D-079;D-085,1,1.83,3.62,2026-11-23,2026-11-23,2026-11-20,2026-11-20,waiting for the Unity lock (APK 2 build)
@@ -179,9 +179,9 @@ UXC-020,"UX copy pass (HUD, recap, sector framing, gates, projects)",TASK,design
 UXC-021,DISCOVERY: localization and font licensing,TASK,production,P2,DIRECTOR_ACCEPTED,MLG-B,DIRECTOR_ACCEPTED,fonts Fredoka + Nunito approved and integrated via R2 (D-057); licences screen = QD-04,,D-057,0.25,0.5,1,,,,,
 UXC-022,"Galactic Projects content (names, stage text, lore) for the MLG subset",TASK,design,P2,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,,,,,
 UXC-023,Discovery chapters S2-S4 content,TASK,design,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
-UXC-030,Screenshot baseline state list (4 resolutions),TASK,qa,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-25,2026-12-01,,,
-UXC-031,Supervised graphical acceptance batch per milestone,TASK,qa,P0,PLANNED,M2,,registry approval PENDING,,D-094,1.35,2.1,4.73,2026-12-01,2026-12-08,,,waits for UXC-030 (screenshot state list) and TEC-020
-UXC-032,Device visual and readability pass checklist,TASK,qa,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,2026-12-01,2026-12-08,,,
+UXC-030,Screenshot baseline state list (4 resolutions),TASK,qa,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-25,2026-11-30,,,
+UXC-031,Supervised graphical acceptance batch per milestone,TASK,qa,P0,PLANNED,M2,,registry approval PENDING,,D-094,1.35,2.1,4.73,2026-11-30,2026-12-08,,,waits for UXC-030 (screenshot state list) and TEC-020
+UXC-032,Device visual and readability pass checklist,TASK,qa,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,2026-11-30,2026-12-07,,,
 UXC-033,Accessibility and layout automated checks scope,TASK,qa,P2,PLANNED,M2,,registry approval NOT_REQUIRED,,,1.35,2.1,4.73,,,,,
 UXC-040,DISCOVERY + decision: audio pipeline extension and music scope,TASK,art-audio,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-25,,,
 UXC-041,Effort calibration for UX/art task classes,TASK,production,P1,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,
@@ -191,14 +191,14 @@ UXC-050,Privacy and store compliance content,TASK,release,P1,PLANNED,RC,,registr
 UXC-090,MLG UX/content gate,GATE,production,P0,PLANNED,MLG-B,,registry approval PENDING,,,0,0,0,2026-12-16,2026-12-17,,,
 UXC-091,RC UX/content and store asset gate,GATE,production,P0,PLANNED,RC,,registry approval PENDING,,,0,0,0,2027-01-18,2027-01-19,,,
 UXC-092,Full Vision content gate,GATE,production,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0,0,0,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
-AST-WP-01,"UI icon set v1 (nav, currency, stats, states)",TASK,art-audio,P1,PLANNED,M2-Q04b,,registry approval PENDING,,,1,3,8,2026-11-25,2026-12-02,,,
+AST-WP-01,"UI icon set v1 (nav, currency, stats, states)",TASK,art-audio,P1,PLANNED,M2-Q04b,,registry approval PENDING,,,1,3,8,2026-11-25,2026-12-01,,,
 AST-WP-02,"Cozy component kit (USS): cards, chips, pips, bars, buttons",TASK,engineering,P0,DONE,M2-Q04b,DIRECTOR_ACCEPTED,registry approval APPROVED,,,1,1.83,3.62,,,,,
 AST-WP-03,Readability fix for 3 weak skin pairs (Blender),TASK,art-audio,P2,PLANNED,M2,,registry approval PENDING,,,0.47,0.83,1.53,,,,,
 AST-WP-04,"Thumbnail set (rockets, skins, album items)",TASK,art-audio,P1,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.47,0.83,1.53,,,,,
 AST-WP-05,Skin VFX final pass for shipped packs,TASK,art-audio,P1,PLANNED,M2,,registry approval PENDING,,,0.62,1.4,4.73,,,,,
 AST-WP-06,A6 idle animation runtime tuning,TASK,art-audio,P2,PLANNED,M2,,registry approval PENDING,,,0.62,1.4,4.73,,,,,
 AST-WP-07,Factory import standard application (MLG subset),TASK,art-audio,P1,PLANNED,M2,,registry approval NOT_REQUIRED,,,0.62,1.4,4.73,,,,,
-AST-WP-08,Living Planets LP-1 polish (5 archetypes),TASK,art-audio,P1,PLANNED,MLG-A,,registry approval PENDING,,,0.47,0.83,1.53,2026-12-01,2026-12-04,,,
+AST-WP-08,Living Planets LP-1 polish (5 archetypes),TASK,art-audio,P1,PLANNED,MLG-A,,registry approval PENDING,,,0.47,0.83,1.53,2026-11-30,2026-12-04,,,
 AST-WP-09,Discovery props S2-S4 (Blender batches),TASK,art-audio,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.47,0.83,1.53,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
 AST-WP-10,Galactic Projects construction stages: MLG subset (Blender),TASK,art-audio,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.47,0.83,1.53,2026-11-30,2026-12-03,,,
 AST-WP-11,Galactic Projects P3-P6 construction stages (Blender),TASK,art-audio,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.47,0.83,1.53,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
@@ -208,15 +208,15 @@ AST-WP-14,Sector reward art: existing kinds only (CANDIDATE expansion excluded),
 AST-WP-15,Reveal and feedback VFX kit (UI + world),TASK,art-audio,P1,PLANNED,MLG-B,,registry approval PENDING,,,1,1.83,3.62,2026-12-02,2026-12-04,,,
 AST-WP-16,SFX batch: new feature events,TASK,art-audio,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.8,2.3,6.6,2026-11-25,2026-12-02,,,
 AST-WP-17,Music: additional loops (scope TBD),TASK,art-audio,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.8,2.3,6.6,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
-AST-WP-18,Store listing assets,TASK,art-audio,P1,PLANNED,RC,,registry approval PENDING,,,1,3,8,2026-12-07,2026-12-09,,,
+AST-WP-18,Store listing assets,TASK,art-audio,P1,PLANNED,RC,,registry approval PENDING,,,1,3,8,2026-12-07,2026-12-08,,,
 AST-WP-19,Premium pack presentation assets (PROPOSED),TASK,art-audio,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,1,3,8,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
 AST-WP-20,"Galaxy and sector presentation pass (backgrounds, cargo visuals)",TASK,art-audio,P2,PLANNED,MLG-B,,registry approval PENDING,,,0.47,0.83,1.53,,,,,
 GAP-GP-ENG,"Galactic Projects runtime (P1+P2 lite, existing rule types)",TASK,engineering,P0,HOLD,MLG-B,,registry approval PENDING,,D-069;D-072,6.68,14.9,38.8,2026-12-07,2026-12-09,,,GP runtime HOLD (D-072 item 8)
 GAP-GP-EVAL,Galactic Projects 5+1 evaluation incl. Mk 3 soft deadlock,TASK,design,P0,DONE,MLG-B,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.25,0.5,1,,,,,
 GAP-DISC-EVAL,"Discovery pacing evaluation: tier gates, milestone unlocks, guaranteed path, return caps",TASK,design,P1,DONE,MLG-A,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.8,2.3,6.6,,,,,
-GAP-ECON-RESIM,MLG integrated economy re-simulation and retention check (late-game sink),TASK,design,P0,PLANNED,MLG-B,,registry approval PENDING,,,0.8,2.3,6.6,2026-12-09,2026-12-15,,,
+GAP-ECON-RESIM,MLG integrated economy re-simulation and retention check (late-game sink),TASK,design,P0,PLANNED,MLG-B,,registry approval PENDING,,,0.8,2.3,6.6,2026-12-09,2026-12-14,,,
 GAP-PROG-TARGET,Validate the target player-progression hypothesis (D-036),TASK,design,P1,DONE,MLG-B,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.8,2.3,6.6,,,,,
-GAP-QA-EDGE,Edge-case and hard-deadlock tests in the real game,TASK,qa,P0,PLANNED,MLG-B,,registry approval PENDING,,,1.35,2.1,4.73,2026-12-09,2026-12-14,,,
+GAP-QA-EDGE,Edge-case and hard-deadlock tests in the real game,TASK,qa,P0,PLANNED,MLG-B,,registry approval PENDING,,,1.35,2.1,4.73,2026-12-09,2026-12-11,,,
 GAP-GATE-MLGA,MLG-A acceptance gate (living galaxy),GATE,production,P1,PLANNED,MLG-A,,registry approval PENDING,,,0,0,0,2026-12-07,2026-12-08,,,
 GAP-REL-VER,Versioning policy and automation (bundleVersion / versionCode),TASK,release,P1,PLANNED,RC,,registry approval PENDING,,,1.35,4.1,12.2,2026-11-27,2026-12-03,,,
 GAP-REL-PIPE,Release pipeline: signed AAB from a frozen main commit,TASK,release,P1,PLANNED,RC,,registry approval PENDING,,,1.35,4.1,12.2,2026-12-07,2026-12-09,,,
@@ -283,13 +283,13 @@ GLT-048,Director decision: ENV-2 chapter palettes ch04/05/07/09/10 confirm or re
 GLT-049,Director: P3-A GO with frozen scope (after TEC-050 gate; TEC-052/054 scopes from D-069),DECISION,director,P0,DONE,GL100-P3A,QA_PASS,"Director implementation GO D-097 (P3-A frozen scope GLT-070..075, design D-096)",,D-062;D-069;D-096;D-097;D-100,0,0,0,2026-11-20,2026-11-20,2026-11-20,2026-11-20,
 GLT-050,GL100 LMK-1 landmarks s11-s100 + MOD-12 kits production,TASK,gl100-art,P1,PLANNED,GL100-P3D,,,,D-098,4,20.5,24,2026-11-24,2026-12-03,,,
 GLT-051,GL100 ZON-1 zone packages s11-s100 + sky presets,TASK,gl100-art,P1,PLANNED,GL100-P3D,,,,D-098,3,15,20,2026-12-03,2026-12-08,,,
-GLT-052,GL100 ENV-1 planet sets ch02-ch10,TASK,gl100-art,P1,PLANNED,GL100-P3D,,,,,3,7,16,2026-11-24,2026-12-02,,,
-GLT-053,GL100 VFX-3 ambient events,TASK,gl100-art,P2,PLANNED,GL100-P3D,,,,,2.5,6,18,2026-11-24,2026-12-02,,,
+GLT-052,GL100 ENV-1 planet sets ch02-ch10,TASK,gl100-art,P1,PLANNED,GL100-P3D,,,,,3,7,16,2026-11-24,2026-12-01,,,
+GLT-053,GL100 VFX-3 ambient events,TASK,gl100-art,P2,PLANNED,GL100-P3D,,,,,2.5,6,18,2026-11-24,2026-12-01,,,
 GLT-054,GL100 UI-4 crests + UI-6 banners + UI-9 map markers,TASK,gl100-art,P2,PLANNED,GL100-P3D,,,,,1.5,4,12,2026-11-24,2026-12-02,,,
-GLT-055,GL100 CHP-1 chapter records ch02-ch10,TASK,gl100-design,P2,PLANNED,GL100-P3D,,,,,1,3,8,2026-12-08,2026-12-10,,,
+GLT-055,GL100 CHP-1 chapter records ch02-ch10,TASK,gl100-design,P2,PLANNED,GL100-P3D,,,,,1,3,8,2026-12-08,2026-12-09,,,
 GLT-056,"GL100 zone tasks as data s11-s100 (idle-compatible, OD-2)",TASK,gl100-design,P1,PLANNED,GL100-P3D,,,,D-062;D-064,4,12,32,2026-11-23,2026-11-26,,,
-GLT-057,GL100 rocket acceptance rounds ch02-ch10 (2-4 review rounds),TASK,gl100-art,P1,PLANNED,GL100-P3D,,,,,5,13,42,2026-11-23,2026-11-26,,,
-GLT-058,"GL100 UI zone sheets ch02-ch10, UI-10 reveal cams s90/s95/s99, MOD-9 L module list",TASK,gl100-art,P3,PLANNED,GL100-P3D,,,,,1,3,8,2026-12-08,2026-12-09,,,
+GLT-057,GL100 rocket acceptance rounds ch02-ch10 (2-4 review rounds),TASK,gl100-art,P1,PLANNED,GL100-P3D,,,,,5,13,42,2026-11-23,2026-11-25,,,
+GLT-058,"GL100 UI zone sheets ch02-ch10, UI-10 reveal cams s90/s95/s99, MOD-9 L module list",TASK,gl100-art,P3,PLANNED,GL100-P3D,,,,,1,3,8,2026-12-08,2026-12-08,,,
 GLT-059,GL100 registry + gallery maintenance (per integration round; lead single writer),TASK,gl100-qa,P2,IN_PROGRESS,GL100-P3D,,,,D-067,0,0,0,,,,,
 GLT-060,"GL100 registry fixes: DESIGN RECORD lifecycle mapping, stale ui.backdrop/A5/A12 findings",TASK,gl100-qa,P3,DONE,GL100-P3D,QA_PASS,,,D-100,0.3,0.7,1.5,,,2026-11-20,2026-11-20,
 GLT-070,"P3-A zone reward track: ZoneRewardDefinition, state-based zone-complete rule, reward.zone.sNN (absorbs TEC-052)",TASK,gl100-runtime,P0,QA_PASS,GL100-P3A,QA_PASS,"zone track reward.zone.sNN, state-based ZoneComplete incl. archived zones, manual claim via ledger, cosmetic only (Credits unchanged), no save field; s01-s04 payload = content (SYS-029/P3-B); zone-task data P3-C",,D-062;D-097;D-102,2.5,5,12,2026-11-20,2026-11-20,2026-11-20,2026-11-20,none
@@ -306,23 +306,23 @@ GLT-084,P3-B Director chapter review sitting,DECISION,director,P0,DONE,GL100-P3B
 GLT-085,"P3-B phone session (device bars HYPOTHESIS: >=55 fps flight, >=45 fps reveal)",SESSION,gl100-qa,P0,BLOCKED,GL100-P3B,,,,D-062;D-112,0,0,0,2026-12-08,2026-12-11,,,ADB HOLD: device session not authorised; carried as D-112 residual risk R2/R5 into the next ADB session (W2B3-ADB1 checklist section 9); not a P3-B technical-exit blocker
 GLT-086,P3-B exit gate X1-X6 + metrics M1-M10,GATE,gl100-qa,P0,QA_PASS,GL100-P3B,QA_PASS,"D-112: P3-B TECHNICAL EXIT PASS (technical vertical slice only; not production readiness, not organic Zone 1); residual R1-R5 accepted for technical scope; device performance NOT TESTED",,D-062;D-105;D-110;D-112,0,0,0,2026-11-20,2026-11-20,2026-11-20,2026-11-20,
 GLT-090,Director: P3-C GO (10-zone pilot),DECISION,director,P0,DONE,GL100-P3C,QA_PASS,Director decision D-116: P3-C execution GO,,D-062;D-105;D-107;D-116,0,0,0,2026-11-21,2026-11-21,2026-11-21,2026-11-21,
-GLT-091,P3-C chapter I s06-s10 + s20 L sample: rockets + zone assets,TASK,gl100-art,P0,IN_PROGRESS,GL100-P3C,,,,D-062;D-115,1.5,4,10,2026-11-23,2026-11-23,2026-11-21,,
+GLT-091,P3-C chapter I s06-s10 + s20 L sample: rockets + zone assets,TASK,gl100-art,P0,IMPLEMENTED,GL100-P3C,IMPLEMENTED,,,D-062;D-115,1.5,4,10,2026-11-23,2026-11-23,2026-11-21,2026-11-21,Unity import in GLT-094; Director review in GLT-096
 GLT-092,P3-C zone tasks s06-s10 as data + OD-2 idle-compatible alternative,TASK,gl100-design,P0,CANCELLED,GL100-P3C,,,,D-062;D-115,1,2,5,,,,,
 GLT-093,P3-C s10 milestone reveal + signature,TASK,gl100-runtime,P0,IN_PROGRESS,GL100-P3C,,,,D-062;D-113;D-116,1,2,5,2026-11-23,2026-11-23,2026-11-21,,
-GLT-094,P3-C import (2 chapter-sized runs) + regression,TASK,gl100-runtime,P0,PLANNED,GL100-P3C,,,,D-062;D-115,2,5,20,2026-11-27,2026-12-02,,,
+GLT-094,P3-C import (2 chapter-sized runs) + regression,TASK,gl100-runtime,P0,PLANNED,GL100-P3C,,,,D-062;D-115,2,5,20,2026-11-26,2026-12-02,,,
 GLT-095,P3-C GL-17 8-route device test,SESSION,gl100-qa,P0,PLANNED,GL100-P3C,,,,D-062,0,0,0,2026-12-02,2026-12-07,,,
 GLT-096,P3-C Director chapter review,DECISION,director,P0,PLANNED,GL100-P3C,,,,D-062,0,0,0,2026-12-02,2026-12-03,,,
 GLT-097,P3-C exit + mandatory re-forecast (GL-2: 100 at launch vs contingency),GATE,gl100-qa,P0,PLANNED,GL100-P3C,,"D-110 P3-C exit: Zone 1 organic s01->s10, all 9 parts via normal gameplay, installed in Hangar, map 10 activation/reveal, no fixtures or debug rewards",,D-062;D-110;D-111;D-115,0,0,0,2026-12-07,2026-12-08,,,
 GLT-100,Director: P3-D GO with re-forecast date,DECISION,director,P0,PLANNED,GL100-P3D,,,,D-062;D-105;D-107,0,0,0,2026-12-08,2026-12-09,,,
 GLT-101,P3-D Galaxy Map refresh / paging (before ch03),TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,1.5,4,13,2026-12-09,2026-12-14,,,
-GLT-102,P3-D Workshop / Album paging (before ~30 rockets),TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,1.5,4,13,2026-12-09,2026-12-15,,,
+GLT-102,P3-D Workshop / Album paging (before ~30 rockets),TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,1.5,4,13,2026-12-09,2026-12-14,,,
 GLT-103,P3-D mission versioning: ids + frozen hash (before any public build),TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,1,4,14,2026-12-09,2026-12-15,,,
 GLT-104,P3-D chapter ch02 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2026-12-09,2026-12-15,,,
 GLT-105,P3-D chapter ch03 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2026-12-15,2026-12-17,,,
 GLT-106,P3-D chapter ch04 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2026-12-17,2026-12-21,,,
-GLT-107,P3-D chapter ch05 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2026-12-21,2026-12-23,,,
-GLT-108,P3-D chapter ch06 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2026-12-23,2027-01-05,,,
-GLT-109,P3-D chapter ch07 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2027-01-05,2027-01-06,,,
+GLT-107,P3-D chapter ch05 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2026-12-21,2026-12-22,,,
+GLT-108,P3-D chapter ch06 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2026-12-22,2027-01-04,,,
+GLT-109,P3-D chapter ch07 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2027-01-04,2027-01-06,,,
 GLT-110,P3-D chapter ch08 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2027-01-06,2027-01-08,,,
 GLT-111,P3-D chapter ch09 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2027-01-08,2027-01-12,,,
 GLT-112,P3-D chapter ch10 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2027-01-12,2027-01-14,,,
@@ -368,6 +368,6 @@ GLT-143,"s100 Genesis Seed milestone-final reveal/runtime (D-113 option a): ~9-1
 GLT-144,"D-114 s05-s10 unified economy proposal (analysis only): sector parameters, [path] pacing incl. offline, r01 part rewards, 2+ alternatives, c0/m1 impact + test plan, s06-s10 data tasks, GLT-091 re-scope",TASK,gl100-design,P0,QA_PASS,GL100-P3C,QA_PASS,,,D-114,2,4,8,,,,2026-11-20,
 GLT-145,"Zone 1 sector data s05-s10 (B6: 6 planets each, existing tier curves; absorbs GLT-082): catalog + authored rosters",TASK,gl100-design,P0,QA_PASS,GL100-P3C,QA_PASS,,,D-115;D-116,2,4,8,2026-11-23,2026-11-23,2026-11-21,2026-11-21,
 GLT-146,Zone-task predicates + data s06-s10 (monotonic TierCount / FleetMk via ZoneTasks.MandatorySource; re-scopes GLT-092),TASK,gl100-runtime,P0,IN_PROGRESS,GL100-P3C,,,,D-115,2,4,8,2026-11-23,2026-11-23,2026-11-21,,
-GLT-147,HUD guidance to missing parts / pending sector + mandatory task / Mk-level hints / return to passed sectors (D-115 acceptance requirement),TASK,gl100-runtime,P0,PLANNED,GL100-P3C,,,,D-115,2,5,10,2026-11-23,2026-11-27,,,
-GLT-148,"EconomySim Zone 1 support: sim-only catalog limit, Z1_mixed mandatory regression gate, ClaimsGift=false runs, deadlock checks with/without HUD guidance",TASK,gl100-qa,P0,PLANNED,GL100-P3C,,,,D-115,1.5,3,6,2026-11-23,2026-11-27,,,
+GLT-147,HUD guidance to missing parts / pending sector + mandatory task / Mk-level hints / return to passed sectors (D-115 acceptance requirement),TASK,gl100-runtime,P0,PLANNED,GL100-P3C,,,,D-115,2,5,10,2026-11-23,2026-11-26,,,
+GLT-148,"EconomySim Zone 1 support: sim-only catalog limit, Z1_mixed mandatory regression gate, ClaimsGift=false runs, deadlock checks with/without HUD guidance",TASK,gl100-qa,P0,PLANNED,GL100-P3C,,,,D-115,1.5,3,6,2026-11-23,2026-11-26,,,
 GLT-149,"QA updates for 10 sectors: three 4-sector assertions, s01-s04 golden hash test, Galaxy Map 10-node check",TASK,gl100-qa,P0,QA_PASS,GL100-P3C,QA_PASS,,,D-115,1,2,4,2026-11-23,2026-11-23,2026-11-21,2026-11-21,
