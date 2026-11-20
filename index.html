@@ -4,108 +4,179 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="referrer" content="no-referrer">
+<meta name="color-scheme" content="light dark">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data: blob:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
-<title>ISC 2.0 Execution Dashboard</title>
+<title>ISC Mission Control</title>
 <link rel="stylesheet" href="app.css">
 </head>
 <body>
 <a class="skip" href="#register">Skip to the task register</a>
+<div class="sky" aria-hidden="true"></div>
 <main class="pm" id="top">
-  <header>
-    <div class="topbar">
-      <h1>ISC 2.0 Project Execution Dashboard</h1>
-      <button type="button" id="theme-btn" aria-label="Colour theme: follow system">Theme: auto</button>
+  <header class="hero" id="hero">
+    <div class="hero-copy">
+      <div class="topbar">
+        <span class="eyebrow"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2c3 2.5 4.5 6 4.5 10l-1.5 4h-6L7.5 12C7.5 8 9 4.5 12 2z" fill="currentColor"/><circle cx="12" cy="10" r="1.8" fill="#1b1840"/><path d="M9 16l-2.5 3.5L9.5 19zM15 16l2.5 3.5-3-.5z" fill="currentColor"/></svg>ISC 2.0 · core development and GL100</span>
+        <button type="button" id="theme-btn" aria-label="Colour theme: follow system">Theme: auto</button>
+      </div>
+      <h1><span class="h1-main">IDLE SPACE COURIER</span><span class="h1-sub">Project Mission Control</span></h1>
+      <div class="hero-badges">
+        <span class="status-badge" id="proj-status" data-tone="neutral">Loading status…</span>
+        <span class="snap" id="snap-time"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3.5 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="snap-text">Snapshot —</span></span>
+      </div>
+      <p class="take" id="takeaway" aria-live="polite">Loading the dataset…</p>
+      <p class="lede">Built from a sanitised public snapshot of the project tracker (D-083). Technical, device and Director acceptance are separate gates and are never merged.</p>
+      <p class="meta" id="meta"></p>
+      <nav class="jump" aria-label="Dashboard sections">
+        <a href="#status">Overview</a><a href="#galaxy">Galaxy</a><a href="#tracker">Tracker</a><a href="#timeline">Timeline</a><a href="#blockers">Blockers</a><a href="#sources">Sources</a>
+      </nav>
     </div>
-    <p class="lede">Idle Space Courier 2.0, core development and GL100, built from a sanitised public snapshot of the project tracker (D-083). Technical, device and Director acceptance are separate gates and are never merged.</p>
-    <p class="take" id="takeaway" aria-live="polite">Loading the dataset…</p>
-    <p class="meta" id="meta"></p>
+    <div class="hero-art" id="hero-art" data-scene="fallback" role="img" aria-label="Illustration: an Idle Space Courier rocket floating above a small planet. Decorative.">
+      <canvas id="scene" aria-hidden="true" tabindex="-1"></canvas>
+      <svg class="scene-fallback" viewBox="0 0 400 300" aria-hidden="true" focusable="false" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <radialGradient id="fb-planet" cx="0.35" cy="0.3" r="0.8"><stop offset="0" stop-color="#c9bcff"/><stop offset="0.45" stop-color="#8f74f2"/><stop offset="1" stop-color="#2a2268"/></radialGradient>
+          <radialGradient id="fb-atmo" cx="0.5" cy="0.5" r="0.5"><stop offset="0.78" stop-color="#5fe0c8" stop-opacity="0"/><stop offset="0.9" stop-color="#5fe0c8" stop-opacity="0.35"/><stop offset="1" stop-color="#5fe0c8" stop-opacity="0"/></radialGradient>
+          <linearGradient id="fb-body" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#0f5f59"/><stop offset="0.45" stop-color="#2fb3a5"/><stop offset="1" stop-color="#0f5f59"/></linearGradient>
+          <linearGradient id="fb-cream" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#c9b98e"/><stop offset="0.45" stop-color="#fff4d2"/><stop offset="1" stop-color="#c9b98e"/></linearGradient>
+          <linearGradient id="fb-glow" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#fff2c2"/><stop offset="0.4" stop-color="#ffc542" stop-opacity="0.8"/><stop offset="1" stop-color="#ffc542" stop-opacity="0"/></linearGradient>
+        </defs>
+        <g fill="#f5f3ff">
+          <circle cx="24" cy="30" r="1.2"/><circle cx="70" cy="80" r="0.9"/><circle cx="120" cy="22" r="1.4"/><circle cx="180" cy="60" r="0.8"/><circle cx="230" cy="18" r="1.1"/>
+          <circle cx="300" cy="40" r="1.3"/><circle cx="360" cy="24" r="0.9"/><circle cx="380" cy="90" r="1.2"/><circle cx="40" cy="160" r="1"/><circle cx="90" cy="230" r="1.3"/>
+          <circle cx="30" cy="270" r="0.8"/><circle cx="160" cy="280" r="1"/><circle cx="210" cy="120" r="0.7"/><circle cx="330" cy="130" r="0.8"/>
+        </g>
+        <g fill="#ffc542"><circle cx="150" cy="140" r="1.3"/><circle cx="270" cy="70" r="1"/><circle cx="56" cy="110" r="1.1"/></g>
+        <circle cx="290" cy="250" r="128" fill="url(#fb-atmo)"/>
+        <circle cx="290" cy="250" r="108" fill="url(#fb-planet)"/>
+        <path d="M184 226c40-14 120-16 212-2v14c-90-12-170-10-212 4z" fill="#b6a8ff" opacity="0.45"/>
+        <path d="M190 268c50-10 130-8 200 4v10c-70-10-150-12-200-4z" fill="#ffc542" opacity="0.28"/>
+        <circle cx="250" cy="200" r="11" fill="#3a2f8c" opacity="0.55"/><circle cx="318" cy="292" r="15" fill="#3a2f8c" opacity="0.5"/><circle cx="345" cy="214" r="7" fill="#3a2f8c" opacity="0.5"/>
+        <g transform="translate(150 132) rotate(24)">
+          <path d="M-9 76 L0 128 L9 76z" fill="url(#fb-glow)"/>
+          <path d="M-14 64h28l-4 12h-20z" fill="#2a2660"/>
+          <path d="M-20 22 L-44 66 L-40 72 L-18 56z" fill="#17766f"/><path d="M20 22 L44 66 L40 72 L18 56z" fill="#17766f"/>
+          <path d="M-22 -40 C-24 0 -22 40 -18 64 H18 C22 40 24 0 22 -40z" fill="url(#fb-body)"/>
+          <path d="M-23 -10 H23 V6 H-23z M-21 30 H21 V44 H-21z" fill="url(#fb-cream)"/>
+          <path d="M-22 -40 C-18 -64 -8 -80 0 -88 C8 -80 18 -64 22 -40z" fill="url(#fb-body)"/>
+          <path d="M-24 -44h48v6h-48z" fill="#ffc542"/>
+          <path d="M-2 -86 L0 -104 L2 -86z" fill="#ffc542"/>
+          <circle cx="0" cy="-20" r="9" fill="#ffc542"/><circle cx="0" cy="-20" r="6" fill="#8ce2ff"/><circle cx="-2" cy="-22" r="2" fill="#f5f3ff"/>
+        </g>
+      </svg>
+    </div>
   </header>
 
-  <section id="status" aria-labelledby="h-status">
-    <h2 id="h-status">Status of executable tasks</h2>
+  <section id="status" class="band" aria-labelledby="h-status">
+    <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg><h2 id="h-status">Mission Overview</h2></div>
+    <div class="overview" id="ov-tiles"></div>
+    <h3 class="sub">Status of executable tasks</h3>
     <div class="tiles" id="kpi-tiles"></div>
     <p class="note">Executable tasks are tasks, requirement items, gates, sessions and decisions. Epics and parent rows (node type EPIC / PARENT) are excluded so parent and child effort is never counted twice.</p>
   </section>
 
-  <section id="ladder" class="card" aria-labelledby="h-ladder">
-    <h2 id="h-ladder">Acceptance ladder</h2>
-    <div class="chart" id="ladder-chart"></div>
-    <p class="note">Highest rung reached per executable task, derived by the tracker from three independent fields: status (technical), acceptance status (technical acceptance by decision) and device status (pass on a device). DONE is counted separately because the definition of done differs per task.</p>
+  <section id="galaxy" class="band" aria-labelledby="h-galaxy">
+    <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="5" fill="currentColor"/><ellipse cx="12" cy="12" rx="10.5" ry="4" fill="none" stroke="currentColor" stroke-width="1.8" transform="rotate(-20 12 12)"/></svg><h2 id="h-galaxy">Galaxy Progress</h2></div>
+    <div class="card">
+      <h3>Milestone route</h3>
+      <div class="chart galaxy" id="galaxy-chart"></div>
+      <div class="legend" id="galaxy-legend"></div>
+      <p class="note" id="galaxy-note"></p>
+    </div>
+    <div class="grid2">
+      <div class="card" id="milestones">
+        <h3>Progress by milestone</h3>
+        <div class="wrap"><table>
+          <thead><tr><th scope="col">Milestone</th><th scope="col" class="num">Tasks</th><th scope="col" class="num">Done</th><th scope="col" class="num">Technical</th><th scope="col" class="num">Active</th><th scope="col" class="num">Hold / blocked</th><th scope="col" class="num">Done %</th></tr></thead>
+          <tbody id="ms-body"></tbody>
+        </table></div>
+      </div>
+      <div class="card" id="workstreams">
+        <h3>Tasks by workstream</h3>
+        <div class="chart" id="ws-chart"></div>
+        <div class="legend" id="ws-legend"></div>
+      </div>
+    </div>
+    <div id="ladder" class="card" aria-labelledby="h-ladder">
+      <h3 id="h-ladder">Acceptance ladder</h3>
+      <div class="chart" id="ladder-chart"></div>
+      <p class="note">Highest rung reached per executable task, derived by the tracker from three independent fields: status (technical), acceptance status (technical acceptance by decision) and device status (pass on a device). DONE is counted separately because the definition of done differs per task.</p>
+    </div>
   </section>
 
-  <section id="forecast" aria-labelledby="h-forecast">
-    <h2 id="h-forecast">Launch forecast <span class="badge" id="fc-label">PROVISIONAL</span></h2>
-    <div class="tiles" id="fc-tiles"></div>
-    <p class="note" id="fc-note"></p>
-  </section>
-
-  <section class="grid2" aria-label="Milestones and workstreams">
-    <div class="card" id="milestones">
-      <h2>Progress by milestone</h2>
+  <section id="tracker" class="band" aria-labelledby="h-tracker">
+    <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 9h10M7 13h10M7 17h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><h2 id="h-tracker">Execution Tracker</h2></div>
+    <div id="active" class="card" aria-labelledby="h-active">
+      <h3 id="h-active">In progress now</h3>
       <div class="wrap"><table>
-        <thead><tr><th scope="col">Milestone</th><th scope="col" class="num">Tasks</th><th scope="col" class="num">Done</th><th scope="col" class="num">Technical</th><th scope="col" class="num">Active</th><th scope="col" class="num">Hold / blocked</th><th scope="col" class="num">Done %</th></tr></thead>
-        <tbody id="ms-body"></tbody>
+        <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Workstream</th><th scope="col">Milestone</th><th scope="col">Started</th><th scope="col">Acceptance</th></tr></thead>
+        <tbody id="active-body"></tbody>
       </table></div>
     </div>
-    <div class="card" id="workstreams">
-      <h2>Tasks by workstream</h2>
-      <div class="chart" id="ws-chart"></div>
-      <div class="legend" id="ws-legend"></div>
+    <div id="register" class="card" aria-labelledby="h-register">
+      <h3 id="h-register">Task register</h3>
+      <div class="filters">
+        <label class="field grow" for="f-q">Search ID or title<input id="f-q" type="search" autocomplete="off"></label>
+        <label class="field" for="f-status">Status<select id="f-status"></select></label>
+        <label class="field" for="f-ws">Workstream<select id="f-ws"></select></label>
+        <button type="button" class="dl" id="reg-export">Export shown rows (CSV)</button>
+        <span class="count" id="reg-count" aria-live="polite"></span>
+      </div>
+      <div class="wrap"><table class="reg">
+        <thead><tr id="reg-head"><th scope="col" data-sort="task_id">ID</th><th scope="col" data-sort="title">Task</th><th scope="col" data-sort="status">Status</th><th scope="col" data-sort="workstream">Workstream</th><th scope="col" data-sort="milestone">Milestone</th><th scope="col" class="num" data-sort="effort_base_h">Base h</th><th scope="col" data-sort="ladder">Ladder</th><th scope="col">Acceptance</th><th scope="col">Device</th><th scope="col" data-sort="decision_ref">Decision</th></tr></thead>
+        <tbody id="reg-body"></tbody>
+      </table></div>
+      <p class="note">Done tasks stay in the register and show struck through; their title and status are unchanged in the data. Select a column heading to sort; select an ID to open the task detail. Deep links: <code>?q=</code>, <code>?status=</code>, <code>?ws=</code>, <code>?sort=</code> (+ <code>&amp;dir=desc</code>), <code>?task=</code>.</p>
     </div>
   </section>
 
-  <section id="gantt" class="card" aria-labelledby="h-gantt">
-    <h2 id="h-gantt">Timeline by milestone (base scenario)</h2>
-    <div class="chart" id="gantt-chart"></div>
-    <p class="note" id="gantt-note"></p>
+  <section id="timeline" class="band" aria-labelledby="h-timeline">
+    <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="6" cy="12" r="2.5" fill="currentColor"/><circle cx="13" cy="12" r="2.5" fill="currentColor"/><path d="M19 7v10" stroke="currentColor" stroke-width="2"/></svg><h2 id="h-timeline">Mission Timeline</h2></div>
+    <div id="forecast" class="card" aria-labelledby="h-forecast">
+      <h3 id="h-forecast">Launch forecast <span class="badge" id="fc-label">PROVISIONAL</span></h3>
+      <div class="tiles" id="fc-tiles"></div>
+      <p class="note" id="fc-note"></p>
+    </div>
+    <div id="gantt" class="card" aria-labelledby="h-gantt">
+      <h3 id="h-gantt">Timeline by milestone (base scenario)</h3>
+      <div class="chart" id="gantt-chart"></div>
+      <p class="note" id="gantt-note"></p>
+    </div>
   </section>
 
-  <section id="active" class="card" aria-labelledby="h-active">
-    <h2 id="h-active">In progress now</h2>
-    <div class="wrap"><table>
-      <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Workstream</th><th scope="col">Milestone</th><th scope="col">Started</th><th scope="col">Acceptance</th></tr></thead>
-      <tbody id="active-body"></tbody>
-    </table></div>
+  <section id="blockers" class="band" aria-labelledby="h-blockers">
+    <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3l9.5 17h-19z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 10v4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17.3" r="1.2" fill="currentColor"/></svg><h2 id="h-blockers">Blockers &amp; Decisions</h2></div>
+    <div id="hold" class="card" aria-labelledby="h-hold">
+      <h3 id="h-hold">On hold or blocked before launch</h3>
+      <div class="wrap"><table>
+        <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Milestone</th><th scope="col">Decision</th><th scope="col">Blocker / waiting for</th></tr></thead>
+        <tbody id="hold-body"></tbody>
+      </table></div>
+      <p class="note">Post-launch and deferred items are left out of this list.</p>
+    </div>
+    <div id="decisions" class="card" aria-labelledby="h-decisions">
+      <h3 id="h-decisions">Decisions referenced</h3>
+      <p class="note" id="dec-note"></p>
+      <div class="dec-cols">
+        <div><h4>By hold / blocked launch items</h4><ul class="chips" id="dec-hold"></ul></div>
+        <div><h4>Most referenced, all tasks</h4><ul class="chips" id="dec-all"></ul></div>
+      </div>
+    </div>
   </section>
 
-  <section id="hold" class="card" aria-labelledby="h-hold">
-    <h2 id="h-hold">On hold or blocked before launch</h2>
-    <div class="wrap"><table>
-      <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Milestone</th><th scope="col">Blocker / waiting for</th></tr></thead>
-      <tbody id="hold-body"></tbody>
-    </table></div>
-    <p class="note">Post-launch and deferred items are left out of this list.</p>
-  </section>
-
-  <section class="grid2" aria-label="Resources">
+  <section class="grid2 band" aria-label="Resources">
     <div class="card" id="resources">
-      <h2>Resources used (recorded runs)</h2>
+      <h3>Resources used (recorded runs)</h3>
       <div class="tiles" id="res-tiles"></div>
       <p class="note" id="res-note"></p>
     </div>
     <div class="card">
-      <h2>Runs by date</h2>
+      <h3>Runs by date</h3>
       <div class="wrap"><table>
         <thead><tr><th scope="col">Date</th><th scope="col" class="num">Runs</th><th scope="col" class="num">Worker min</th><th scope="col" class="num">Lock min</th></tr></thead>
         <tbody id="res-body"></tbody>
       </table></div>
     </div>
-  </section>
-
-  <section id="register" class="card" aria-labelledby="h-register">
-    <h2 id="h-register">Task register</h2>
-    <div class="filters">
-      <label class="field grow" for="f-q">Search ID or title<input id="f-q" type="search" autocomplete="off"></label>
-      <label class="field" for="f-status">Status<select id="f-status"></select></label>
-      <label class="field" for="f-ws">Workstream<select id="f-ws"></select></label>
-      <button type="button" class="dl" id="reg-export">Export shown rows (CSV)</button>
-      <span class="count" id="reg-count" aria-live="polite"></span>
-    </div>
-    <div class="wrap"><table>
-      <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Workstream</th><th scope="col">Milestone</th><th scope="col" class="num">Base h</th><th scope="col">Ladder</th><th scope="col">Acceptance</th><th scope="col">Device</th><th scope="col">Decision</th></tr></thead>
-      <tbody id="reg-body"></tbody>
-    </table></div>
-    <p class="note">Done tasks stay in the register and show struck through; their title and status are unchanged in the data.</p>
   </section>
 
   <section id="sources" class="card" aria-labelledby="h-sources">
@@ -118,7 +189,7 @@
     <details><summary>Published columns (allow-list)</summary><ul id="src-schema"></ul></details>
   </section>
 
-  <footer>Static build of the sanitised public dataset; every figure, the Sources panel and the CSV exports come from the files listed above. Generated by build_dashboard.py (D-083). No tracking, no external requests.</footer>
+  <footer>Static build of the sanitised public dataset; every figure, the Sources panel and the CSV exports come from the files listed above. The hero scene is drawn in the browser (WebGL, no images, no libraries). Generated by build_dashboard.py (D-083, D-090). No tracking, no external requests.</footer>
 </main>
 
 <script src="app.js"></script>
