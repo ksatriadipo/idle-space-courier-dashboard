@@ -144,8 +144,8 @@ TEC-088,Internal testing track upload and install verification (manual),SESSION,
 TEC-089,Promotion process candidate -> main,TASK,production,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-25,,,
 TEC-090,DISCOVERY: crash reporting and analytics,TASK,engineering,P2,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-25,,,
 TEC-098,DISCOVERY: effort calibration in agent-hours,TASK,production,P1,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,
-TEC-100,Headless full-suite runner,TASK,qa,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,1.35,2.1,4.73,2026-11-23,2026-11-26,,,
-TEC-101,EconomySim identity gate automation,TASK,qa,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,1.35,2.1,4.73,,,,,
+TEC-100,Headless full-suite runner,TASK,qa,P1,IN_PROGRESS,M2-Q04b,,registry approval NOT_REQUIRED,,,1.35,2.1,4.73,2026-11-23,2026-11-26,2026-11-21,,
+TEC-101,EconomySim identity gate automation,TASK,qa,P1,QA_PASS,M2-Q04b,QA_PASS,registry approval NOT_REQUIRED,,,1.35,2.1,4.73,,,2026-11-21,2026-11-21,
 TEC-102,Manual acceptance checklist template and BLOCKED register,TASK,qa,P1,QA_PASS,M2-Q04a,QA_PASS,"template [path] consistent with EVIDENCE-FIRST-QA; register: 5 tracker BLOCKED rows + Q04a check-level items (A-7, T50-D01..D04, Q04 foundation s7) with [path]; cites D-094",,,0.25,0.5,1,,,2026-11-20,2026-11-20,
 TEC-103,Flaky-test fixes,TASK,qa,P2,QA_PASS,M2-Q04b,QA_PASS,registry approval NOT_REQUIRED,,,1.35,2.1,4.73,,,2026-11-21,2026-11-21,
 TEC-104,DISCOVERY: Unity Test Framework adoption,TASK,qa,P3,PLANNED,M2,,registry approval PENDING,,,1.28,2.3,4.85,,,,,
@@ -200,7 +200,7 @@ AST-WP-06,A6 idle animation runtime tuning,TASK,art-audio,P2,PLANNED,M2,,registr
 AST-WP-07,Factory import standard application (MLG subset),TASK,art-audio,P1,PLANNED,M2,,registry approval NOT_REQUIRED,,,0.62,1.4,4.73,,,,,
 AST-WP-08,Living Planets LP-1 polish (5 archetypes),TASK,art-audio,P1,PLANNED,MLG-A,,registry approval PENDING,,,0.47,0.83,1.53,2026-11-30,2026-12-02,,,
 AST-WP-09,Discovery props S2-S4 (Blender batches),TASK,art-audio,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.47,0.83,1.53,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
-AST-WP-10,Galactic Projects construction stages: MLG subset (Blender),TASK,art-audio,P1,READY,MLG-B,,registry approval PENDING,,D-124,0.47,0.83,1.53,2026-11-23,2026-11-27,,,
+AST-WP-10,Galactic Projects construction stages: MLG subset (Blender),TASK,art-audio,P1,QA_PASS,MLG-B,QA_PASS,registry approval PENDING,,D-124,0.47,0.83,1.53,2026-11-23,2026-11-24,2026-11-21,2026-11-21,
 AST-WP-11,Galactic Projects P3-P6 construction stages (Blender),TASK,art-audio,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.47,0.83,1.53,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
 AST-WP-12,Galactic Projects VFX and completion visuals (MLG subset),TASK,art-audio,P1,PLANNED,MLG-B,,registry approval PENDING,,,1,1.83,3.62,2026-12-11,2026-12-14,,,
 AST-WP-13,Home Station content mapping (Display / Monument / Scout scale),TASK,art-audio,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.62,1.4,4.73,,,,,
@@ -210,7 +210,7 @@ AST-WP-16,SFX batch: new feature events,TASK,art-audio,P1,PLANNED,MLG-B,,registr
 AST-WP-17,Music: additional loops (scope TBD),TASK,art-audio,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.8,2.3,6.6,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
 AST-WP-18,Store listing assets,TASK,art-audio,P1,PLANNED,RC,,registry approval PENDING,,,1,3,8,2026-12-08,2026-12-09,,,
 AST-WP-19,Premium pack presentation assets (PROPOSED),TASK,art-audio,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,1,3,8,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)
-AST-WP-20,"Galaxy and sector presentation pass (backgrounds, cargo visuals)",TASK,art-audio,P2,READY,MLG-B,,registry approval PENDING,,D-124,0.47,0.83,1.53,,,,,
+AST-WP-20,"Galaxy and sector presentation pass (backgrounds, cargo visuals)",TASK,art-audio,P2,QA_PASS,MLG-B,QA_PASS,registry approval PENDING,,D-124,0.47,0.83,1.53,,,2026-11-21,2026-11-21,
 GAP-GP-ENG,"Galactic Projects runtime (P1+P2 lite, existing rule types)",TASK,engineering,P0,HOLD,MLG-B,,registry approval PENDING,,D-069;D-072,6.68,14.9,38.8,2026-12-03,2026-12-10,,,GP runtime HOLD (D-072 item 8)
 GAP-GP-EVAL,Galactic Projects 5+1 evaluation incl. Mk 3 soft deadlock,TASK,design,P0,DONE,MLG-B,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.25,0.5,1,,,,,
 GAP-DISC-EVAL,"Discovery pacing evaluation: tier gates, milestone unlocks, guaranteed path, return caps",TASK,design,P1,DONE,MLG-A,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.8,2.3,6.6,,,,,
@@ -371,4 +371,4 @@ GLT-146,Zone-task predicates + data s06-s10 (monotonic TierCount / FleetMk via Z
 GLT-147,HUD guidance to missing parts / pending sector + mandatory task / Mk-level hints / return to passed sectors (D-115 acceptance requirement),TASK,gl100-runtime,P0,QA_PASS,GL100-P3C,QA_PASS,,,D-115,2,5,10,2026-11-23,2026-11-23,2026-11-21,2026-11-21,
 GLT-148,"EconomySim Zone 1 support: sim-only catalog limit, Z1_mixed mandatory regression gate, ClaimsGift=false runs, deadlock checks with/without HUD guidance",TASK,gl100-qa,P0,QA_PASS,GL100-P3C,QA_PASS,,,D-115,1.5,3,6,2026-11-23,2026-11-23,2026-11-21,2026-11-21,
 GLT-149,"QA updates for 10 sectors: three 4-sector assertions, s01-s04 golden hash test, Galaxy Map 10-node check",TASK,gl100-qa,P0,QA_PASS,GL100-P3C,QA_PASS,,,D-115,1,2,4,2026-11-23,2026-11-23,2026-11-21,2026-11-21,
-QD-02-STATS,QD-02 slice: planet panel stats line truncation (GLT-147 finding),TASK,engineering,P2,PLANNED,RC,,,,D-126,0.5,1,2,,,,,
+QD-02-STATS,QD-02 slice: planet panel stats line truncation (GLT-147 finding),TASK,engineering,P2,IN_PROGRESS,RC,,,,D-126,0.5,1,2,,,2026-11-21,,
