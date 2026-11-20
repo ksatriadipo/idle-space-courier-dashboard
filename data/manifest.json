@@ -25,7 +25,7 @@
    ],
    "name": "tasks.csv",
    "rows": 372,
-   "sha256": "018a1ba1dc9347020e58c58b20d1db168d8b2eeefb2da5aa7731b98e07878b5d"
+   "sha256": "ac56b551afb4a924368d6bc8a0ee37685326bb923f4621d751b3827b75fbc22a"
   },
   {
    "columns": [
@@ -93,9 +93,9 @@
    "blocker"
   ]
  },
- "snapshot": "2026-11-21T01:16:13",
+ "snapshot": "2026-11-21T01:19:09",
  "snapshot_basis": "latest entry of the tracker changelog (local time); not the build time",
- "source_commit": "1af50cf",
- "source_commit_time": "2026-11-21T01:16:15+07:00",
+ "source_commit": "8366785",
+ "source_commit_time": "2026-11-21T01:19:24+07:00",
  "title": "ISC 2.0 Project Execution Dashboard"
 }
