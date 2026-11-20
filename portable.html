@@ -1,0 +1,791 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src 'none'; img-src data: blob:; base-uri 'none'; form-action 'none'">
+<title>ISC 2.0 Execution Dashboard</title>
+<style>
+:root {
+  color-scheme: light;
+  --page: #f9f9f7; --surface: #fcfcfb; --ink: #0b0b0b; --ink-2: #52514e; --muted: #6f6d68;
+  --line: #e1e0d9; --axis: #c3c2b7; --ring: rgba(11, 11, 11, 0.10);
+  --series-1: #2a78d6; --series-7: #6250d6; --neutral: #c3c2b7;
+  --good: #0ca30c; --good-ink: #006300; --warning: #fab219; --warn-ink: #8a5a00; --critical: #d03b3b;
+  --focus: #2a78d6; --tip-bg: #ffffff;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #a3a29b;
+    --line: #2c2c2a; --axis: #383835; --ring: rgba(255, 255, 255, 0.10);
+    --series-1: #3987e5; --series-7: #9085e9; --neutral: #55544f;
+    --good-ink: #0ca30c; --warn-ink: #fab219; --critical: #e66767;
+    --focus: #6da7ec; --tip-bg: #262624;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page: #0d0d0d; --surface: #1a1a19; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #a3a29b;
+  --line: #2c2c2a; --axis: #383835; --ring: rgba(255, 255, 255, 0.10);
+  --series-1: #3987e5; --series-7: #9085e9; --neutral: #55544f;
+  --good-ink: #0ca30c; --warn-ink: #fab219; --critical: #e66767;
+  --focus: #6da7ec; --tip-bg: #262624;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--page); color: var(--ink); font: 14px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+.pm { max-width: 1200px; margin: 0 auto; padding: 24px 16px 48px; display: flex; flex-direction: column; gap: 28px; }
+h1 { font-size: 26px; font-weight: 600; margin: 0; text-wrap: balance; }
+h2 { font-size: 17px; font-weight: 600; margin: 0 0 10px; text-wrap: balance; }
+.topbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-start; justify-content: space-between; }
+.lede { margin: 6px 0 0; color: var(--ink-2); max-width: 75ch; }
+.take { margin: 10px 0 0; font-size: 15px; max-width: 75ch; }
+.meta { margin: 6px 0 0; color: var(--muted); font-size: 12px; }
+.badge { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; letter-spacing: .04em;
+  border: 1px solid var(--warn-ink); color: var(--warn-ink); vertical-align: 2px; margin-left: 6px; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.tile .v { font-size: 26px; font-weight: 600; line-height: 1.1; }
+.tile .l { color: var(--ink-2); font-size: 12px; }
+.tile.ok .v { color: var(--good-ink); } .tile.warn .v { color: var(--warn-ink); } .tile.bad .v { color: var(--critical); }
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+.card { background: var(--surface); border: 1px solid var(--ring); border-radius: 10px; padding: 16px; min-width: 0; }
+.note { color: var(--ink-2); font-size: 12px; margin: 8px 0 0; max-width: 85ch; }
+.wrap { overflow-x: auto; max-width: 100%; }
+table { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+th { text-align: left; color: var(--ink-2); font-weight: 600; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+td.id { white-space: nowrap; font-variant-numeric: tabular-nums; }
+s { color: var(--muted); }
+code, .hash { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 11.5px; overflow-wrap: anywhere; }
+.chip { display: inline-block; padding: 0 8px; border-radius: 999px; border: 1px solid var(--line); font-size: 11.5px; white-space: nowrap; }
+.st-DONE, .st-RELEASED { color: var(--good-ink); border-color: var(--good-ink); }
+.st-QA_PASS, .st-IMPLEMENTED, .st-DIRECTOR_ACCEPTED { color: var(--good-ink); }
+.st-IN_PROGRESS { color: var(--series-1); border-color: currentColor; font-weight: 600; }
+.st-HOLD { color: var(--warn-ink); border-color: var(--warn-ink); }
+.st-BLOCKED { color: var(--critical); border-color: var(--critical); }
+.filters { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin-bottom: 10px; }
+.field { display: flex; flex-direction: column; gap: 2px; font-size: 12px; color: var(--ink-2); flex: 1 1 160px; min-width: 0; }
+.field.grow { flex: 2 1 220px; }
+input, select, button { font: inherit; color: var(--ink); background: var(--page); border: 1px solid var(--axis); border-radius: 8px; padding: 6px 10px; min-width: 0; }
+button { cursor: pointer; background: var(--surface); }
+button:hover { border-color: var(--ink-2); }
+:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+svg .bar:focus-visible, svg rect:focus { outline: none; stroke: var(--ink); stroke-width: 2px; }
+.chart { position: relative; min-height: 60px; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart text { font-size: 11px; fill: var(--ink-2); }
+.chart .val { fill: var(--ink); }
+.tip { position: absolute; pointer-events: none; background: var(--tip-bg); border: 1px solid var(--ring); box-shadow: 0 4px 14px rgba(0,0,0,.18);
+  border-radius: 8px; padding: 6px 10px; font-size: 12px; color: var(--ink); max-width: 260px; z-index: 5; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12px; color: var(--ink-2); margin-top: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.count { font-size: 12px; color: var(--ink-2); align-self: center; }
+.err { color: var(--critical); font-weight: 600; }
+.skip { position: absolute; left: -999px; } .skip:focus { left: 16px; top: 8px; background: var(--surface); padding: 6px 10px; z-index: 10; }
+footer { color: var(--muted); font-size: 12px; }
+@media (max-width: 480px) {
+  .pm { padding: 16px 16px 32px; gap: 22px; }
+  h1 { font-size: 22px; }
+  .tile .v { font-size: 22px; }
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media print { .filters, #theme-btn, .dl { display: none; } }
+</style>
+</head>
+<body>
+<a class="skip" href="#register">Skip to the task register</a>
+<main class="pm" id="top">
+  <header>
+    <div class="topbar">
+      <h1>ISC 2.0 Project Execution Dashboard</h1>
+      <button type="button" id="theme-btn" aria-label="Colour theme: follow system">Theme: auto</button>
+    </div>
+    <p class="lede">Idle Space Courier 2.0, core development and GL100, built from a sanitised public snapshot of the project tracker (D-083). Technical, device and Director acceptance are separate gates and are never merged.</p>
+    <p class="take" id="takeaway" aria-live="polite">Loading the dataset…</p>
+    <p class="meta" id="meta"></p>
+  </header>
+
+  <section id="status" aria-labelledby="h-status">
+    <h2 id="h-status">Status of executable tasks</h2>
+    <div class="tiles" id="kpi-tiles"></div>
+    <p class="note">Executable tasks are tasks, requirement items, gates, sessions and decisions. Epics and parent rows (node type EPIC / PARENT) are excluded so parent and child effort is never counted twice.</p>
+  </section>
+
+  <section id="ladder" class="card" aria-labelledby="h-ladder">
+    <h2 id="h-ladder">Acceptance ladder</h2>
+    <div class="chart" id="ladder-chart"></div>
+    <p class="note">Highest rung reached per executable task, derived by the tracker from three independent fields: status (technical), acceptance status (technical acceptance by decision) and device status (pass on a device). DONE is counted separately because the definition of done differs per task.</p>
+  </section>
+
+  <section id="forecast" aria-labelledby="h-forecast">
+    <h2 id="h-forecast">Launch forecast <span class="badge" id="fc-label">PROVISIONAL</span></h2>
+    <div class="tiles" id="fc-tiles"></div>
+    <p class="note" id="fc-note"></p>
+  </section>
+
+  <section class="grid2" aria-label="Milestones and workstreams">
+    <div class="card" id="milestones">
+      <h2>Progress by milestone</h2>
+      <div class="wrap"><table>
+        <thead><tr><th scope="col">Milestone</th><th scope="col" class="num">Tasks</th><th scope="col" class="num">Done</th><th scope="col" class="num">Technical</th><th scope="col" class="num">Active</th><th scope="col" class="num">Hold / blocked</th><th scope="col" class="num">Done %</th></tr></thead>
+        <tbody id="ms-body"></tbody>
+      </table></div>
+    </div>
+    <div class="card" id="workstreams">
+      <h2>Tasks by workstream</h2>
+      <div class="chart" id="ws-chart"></div>
+      <div class="legend" id="ws-legend"></div>
+    </div>
+  </section>
+
+  <section id="gantt" class="card" aria-labelledby="h-gantt">
+    <h2 id="h-gantt">Timeline by milestone (base scenario)</h2>
+    <div class="chart" id="gantt-chart"></div>
+    <p class="note" id="gantt-note"></p>
+  </section>
+
+  <section id="active" class="card" aria-labelledby="h-active">
+    <h2 id="h-active">In progress now</h2>
+    <div class="wrap"><table>
+      <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Workstream</th><th scope="col">Milestone</th><th scope="col">Started</th><th scope="col">Acceptance</th></tr></thead>
+      <tbody id="active-body"></tbody>
+    </table></div>
+  </section>
+
+  <section id="hold" class="card" aria-labelledby="h-hold">
+    <h2 id="h-hold">On hold or blocked before launch</h2>
+    <div class="wrap"><table>
+      <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Milestone</th><th scope="col">Blocker / waiting for</th></tr></thead>
+      <tbody id="hold-body"></tbody>
+    </table></div>
+    <p class="note">Post-launch and deferred items are left out of this list.</p>
+  </section>
+
+  <section class="grid2" aria-label="Resources">
+    <div class="card" id="resources">
+      <h2>Resources used (recorded runs)</h2>
+      <div class="tiles" id="res-tiles"></div>
+      <p class="note" id="res-note"></p>
+    </div>
+    <div class="card">
+      <h2>Runs by date</h2>
+      <div class="wrap"><table>
+        <thead><tr><th scope="col">Date</th><th scope="col" class="num">Runs</th><th scope="col" class="num">Worker min</th><th scope="col" class="num">Lock min</th></tr></thead>
+        <tbody id="res-body"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section id="register" class="card" aria-labelledby="h-register">
+    <h2 id="h-register">Task register</h2>
+    <div class="filters">
+      <label class="field grow" for="f-q">Search ID or title<input id="f-q" type="search" autocomplete="off"></label>
+      <label class="field" for="f-status">Status<select id="f-status"></select></label>
+      <label class="field" for="f-ws">Workstream<select id="f-ws"></select></label>
+      <button type="button" class="dl" id="reg-export">Export shown rows (CSV)</button>
+      <span class="count" id="reg-count" aria-live="polite"></span>
+    </div>
+    <div class="wrap"><table>
+      <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Workstream</th><th scope="col">Milestone</th><th scope="col" class="num">Base h</th><th scope="col">Ladder</th><th scope="col">Acceptance</th><th scope="col">Device</th><th scope="col">Decision</th></tr></thead>
+      <tbody id="reg-body"></tbody>
+    </table></div>
+    <p class="note">Done tasks stay in the register and show struck through; their title and status are unchanged in the data.</p>
+  </section>
+
+  <section id="sources" class="card" aria-labelledby="h-sources">
+    <h2 id="h-sources">Sources</h2>
+    <div class="wrap"><table>
+      <thead><tr><th scope="col">Dataset</th><th scope="col" class="num">Rows</th><th scope="col">SHA-256</th><th scope="col">Snapshot</th><th scope="col">Source commit</th><th scope="col">Export</th></tr></thead>
+      <tbody id="src-body"></tbody>
+    </table></div>
+    <p class="note" id="src-note"></p>
+    <details><summary>Published columns (allow-list)</summary><ul id="src-schema"></ul></details>
+  </section>
+
+  <footer>Static build of the sanitised public dataset; every figure, the Sources panel and the CSV exports come from the files listed above. Generated by build_dashboard.py (D-083). No tracking, no external requests.</footer>
+</main>
+<script id="pm-embed" type="application/json">{"files":{"runs.csv":"run_id,kind,date,duration_min,unity_lock_min\nRUN-001,worker,2026-11-18/19,34,UNKNOWN\nRUN-002,worker,2026-11-18/19,46,UNKNOWN\nRUN-003,worker,2026-11-18/19,29,UNKNOWN\nRUN-004,worker,2026-11-18/19,34,UNKNOWN\nRUN-005,worker,2026-11-18/19,28,UNKNOWN\nRUN-006,worker,2026-11-18/19,34,UNKNOWN\nRUN-007,worker,2026-11-18/19,75,UNKNOWN\nRUN-008,worker,2026-11-18/19,80,UNKNOWN\nRUN-009,worker,2026-11-18/19,74,UNKNOWN\nRUN-010,worker,2026-11-18/19,66,UNKNOWN\nRUN-011,worker,2026-11-18/19,56,UNKNOWN\nRUN-012,worker,2026-11-18/19,90,UNKNOWN\nRUN-013,worker,2026-11-18/19,41,UNKNOWN\nRUN-014,worker,2026-11-18/19,46,UNKNOWN\nRUN-015,worker,2026-11-18/19,56,UNKNOWN\nRUN-016,worker,2026-11-18/19,118,UNKNOWN\nRUN-017,worker,2026-11-18/19,15,UNKNOWN\nRUN-018,worker,2026-11-18/19,80,UNKNOWN\nRUN-019,worker,2026-11-18/19,78,UNKNOWN\nRUN-020,worker,2026-11-18/19,70,UNKNOWN\nRUN-021,worker,2026-11-19,26,UNKNOWN\nRUN-022,worker,2026-11-19,19.5,UNKNOWN\nRUN-023,worker,2026-11-19,23,UNKNOWN\nRUN-024,worker,2026-11-19,50,UNKNOWN\nRUN-025,worker,2026-11-19,8,UNKNOWN\nRUN-026,worker,2026-11-19,17,UNKNOWN\nRUN-027,worker,2026-11-19,21,UNKNOWN\nRUN-028,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-029,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-030,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-031,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-032,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-033,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-034,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-035,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-036,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-037,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-038,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-039,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-040,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-041,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-042,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-043,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-044,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-045,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-046,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-047,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-048,worker,2026-11-20,UNKNOWN,UNKNOWN\nRUN-049,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-050,worker,2026-11-19,UNKNOWN,UNKNOWN\nRUN-051,worker,2026-11-20,UNKNOWN,UNKNOWN\nRUN-052,worker,2026-11-20,UNKNOWN,UNKNOWN\nRUN-053,worker,2026-11-20,UNKNOWN,UNKNOWN\nRUN-054,worker,2026-11-20,UNKNOWN,UNKNOWN\nRUN-055,worker,2026-11-20,UNKNOWN,UNKNOWN\nRUN-056,worker,2026-11-20,UNKNOWN,UNKNOWN\nRUN-057,worker,2026-11-20,UNKNOWN,UNKNOWN\nRUN-058,worker,2026-11-20,21,UNKNOWN\nRUN-059,worker,2026-11-20,33,UNKNOWN\nRUN-060,worker,2026-11-20,53,UNKNOWN\nRUN-061,worker,2026-11-20,23,UNKNOWN\nRUN-062,worker,2026-11-20,11,UNKNOWN\nRUN-063,worker,2026-11-20,22,UNKNOWN\nRUN-064,worker,2026-11-20,64,UNKNOWN\nRUN-065,worker,2026-11-20,33,UNKNOWN\nRUN-066,worker,2026-11-20,31,UNKNOWN\nRUN-067,worker,2026-11-20,17,UNKNOWN\nRUN-068,worker,2026-11-20,77,40\nRUN-069,worker,2026-11-20,29.5,UNKNOWN\nRUN-070,device_session,2026-11-20,10,0\nRUN-071,device_session,2026-11-20,10,0\nRUN-072,lead_integration,2026-11-19,UNKNOWN,UNKNOWN\nRUN-073,lead_integration,2026-11-19,UNKNOWN,UNKNOWN\nRUN-074,lead_integration,2026-11-19,UNKNOWN,UNKNOWN\nRUN-075,lead_integration,2026-11-19,UNKNOWN,UNKNOWN\nRUN-076,lead_integration,2026-11-19,UNKNOWN,UNKNOWN\nRUN-077,lead_integration,2026-11-19,UNKNOWN,UNKNOWN\nRUN-078,lead_integration,2026-11-19,UNKNOWN,UNKNOWN\nRUN-079,lead_integration,2026-11-20,UNKNOWN,UNKNOWN\nRUN-080,lead_integration,2026-11-20,UNKNOWN,UNKNOWN\nRUN-081,lead_integration,2026-11-20,UNKNOWN,UNKNOWN\nRUN-082,lead_integration,2026-11-20,UNKNOWN,UNKNOWN\nRUN-083,lead_audit,2026-11-20,UNKNOWN,UNKNOWN\nRUN-084,director_review,2026-11-20,UNKNOWN,0\nRUN-085,director_review,2026-11-20,UNKNOWN,0\nRUN-086,director_review,2026-11-20,UNKNOWN,0\nRUN-087,director_review,2026-11-20,UNKNOWN,0\nRUN-088,director_review,2026-11-20,UNKNOWN,0\nRUN-089,director_review,2026-11-20,UNKNOWN,0\nRUN-090,director_review,2026-11-20,UNKNOWN,0\nRUN-091,director_review,2026-11-20,UNKNOWN,0\nRUN-092,director_review,2026-11-20,UNKNOWN,0\nRUN-093,director_review,2026-11-20,UNKNOWN,0\nRUN-094,lead_integration,2026-11-20,UNKNOWN,25\nRUN-095,lead_integration,2026-11-20,UNKNOWN,25\nRUN-096,lead_integration,2026-11-20,UNKNOWN,UNKNOWN\nRUN-097,director_review,2026-11-20,UNKNOWN,0\nRUN-098,director_review,2026-11-20,UNKNOWN,0\nRUN-099,worker,2026-11-20,22.1,0\nRUN-100,worker,2026-11-20,11.5,0\nRUN-101,worker,2026-11-20,41,0\nRUN-102,worker,2026-11-20,28.3,10.5\nRUN-103,lead_integration,2026-11-20,UNKNOWN,25\nRUN-104,lead_integration,2026-11-20,UNKNOWN,3\nRUN-105,worker,2026-11-20,18.9,0\nRUN-106,worker,2026-11-20,21.4,0\n","schedule.csv":"scenario,task_id,start,finish\nopt,AST-WP-01,2026-11-23,2026-11-24\nopt,AST-WP-08,2026-11-24,2026-11-25\nopt,AST-WP-10,2026-11-24,2026-11-25\nopt,AST-WP-12,2026-11-26,2026-11-26\nopt,AST-WP-15,2026-11-24,2026-11-25\nopt,AST-WP-16,2026-11-23,2026-11-24\nopt,AST-WP-18,2026-11-25,2026-11-25\nopt,GAP-ECON-RESIM,2026-11-26,2026-11-26\nopt,GAP-GATE-MLGA,2026-11-26,2026-11-26\nopt,GAP-GP-ENG,2026-11-25,2026-11-26\nopt,GAP-QA-EDGE,2026-11-26,2026-11-26\nopt,GAP-REL-PIPE,2026-11-25,2026-11-26\nopt,GAP-REL-PUB,2026-12-09,2026-12-10\nopt,GAP-REL-VER,2026-11-24,2026-11-24\nopt,GLT-003,2026-11-23,2026-11-23\nopt,GLT-012,2026-11-23,2026-11-23\nopt,GLT-028,2026-11-23,2026-11-23\nopt,GLT-030,2026-11-23,2026-11-23\nopt,GLT-031,2026-11-23,2026-11-23\nopt,GLT-032,2026-11-23,2026-11-23\nopt,GLT-033,2026-11-23,2026-11-23\nopt,GLT-034,2026-11-23,2026-11-23\nopt,GLT-035,2026-11-23,2026-11-23\nopt,GLT-036,2026-11-23,2026-11-23\nopt,GLT-037,2026-11-23,2026-11-23\nopt,GLT-041,2026-11-23,2026-11-23\nopt,GLT-045,2026-11-23,2026-11-23\nopt,GLT-046,2026-11-23,2026-11-23\nopt,GLT-047,2026-11-23,2026-11-23\nopt,GLT-049,2026-11-23,2026-11-23\nopt,GLT-050,2026-11-24,2026-11-24\nopt,GLT-051,2026-11-25,2026-11-25\nopt,GLT-052,2026-11-24,2026-11-24\nopt,GLT-053,2026-11-24,2026-11-24\nopt,GLT-054,2026-11-24,2026-11-24\nopt,GLT-055,2026-11-25,2026-11-26\nopt,GLT-056,2026-11-27,2026-11-30\nopt,GLT-057,2026-11-23,2026-11-24\nopt,GLT-058,2026-11-25,2026-11-25\nopt,GLT-070,2026-11-23,2026-11-24\nopt,GLT-071,2026-11-23,2026-11-24\nopt,GLT-072,2026-11-24,2026-11-24\nopt,GLT-073,2026-11-24,2026-11-24\nopt,GLT-074,2026-11-24,2026-11-25\nopt,GLT-075,2026-11-25,2026-11-25\nopt,GLT-080,2026-11-25,2026-11-25\nopt,GLT-081,2026-11-25,2026-11-25\nopt,GLT-082,2026-11-25,2026-11-25\nopt,GLT-083,2026-11-25,2026-11-26\nopt,GLT-084,2026-11-26,2026-11-26\nopt,GLT-085,2026-11-26,2026-11-27\nopt,GLT-086,2026-11-27,2026-11-27\nopt,GLT-090,2026-11-27,2026-11-27\nopt,GLT-091,2026-11-27,2026-11-27\nopt,GLT-092,2026-11-27,2026-11-27\nopt,GLT-093,2026-11-27,2026-11-27\nopt,GLT-094,2026-11-27,2026-11-27\nopt,GLT-095,2026-11-27,2026-11-30\nopt,GLT-096,2026-11-27,2026-11-30\nopt,GLT-097,2026-11-30,2026-12-01\nopt,GLT-100,2026-12-01,2026-12-01\nopt,GLT-101,2026-12-01,2026-12-02\nopt,GLT-102,2026-12-01,2026-12-02\nopt,GLT-103,2026-12-01,2026-12-02\nopt,GLT-104,2026-12-01,2026-12-02\nopt,GLT-105,2026-12-02,2026-12-02\nopt,GLT-106,2026-12-02,2026-12-03\nopt,GLT-107,2026-12-03,2026-12-04\nopt,GLT-108,2026-12-04,2026-12-04\nopt,GLT-109,2026-12-04,2026-12-07\nopt,GLT-110,2026-12-07,2026-12-07\nopt,GLT-111,2026-12-07,2026-12-08\nopt,GLT-112,2026-12-08,2026-12-08\nopt,GLT-113,2026-12-01,2026-12-01\nopt,GLT-114,2026-12-01,2026-12-01\nopt,GLT-115,2026-12-01,2026-12-02\nopt,GLT-120,2026-12-08,2026-12-09\nopt,GO-G-LP0,2026-11-23,2026-11-23\nopt,GO-GP-RUNTIME,2026-11-25,2026-11-25\nopt,GO-TEC055,2026-11-23,2026-11-23\nopt,GO-TEC084,2026-11-23,2026-11-23\nopt,GO-W2B3-SCH,2026-11-23,2026-11-23\nopt,QD-02,2026-11-23,2026-11-23\nopt,QD-03,2026-12-09,2026-12-10\nopt,QD-04,2026-11-23,2026-11-23\nopt,QD-05,2026-11-23,2026-11-23\nopt,QD-06,2026-11-23,2026-11-23\nopt,QD-07,2026-11-23,2026-11-23\nopt,RC-ENDURANCE,2026-12-09,2026-12-10\nopt,SYS-004,2026-11-23,2026-11-23\nopt,SYS-006,2026-11-23,2026-11-23\nopt,SYS-010,2026-11-23,2026-11-23\nopt,SYS-011,2026-11-23,2026-11-23\nopt,SYS-022,2026-11-23,2026-11-24\nopt,SYS-023,2026-11-23,2026-11-23\nopt,SYS-024,2026-11-23,2026-11-23\nopt,SYS-027,2026-11-23,2026-11-23\nopt,SYS-028,2026-11-23,2026-11-23\nopt,SYS-029,2026-11-23,2026-11-23\nopt,SYS-030,2026-11-23,2026-11-23\nopt,SYS-032,2026-11-23,2026-11-23\nopt,SYS-033,2026-11-23,2026-11-24\nopt,SYS-034,2026-11-23,2026-11-23\nopt,SYS-035,2026-11-23,2026-11-23\nopt,SYS-037,2026-11-23,2026-11-24\nopt,SYS-039,2026-11-23,2026-11-24\nopt,SYS-040,2026-11-23,2026-11-24\nopt,SYS-049,2026-11-23,2026-11-23\nopt,TEC-001,2026-11-23,2026-11-23\nopt,TEC-002,2026-11-23,2026-11-23\nopt,TEC-005,2026-11-23,2026-11-23\nopt,TEC-006,2026-11-23,2026-11-23\nopt,TEC-007,2026-11-23,2026-11-23\nopt,TEC-011,2026-11-23,2026-11-23\nopt,TEC-012,2026-11-23,2026-11-24\nopt,TEC-020,2026-11-23,2026-11-24\nopt,TEC-031,2026-11-23,2026-11-23\nopt,TEC-034,2026-11-23,2026-11-23\nopt,TEC-040,2026-11-23,2026-11-23\nopt,TEC-043,2026-11-23,2026-11-23\nopt,TEC-044,2026-11-23,2026-11-23\nopt,TEC-050,2026-11-23,2026-11-23\nopt,TEC-052,2026-11-25,2026-11-25\nopt,TEC-053,2026-11-23,2026-11-24\nopt,TEC-054,2026-11-24,2026-11-25\nopt,TEC-055,2026-11-25,2026-11-25\nopt,TEC-059,2026-11-23,2026-11-23\nopt,TEC-060,2026-11-23,2026-11-23\nopt,TEC-061,2026-11-23,2026-11-23\nopt,TEC-062,2026-11-23,2026-11-23\nopt,TEC-071,2026-11-23,2026-11-23\nopt,TEC-073,2026-11-23,2026-11-24\nopt,TEC-074,2026-11-23,2026-11-23\nopt,TEC-080,2026-11-23,2026-11-23\nopt,TEC-081,2026-11-24,2026-11-25\nopt,TEC-082,2026-11-24,2026-11-25\nopt,TEC-083,2026-11-25,2026-11-25\nopt,TEC-084,2026-11-23,2026-11-24\nopt,TEC-086,2026-11-23,2026-11-23\nopt,TEC-088,2026-11-26,2026-11-27\nopt,TEC-089,2026-11-23,2026-11-23\nopt,TEC-090,2026-11-23,2026-11-23\nopt,TEC-100,2026-11-23,2026-11-23\nopt,TEC-111,2026-11-25,2026-11-25\nopt,TEC-112,2026-11-25,2026-11-26\nopt,TEC-113,2026-11-23,2026-11-23\nopt,TEC-114,2026-11-26,2026-11-26\nopt,TEC-115,2026-12-09,2026-12-09\nopt,UXC-001,2026-11-23,2026-11-23\nopt,UXC-002,2026-11-23,2026-11-23\nopt,UXC-003,2026-11-24,2026-11-25\nopt,UXC-004,2026-11-23,2026-11-24\nopt,UXC-005,2026-11-23,2026-11-23\nopt,UXC-006,2026-11-23,2026-11-24\nopt,UXC-008,2026-11-23,2026-11-24\nopt,UXC-013,2026-11-24,2026-11-25\nopt,UXC-014,2026-11-26,2026-11-26\nopt,UXC-015,2026-11-25,2026-11-25\nopt,UXC-016,2026-11-24,2026-11-25\nopt,UXC-020,2026-11-24,2026-11-25\nopt,UXC-030,2026-11-23,2026-11-23\nopt,UXC-031,2026-11-24,2026-11-26\nopt,UXC-032,2026-11-24,2026-11-25\nopt,UXC-040,2026-11-23,2026-11-23\nopt,UXC-050,2026-11-23,2026-11-24\nopt,UXC-090,2026-11-26,2026-11-27\nopt,UXC-091,2026-12-09,2026-12-09\nopt,W2B-V1PT,2026-11-23,2026-11-23\nopt,W2B3-R4,2026-11-23,2026-11-24\nopt,W2B3-SCH5,2026-11-24,2026-11-25\nbase,AST-WP-01,2026-11-26,2026-11-27\nbase,AST-WP-08,2026-12-02,2026-12-03\nbase,AST-WP-10,2026-12-01,2026-12-02\nbase,AST-WP-12,2026-12-09,2026-12-10\nbase,AST-WP-15,2026-12-01,2026-12-03\nbase,AST-WP-16,2026-11-26,2026-11-27\nbase,AST-WP-18,2026-12-04,2026-12-07\nbase,GAP-ECON-RESIM,2026-12-07,2026-12-09\nbase,GAP-GATE-MLGA,2026-12-04,2026-12-07\nbase,GAP-GP-ENG,2026-12-03,2026-12-07\nbase,GAP-QA-EDGE,2026-12-07,2026-12-08\nbase,GAP-REL-PIPE,2026-12-04,2026-12-07\nbase,GAP-REL-PUB,2027-02-01,2027-02-04\nbase,GAP-REL-VER,2026-11-30,2026-12-01\nbase,GLT-003,2026-11-23,2026-11-23\nbase,GLT-012,2026-11-23,2026-11-23\nbase,GLT-028,2026-11-23,2026-11-23\nbase,GLT-030,2026-11-23,2026-11-24\nbase,GLT-031,2026-11-23,2026-11-24\nbase,GLT-032,2026-11-23,2026-11-24\nbase,GLT-033,2026-11-23,2026-11-24\nbase,GLT-034,2026-11-23,2026-11-24\nbase,GLT-035,2026-11-23,2026-11-24\nbase,GLT-036,2026-11-23,2026-11-24\nbase,GLT-037,2026-11-23,2026-11-24\nbase,GLT-041,2026-11-23,2026-11-24\nbase,GLT-045,2026-11-23,2026-11-24\nbase,GLT-046,2026-11-23,2026-11-24\nbase,GLT-047,2026-11-23,2026-11-24\nbase,GLT-049,2026-11-23,2026-11-24\nbase,GLT-050,2026-11-27,2026-12-01\nbase,GLT-051,2026-12-01,2026-12-03\nbase,GLT-052,2026-11-27,2026-12-01\nbase,GLT-053,2026-11-27,2026-12-01\nbase,GLT-054,2026-11-30,2026-12-01\nbase,GLT-055,2026-12-03,2026-12-07\nbase,GLT-056,2026-12-14,2026-12-17\nbase,GLT-057,2026-11-25,2026-11-27\nbase,GLT-058,2026-12-03,2026-12-04\nbase,GLT-070,2026-11-26,2026-11-27\nbase,GLT-071,2026-11-26,2026-11-27\nbase,GLT-072,2026-12-01,2026-12-02\nbase,GLT-073,2026-11-26,2026-11-27\nbase,GLT-074,2026-12-01,2026-12-02\nbase,GLT-075,2026-12-02,2026-12-04\nbase,GLT-080,2026-12-04,2026-12-07\nbase,GLT-081,2026-12-07,2026-12-07\nbase,GLT-082,2026-12-07,2026-12-07\nbase,GLT-083,2026-12-07,2026-12-08\nbase,GLT-084,2026-12-08,2026-12-09\nbase,GLT-085,2026-12-08,2026-12-11\nbase,GLT-086,2026-12-11,2026-12-11\nbase,GLT-090,2026-12-11,2026-12-14\nbase,GLT-091,2026-12-14,2026-12-14\nbase,GLT-092,2026-12-14,2026-12-14\nbase,GLT-093,2026-12-14,2026-12-14\nbase,GLT-094,2026-12-14,2026-12-15\nbase,GLT-095,2026-12-15,2026-12-18\nbase,GLT-096,2026-12-15,2026-12-16\nbase,GLT-097,2026-12-18,2026-12-21\nbase,GLT-100,2026-12-21,2026-12-22\nbase,GLT-101,2026-12-23,2027-01-05\nbase,GLT-102,2027-01-04,2027-01-06\nbase,GLT-103,2027-01-05,2027-01-06\nbase,GLT-104,2026-12-22,2027-01-06\nbase,GLT-105,2027-01-06,2027-01-08\nbase,GLT-106,2027-01-08,2027-01-12\nbase,GLT-107,2027-01-12,2027-01-13\nbase,GLT-108,2027-01-13,2027-01-15\nbase,GLT-109,2027-01-15,2027-01-19\nbase,GLT-110,2027-01-19,2027-01-21\nbase,GLT-111,2027-01-21,2027-01-25\nbase,GLT-112,2027-01-25,2027-01-27\nbase,GLT-113,2026-12-21,2026-12-23\nbase,GLT-114,2026-12-21,2027-01-04\nbase,GLT-115,2027-01-04,2027-01-05\nbase,GLT-120,2027-01-27,2027-01-28\nbase,GO-G-LP0,2026-11-23,2026-11-23\nbase,GO-GP-RUNTIME,2026-12-02,2026-12-03\nbase,GO-TEC055,2026-11-24,2026-11-25\nbase,GO-TEC084,2026-11-23,2026-11-23\nbase,GO-W2B3-SCH,2026-11-23,2026-11-23\nbase,QD-02,2026-11-23,2026-11-25\nbase,QD-03,2027-01-29,2027-02-03\nbase,QD-04,2026-11-23,2026-11-26\nbase,QD-05,2026-11-23,2026-11-25\nbase,QD-06,2026-11-23,2026-11-23\nbase,QD-07,2026-11-23,2026-11-23\nbase,RC-ENDURANCE,2027-01-29,2027-02-03\nbase,SYS-004,2026-11-23,2026-11-24\nbase,SYS-006,2026-11-23,2026-11-24\nbase,SYS-010,2026-11-23,2026-11-24\nbase,SYS-011,2026-11-23,2026-11-24\nbase,SYS-022,2026-11-30,2026-12-01\nbase,SYS-023,2026-11-24,2026-11-25\nbase,SYS-024,2026-11-23,2026-11-23\nbase,SYS-027,2026-11-23,2026-11-24\nbase,SYS-028,2026-11-23,2026-11-23\nbase,SYS-029,2026-11-23,2026-11-24\nbase,SYS-030,2026-11-23,2026-11-24\nbase,SYS-032,2026-11-23,2026-11-23\nbase,SYS-033,2026-11-25,2026-11-26\nbase,SYS-034,2026-11-23,2026-11-23\nbase,SYS-035,2026-11-25,2026-11-26\nbase,SYS-037,2026-11-25,2026-11-26\nbase,SYS-039,2026-11-25,2026-11-26\nbase,SYS-040,2026-11-25,2026-11-26\nbase,SYS-049,2026-11-23,2026-11-24\nbase,TEC-001,2026-11-23,2026-11-23\nbase,TEC-002,2026-11-23,2026-11-23\nbase,TEC-005,2026-11-23,2026-11-23\nbase,TEC-006,2026-11-23,2026-11-23\nbase,TEC-007,2026-11-23,2026-11-23\nbase,TEC-011,2026-11-23,2026-11-24\nbase,TEC-012,2026-11-24,2026-11-27\nbase,TEC-020,2026-11-23,2026-11-26\nbase,TEC-031,2026-11-23,2026-11-23\nbase,TEC-034,2026-11-23,2026-11-24\nbase,TEC-040,2026-11-23,2026-11-24\nbase,TEC-043,2026-11-25,2026-11-26\nbase,TEC-044,2026-11-25,2026-11-26\nbase,TEC-050,2026-11-23,2026-11-23\nbase,TEC-052,2026-12-01,2026-12-02\nbase,TEC-053,2026-11-30,2026-12-01\nbase,TEC-054,2026-12-02,2026-12-03\nbase,TEC-055,2026-12-02,2026-12-04\nbase,TEC-059,2026-11-23,2026-11-24\nbase,TEC-060,2026-11-23,2026-11-23\nbase,TEC-061,2026-11-24,2026-11-26\nbase,TEC-062,2026-11-24,2026-11-25\nbase,TEC-071,2026-11-23,2026-11-24\nbase,TEC-073,2026-11-24,2026-11-27\nbase,TEC-074,2026-11-23,2026-11-24\nbase,TEC-080,2026-11-25,2026-11-25\nbase,TEC-081,2026-11-30,2026-12-02\nbase,TEC-082,2026-11-30,2026-12-02\nbase,TEC-083,2026-12-02,2026-12-04\nbase,TEC-084,2026-11-25,2026-11-26\nbase,TEC-086,2026-11-23,2026-11-24\nbase,TEC-088,2026-12-07,2026-12-10\nbase,TEC-089,2026-11-23,2026-11-24\nbase,TEC-090,2026-11-23,2026-11-24\nbase,TEC-100,2026-11-25,2026-11-25\nbase,TEC-111,2026-12-02,2026-12-03\nbase,TEC-112,2026-12-03,2026-12-04\nbase,TEC-113,2026-11-23,2026-11-23\nbase,TEC-114,2026-12-09,2026-12-10\nbase,TEC-115,2027-01-28,2027-01-29\nbase,UXC-001,2026-11-23,2026-11-24\nbase,UXC-002,2026-11-23,2026-11-23\nbase,UXC-003,2026-12-01,2026-12-02\nbase,UXC-004,2026-11-26,2026-11-27\nbase,UXC-005,2026-11-23,2026-11-23\nbase,UXC-006,2026-11-26,2026-11-27\nbase,UXC-008,2026-11-26,2026-11-27\nbase,UXC-013,2026-11-30,2026-12-01\nbase,UXC-014,2026-12-07,2026-12-09\nbase,UXC-015,2026-12-02,2026-12-03\nbase,UXC-016,2026-12-01,2026-12-02\nbase,UXC-020,2026-12-01,2026-12-02\nbase,UXC-030,2026-11-26,2026-11-26\nbase,UXC-031,2026-12-01,2026-12-04\nbase,UXC-032,2026-11-30,2026-12-03\nbase,UXC-040,2026-11-23,2026-11-24\nbase,UXC-050,2026-11-26,2026-11-27\nbase,UXC-090,2026-12-10,2026-12-11\nbase,UXC-091,2027-01-29,2027-02-01\nbase,W2B-V1PT,2026-11-23,2026-11-25\nbase,W2B3-R4,2026-11-25,2026-11-26\nbase,W2B3-SCH5,2026-11-30,2026-12-02\ncons,AST-WP-01,2026-12-10,2026-12-16\ncons,AST-WP-08,2027-01-15,2027-01-20\ncons,AST-WP-10,2027-01-11,2027-01-14\ncons,AST-WP-12,2027-02-10,2027-02-16\ncons,AST-WP-15,2027-01-12,2027-01-18\ncons,AST-WP-16,2026-12-10,2026-12-16\ncons,AST-WP-18,2027-01-28,2027-02-03\ncons,GAP-ECON-RESIM,2027-02-03,2027-02-11\ncons,GAP-GATE-MLGA,2027-01-28,2027-02-02\ncons,GAP-GP-ENG,2027-01-20,2027-02-03\ncons,GAP-QA-EDGE,2027-02-05,2027-02-08\ncons,GAP-REL-PIPE,2027-01-28,2027-02-05\ncons,GAP-REL-PUB,2027-08-17,2027-08-26\ncons,GAP-REL-VER,2027-01-04,2027-01-11\ncons,GLT-003,2026-11-23,2026-11-25\ncons,GLT-012,2026-11-23,2026-11-25\ncons,GLT-028,2026-11-23,2026-11-25\ncons,GLT-030,2026-11-25,2026-11-30\ncons,GLT-031,2026-11-25,2026-11-30\ncons,GLT-032,2026-11-25,2026-11-30\ncons,GLT-033,2026-11-25,2026-11-30\ncons,GLT-034,2026-11-25,2026-11-30\ncons,GLT-035,2026-11-25,2026-11-30\ncons,GLT-036,2026-11-25,2026-11-30\ncons,GLT-037,2026-11-25,2026-11-30\ncons,GLT-041,2026-11-25,2026-11-30\ncons,GLT-045,2026-11-25,2026-11-30\ncons,GLT-046,2026-11-25,2026-11-30\ncons,GLT-047,2026-11-25,2026-11-30\ncons,GLT-049,2026-11-25,2026-11-30\ncons,GLT-050,2026-12-16,2027-01-05\ncons,GLT-051,2027-01-13,2027-01-21\ncons,GLT-052,2026-12-18,2027-01-05\ncons,GLT-053,2026-12-18,2027-01-06\ncons,GLT-054,2026-12-22,2027-01-07\ncons,GLT-055,2027-01-22,2027-01-28\ncons,GLT-056,2027-02-22,2027-03-05\ncons,GLT-057,2026-12-02,2026-12-16\ncons,GLT-058,2027-01-25,2027-01-26\ncons,GLT-070,2026-12-14,2026-12-18\ncons,GLT-071,2026-12-11,2026-12-16\ncons,GLT-072,2027-01-12,2027-01-14\ncons,GLT-073,2026-12-14,2026-12-18\ncons,GLT-074,2027-01-13,2027-01-15\ncons,GLT-075,2027-01-15,2027-01-27\ncons,GLT-080,2027-01-27,2027-02-01\ncons,GLT-081,2027-02-01,2027-02-02\ncons,GLT-082,2027-02-01,2027-02-03\ncons,GLT-083,2027-02-03,2027-02-05\ncons,GLT-084,2027-02-05,2027-02-10\ncons,GLT-085,2027-02-05,2027-02-16\ncons,GLT-086,2027-02-16,2027-02-16\ncons,GLT-090,2027-02-16,2027-02-19\ncons,GLT-091,2027-02-19,2027-02-23\ncons,GLT-092,2027-02-19,2027-02-22\ncons,GLT-093,2027-02-19,2027-02-22\ncons,GLT-094,2027-02-23,2027-03-01\ncons,GLT-095,2027-03-01,2027-03-17\ncons,GLT-096,2027-03-01,2027-03-04\ncons,GLT-097,2027-03-17,2027-03-23\ncons,GLT-100,2027-03-23,2027-03-26\ncons,GLT-101,2027-04-12,2027-05-05\ncons,GLT-102,2027-04-27,2027-05-06\ncons,GLT-103,2027-05-03,2027-05-10\ncons,GLT-104,2027-03-26,2027-05-06\ncons,GLT-105,2027-05-06,2027-05-19\ncons,GLT-106,2027-05-19,2027-05-31\ncons,GLT-107,2027-05-31,2027-06-09\ncons,GLT-108,2027-06-09,2027-06-21\ncons,GLT-109,2027-06-21,2027-07-01\ncons,GLT-110,2027-07-01,2027-07-13\ncons,GLT-111,2027-07-13,2027-07-22\ncons,GLT-112,2027-07-22,2027-08-03\ncons,GLT-113,2027-03-23,2027-04-12\ncons,GLT-114,2027-03-23,2027-04-27\ncons,GLT-115,2027-04-27,2027-04-30\ncons,GLT-120,2027-08-03,2027-08-09\ncons,GO-G-LP0,2026-11-23,2026-11-25\ncons,GO-GP-RUNTIME,2027-01-14,2027-01-19\ncons,GO-TEC055,2026-11-26,2026-12-01\ncons,GO-TEC084,2026-11-23,2026-11-25\ncons,GO-W2B3-SCH,2026-11-23,2026-11-25\ncons,QD-02,2026-11-24,2026-12-04\ncons,QD-03,2027-08-12,2027-08-23\ncons,QD-04,2026-11-24,2026-12-04\ncons,QD-05,2026-11-23,2026-12-01\ncons,QD-06,2026-11-23,2026-11-23\ncons,QD-07,2026-11-23,2026-11-23\ncons,RC-ENDURANCE,2027-08-12,2027-08-23\ncons,SYS-004,2026-11-24,2026-11-30\ncons,SYS-006,2026-11-23,2026-11-26\ncons,SYS-010,2026-11-23,2026-11-26\ncons,SYS-011,2026-11-23,2026-11-27\ncons,SYS-022,2026-12-23,2027-01-08\ncons,SYS-023,2026-12-01,2026-12-03\ncons,SYS-024,2026-11-23,2026-11-23\ncons,SYS-027,2026-11-23,2026-11-26\ncons,SYS-028,2026-11-23,2026-11-23\ncons,SYS-029,2026-11-23,2026-11-26\ncons,SYS-030,2026-11-23,2026-11-26\ncons,SYS-032,2026-11-23,2026-11-25\ncons,SYS-033,2026-12-07,2026-12-14\ncons,SYS-034,2026-11-23,2026-11-23\ncons,SYS-035,2026-12-08,2026-12-10\ncons,SYS-037,2026-12-08,2026-12-11\ncons,SYS-039,2026-12-08,2026-12-11\ncons,SYS-040,2026-12-08,2026-12-11\ncons,SYS-049,2026-11-24,2026-11-27\ncons,TEC-001,2026-11-23,2026-11-23\ncons,TEC-002,2026-11-23,2026-11-23\ncons,TEC-005,2026-11-23,2026-11-23\ncons,TEC-006,2026-11-24,2026-11-25\ncons,TEC-007,2026-11-24,2026-11-24\ncons,TEC-011,2026-11-23,2026-11-26\ncons,TEC-012,2026-11-26,2026-12-07\ncons,TEC-020,2026-11-25,2026-12-04\ncons,TEC-031,2026-11-23,2026-11-23\ncons,TEC-034,2026-11-23,2026-11-26\ncons,TEC-040,2026-11-23,2026-11-26\ncons,TEC-043,2026-12-09,2026-12-10\ncons,TEC-044,2026-12-09,2026-12-10\ncons,TEC-050,2026-11-23,2026-11-23\ncons,TEC-052,2027-01-06,2027-01-14\ncons,TEC-053,2026-12-22,2027-01-07\ncons,TEC-054,2027-01-14,2027-01-25\ncons,TEC-055,2027-01-15,2027-01-27\ncons,TEC-059,2026-11-25,2026-11-30\ncons,TEC-060,2026-11-23,2026-11-23\ncons,TEC-061,2026-12-01,2026-12-07\ncons,TEC-062,2026-11-26,2026-12-02\ncons,TEC-071,2026-11-23,2026-11-26\ncons,TEC-073,2026-11-26,2026-12-07\ncons,TEC-074,2026-11-24,2026-11-27\ncons,TEC-080,2026-12-02,2026-12-04\ncons,TEC-081,2027-01-06,2027-01-15\ncons,TEC-082,2027-01-08,2027-01-15\ncons,TEC-083,2027-01-19,2027-01-28\ncons,TEC-084,2026-12-04,2026-12-11\ncons,TEC-086,2026-11-23,2026-11-26\ncons,TEC-088,2027-02-05,2027-02-16\ncons,TEC-089,2026-11-23,2026-11-26\ncons,TEC-090,2026-11-24,2026-11-27\ncons,TEC-100,2026-12-02,2026-12-04\ncons,TEC-111,2027-01-14,2027-01-19\ncons,TEC-112,2027-01-25,2027-01-28\ncons,TEC-113,2026-11-23,2026-11-24\ncons,TEC-114,2027-02-11,2027-02-16\ncons,TEC-115,2027-08-09,2027-08-12\ncons,UXC-001,2026-11-23,2026-11-26\ncons,UXC-002,2026-11-24,2026-11-24\ncons,UXC-003,2027-01-11,2027-01-18\ncons,UXC-004,2026-12-10,2026-12-15\ncons,UXC-005,2026-11-23,2026-11-25\ncons,UXC-006,2026-12-11,2026-12-17\ncons,UXC-008,2026-12-10,2026-12-15\ncons,UXC-013,2027-01-11,2027-01-14\ncons,UXC-014,2027-02-03,2027-02-10\ncons,UXC-015,2027-01-18,2027-01-22\ncons,UXC-016,2027-01-12,2027-01-15\ncons,UXC-020,2027-01-12,2027-01-15\ncons,UXC-030,2026-12-10,2026-12-10\ncons,UXC-031,2027-01-04,2027-01-18\ncons,UXC-032,2027-01-05,2027-01-14\ncons,UXC-040,2026-11-23,2026-11-27\ncons,UXC-050,2026-12-11,2026-12-17\ncons,UXC-090,2027-02-16,2027-02-19\ncons,UXC-091,2027-08-12,2027-08-17\ncons,W2B-V1PT,2026-11-23,2026-12-01\ncons,W2B3-R4,2026-12-04,2026-12-10\ncons,W2B3-SCH5,2027-01-05,2027-01-14\n","tasks.csv":"task_id,title,node_type,workstream,priority,status,milestone,ladder,acceptance_status,device_status,decision_ref,effort_opt_h,effort_base_h,effort_cons_h,planned_start,planned_end,actual_start,actual_end,blocker\nEP-ECON,Epic EP-ECON (13 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nEP-LOOP,Epic EP-LOOP (5 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,\nEP-MISSION,Epic EP-MISSION (2 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,\nEP-FLEET,Epic EP-FLEET (2 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,\nEP-MAP,Epic EP-MAP (1 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,\nEP-SKIN,Epic EP-SKIN (2 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,\nEP-DISC,Epic EP-DISC (8 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nEP-SECTOR,Epic EP-SECTOR (3 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,\nEP-PROJ,Epic EP-PROJ (11 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nEP-DEF,Epic EP-DEF (2 items),EPIC,epic,,HOLD,,,,,,,,,,,,,\nEP-MON,Epic EP-MON (5 items),EPIC,epic,,HOLD,,,,,,,,,,,,,\nEPIC-TEC-GOV,Epic EPIC-TEC-GOV (9 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nEPIC-TEC-Q04A,Epic EPIC-TEC-Q04A (11 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nEPIC-TEC-SAVE,Epic EPIC-TEC-SAVE (6 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nEPIC-TEC-API,Epic EPIC-TEC-API (5 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nEPIC-TEC-PORT,Epic EPIC-TEC-PORT (10 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nEPIC-TEC-ART,Epic EPIC-TEC-ART (7 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,\nEPIC-TEC-PERF,Epic EPIC-TEC-PERF (7 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nEPIC-TEC-REL,Epic EPIC-TEC-REL (13 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nEPIC-TEC-QA,Epic EPIC-TEC-QA (7 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nEPIC-TEC-GATE,Epic EPIC-TEC-GATE (8 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nEPIC-UXC-IA,Epic EPIC-UXC-IA (13 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nEPIC-UXC-HUD,Epic EPIC-UXC-HUD (6 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nEPIC-UXC-CONTENT,Epic EPIC-UXC-CONTENT (4 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nEPIC-UXC-VQA,Epic EPIC-UXC-VQA (4 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,\nEPIC-UXC-AUDIO,Epic EPIC-UXC-AUDIO (1 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,\nEPIC-UXC-PRD,Epic EPIC-UXC-PRD (3 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,\nEPIC-UXC-REL,Epic EPIC-UXC-REL (1 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,\nEPIC-UXC-GATE,Epic EPIC-UXC-GATE (3 items),EPIC,epic,,PLANNED,,,,,,,,,,,,,\nEPIC-AST,Epic EPIC-AST (20 items),EPIC,epic,,IN_PROGRESS,,,,,,,,,,,,,\nSYS-001,EconomySim re-baseline: production-faithful archetypes,TASK,design,P1,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.8,2.3,6.6,,,,,\nSYS-002,Star-3 clarity decision (SD1),DECISION,design,P0,DIRECTOR_ACCEPTED,M2,DIRECTOR_ACCEPTED,Star-3 A+ preferred (D-046); R7 Star-3 A+ / Mk hint approved (D-049 item 14),,D-046;D-049,0.25,0.5,1,,,,,\nSYS-003,Sim: star-3 option timing (logging-only overrides),TASK,design,P0,DONE,M2,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.8,2.3,6.6,,,,,\nSYS-004,\"Reward cadence respacing (Greenhouse, Antenna, Crates)\",TASK,design,P1,PLANNED,M2-Q04a,,registry approval PENDING,,,0.8,2.3,6.6,2026-11-23,2026-11-24,,,\nSYS-005,Offline cap step study (P-E8),TASK,design,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.8,2.3,6.6,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nSYS-006,Decide offline trip counting (Q6),DECISION,design,P0,PLANNED,MLG-A,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,\nSYS-007,Stranded sector balances UX rule (P-E9),TASK,design,P2,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,\nSYS-008,Credits shop price study (B1 economy gate),TASK,design,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.8,2.3,6.6,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nSYS-009,DISCOVERY: Credits shop study scope and effort,TASK,design,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nSYS-010,Next-goal surface spec (mission card as single goal surface),TASK,design,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,\nSYS-011,Welcome-back recap card spec,TASK,design,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,\nSYS-012,Sector entry framing card (P-E7),TASK,design,P2,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,\nSYS-013,Playtest protocol for H6/H7/H9,TASK,design,P2,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,\nSYS-014,DISCOVERY: closed-test cohort size and duration,TASK,production,P2,PLANNED,M2,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,\nSYS-015,Contract card design input (if SYS-002 = option a),REQUIREMENT,design,P0,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,\nSYS-016,Mission chain payout decision,DECISION,design,P3,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,\nSYS-017,Mark (Mk) surfacing hint design,REQUIREMENT,design,P2,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,\nSYS-018,Scout cosmetic niche,TASK,design,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nSYS-019,Galaxy Map sector card additions spec,REQUIREMENT,design,P2,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,\nSYS-020,Skin pack allocation: earned vs held,TASK,design,P2,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,\nSYS-021,Readability fix brief for 3 weak pairs,REQUIREMENT,design,P2,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,\nSYS-022,Discovery window tuning (P-E6),TASK,design,P1,PLANNED,MLG-A,,registry approval PENDING,,,0.8,2.3,6.6,2026-11-25,2026-12-01,,,\nSYS-023,Sim hook: log discovery grants (logging only),TASK,design,P1,PLANNED,MLG-A,,registry approval PENDING,,,1.28,2.3,4.85,2026-11-23,2026-11-25,,,\nSYS-024,DISCOVERY: effort for discovery sim hook,TASK,design,P1,PLANNED,MLG-A,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,\nSYS-025,Chapter content plan sectors 2-4,TASK,design,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nSYS-026,DISCOVERY: chapter content volume and art cost,TASK,design,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nSYS-027,Per-save seed decision (Q11),DECISION,design,P2,PLANNED,MLG-A,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,\nSYS-028,Discovery reveal and card design input,REQUIREMENT,design,P2,READY,M2,,registry approval APPROVED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,\nSYS-029,Sector reward table v2 (existing kinds only),TASK,design,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,\nSYS-030,Reveal merging rule for coincident rewards,TASK,design,P2,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,\nSYS-031,SectorStars unlock rule type (design input),REQUIREMENT,design,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,\nSYS-032,Galactic Projects structure approval,DECISION,design,P1,QA_PASS,MLG-B,QA_PASS,lead-gated doc; Director review PENDING,,D-059;D-069,0.25,0.5,1,2026-11-23,2026-11-23,,,\nSYS-033,Sim what-if: project credit stages,TASK,design,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.8,2.3,6.6,2026-11-23,2026-11-27,,,\nSYS-034,DISCOVERY: effort for project sim override,TASK,design,P1,PLANNED,MLG-B,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,\nSYS-035,C0-style gate timing for all project gates,TASK,design,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.8,2.3,6.6,2026-11-23,2026-11-26,,,\nSYS-036,\"Project content: names, narrative, stage text\",TASK,design,P2,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,,,,,\nSYS-037,Project data configuration spec (ProjectCatalog),TASK,design,P2,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-26,,,\nSYS-038,\"New rule types: archetype tier count, MkReached (design input)\",REQUIREMENT,design,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nSYS-039,Project construction stage art brief,REQUIREMENT,design,P2,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-26,,,\nSYS-040,Project UI design input,REQUIREMENT,design,P2,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-26,,,\nSYS-041,Idle Defense: park or cancel decision (Q13),DECISION,design,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nSYS-042,Non-combat ambient event concept (optional),TASK,design,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nSYS-043,Monetization principles decision (M1-M5),DECISION,design,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nSYS-044,Diamonds / premium currency,TASK,design,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nSYS-045,\"DISCOVERY: billing, verification and store compliance effort\",TASK,release,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nSYS-046,Willingness-to-pay survey design,TASK,design,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nSYS-047,Legacy ad placements disposition (Q9),TASK,design,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nSYS-048,Target play-span definition (Q4),TASK,design,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,\nSYS-049,Telemetry decision (Q1),DECISION,design,P2,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,\nTEC-001,Hot-file ownership register and handoff protocol,TASK,production,P0,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,\nTEC-002,Re-serialisation noise guard script,TASK,release,P1,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,\nTEC-003,DISCOVERY: windowless offscreen capture,TASK,engineering,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,1.28,2.3,4.85,,,,,\nTEC-004,Offscreen capture harness for AutoShot states,TASK,engineering,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,1.28,2.3,4.85,,,,,\nTEC-005,Consolidated production save fingerprint tool,TASK,qa,P0,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,\nTEC-006,Unity batch runner wrapper,TASK,release,P0,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,\nTEC-007,QA partial convention and expected-count registry,TASK,qa,P1,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,\nTEC-008,Refresh integration readiness docs after S2,TASK,production,P2,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,\nTEC-010,S2: merge Home Station 2.0 revision onto int,TASK,engineering,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.62,1.4,4.73,,,,,\nTEC-011,\"S3a: port album model, catalog and validator\",TASK,engineering,P0,QA_PASS,M2-Q04a,QA_PASS,covered by the M2-Q04a exit gate TEC-110 (D-041 PASS WITH CONDITIONS); own approval PENDING,,D-041,1.35,3.2,12.2,2026-11-23,2026-11-24,,,\nTEC-012,S3b: album panel and entry inside Home Station panel,TASK,engineering,P0,QA_PASS,M2-Q04a,QA_PASS,covered by the M2-Q04a exit gate TEC-110 (D-041 PASS WITH CONDITIONS); own approval PENDING,,D-041,0.62,1.4,4.73,2026-11-24,2026-11-27,,,\nTEC-013,S3c: append AlbumCount = 7 and move Comms Antenna rule,TASK,engineering,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.62,1.4,4.73,,,,,\nTEC-014,S4: 04.4 Galaxy Map wiring and album counts,TASK,engineering,P1,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.62,1.4,4.73,,,,,\nTEC-015,S5: decoration pacing re-run with AlbumCount,TASK,qa,P1,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,1.35,2.1,4.73,,,,,\nTEC-016,Q04a integrated regression,TASK,qa,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,1.35,2.1,4.73,,,,,\nTEC-017,Q04a dev APK build,TASK,release,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.8,2.3,6.6,,,,,\nTEC-018,Director phone pass on the Q04a APK (manual acceptance),SESSION,design,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0,0,0,,,,,\nTEC-019,G3 phone check of the skin-fix APK (manual),SESSION,design,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0,0,0,,,,,\nTEC-020,Supervised graphical acceptance session,SESSION,qa,P0,BLOCKED,M2-Q04a,,registry approval PENDING,,,0,0,0,2026-11-23,2026-11-26,,,zero pop-up rule: needs a supervised session or TEC-004 (D-024)\nTEC-030,Save compatibility fixture suite (headless),TASK,qa,P0,QA_PASS,M2-Q04b,QA_PASS,lead gate PASS; post-merge PASS (D-047); approval PENDING in registry,,,1.28,2.3,4.85,,,,,\nTEC-031,Serialized enum reservation register,TASK,engineering,P0,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,\nTEC-032,Schema change framework (only if a schema feature is approved),TASK,engineering,P2,PLANNED,MLG-B,,registry approval PENDING,,,1.28,2.3,4.85,,,,,\nTEC-033,Save size and write-time logging on device,TASK,engineering,P2,PLANNED,M2,,registry approval NOT_REQUIRED,,,0.8,2.3,6.6,,,,,\nTEC-034,DISCOVERY: dev-to-release save policy,TASK,engineering,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,\nTEC-035,Close the B1 stray desktop saves item,TASK,production,P3,BLOCKED,M2-Q04a,,registry approval PENDING,,,0.25,0.5,1,,,,,Director decision (currently: keep originals)\nTEC-040,RouteView presentation-extension API design,TASK,engineering,P0,QA_PASS,M2-Q04b,QA_PASS,design used by TEC-041 (implemented); lead-reviewed,,D-049,0.25,0.5,1,2026-11-23,2026-11-24,,,\nTEC-041,Implement RouteView extension API (no behaviour change),TASK,engineering,P0,DONE,M2-Q04b,TECHNICAL_ACCEPTED,W2-B2 technical accepted (D-059); W2-B2 closed (D-068),,D-059;D-068,1.28,2.3,4.85,,,,,\nTEC-042,SliceHud split plan for UX2,TASK,engineering,P1,QA_PASS,M2-Q04b,QA_PASS,split plan executed by TEC-050 P0-P3,,D-049;D-050,0.25,0.5,1,,,,,\nTEC-043,\"Cosmetic layer extension design (Kit/Fit, model layer)\",TASK,engineering,P1,PLANNED,M2,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-24,2026-11-26,,,\nTEC-044,Collection Sync order contract and test,TASK,engineering,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,1.28,2.3,4.85,2026-11-24,2026-11-26,,,\nTEC-050,UX2 Map HUD port (SliceHud split),PARENT,engineering,P1,IN_PROGRESS,M2-Q04b,TECHNICAL_ACCEPTED,TECHNICAL ACCEPTED at [commit] (D-080); DEVICE VALIDATED PENDING; FULL ACCEPTANCE PENDING; A-7 PENDING,NOT TESTED (A-7 BLOCKED),D-072;D-075;D-076;D-080,0,0,0,2026-11-23,2026-11-23,2026-11-20,,FULL ACCEPTANCE pending device evidence (W2B3-ADB1) and A-7 (TEC-050-A7); D2 conditional (QD-07)\nTEC-051,UX2 overlay restyle (optional),TASK,engineering,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,1.17,2.73,10.33,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nTEC-052,Sector rewards phase A port,TASK,engineering,P1,HOLD,M2-Q04b,,\"architectural scope approved, not implementation GO\",,D-062;D-069;D-081,0.62,1.4,4.73,2026-11-27,2026-12-03,,,scope approved: one canonical zone reward track reward.zone.sNN (D-069 D4); implementation HOLD; merges into GL100 P3-A GLT-070\nTEC-053,LP-0 Living Planets port (Cinder),TASK,engineering,P1,BLOCKED,M2-Q04b,,registry approval PENDING,,D-081,1.35,3.2,12.2,2026-11-25,2026-12-01,,,G-LP0 Director gate\nTEC-054,Skin effects / Workshop Expansion port,TASK,engineering,P1,HOLD,M2,,\"architectural scope approved, not implementation GO\",,D-062;D-069;D-081,2.82,6.8,27.13,2026-12-01,2026-12-04,,,scope approved: one attachment architecture with Body scope (D-069 D5); implementation HOLD; Body path in GLT-071\nTEC-055,MD-1 Meaningful Deliveries port,TASK,engineering,P1,BLOCKED,MLG-A,,registry approval PENDING,,D-081,1.9,4.53,17.8,2026-12-01,2026-12-04,,,Director choice: offline option + seed option; C0 spacing report\nTEC-056,\"Idle Defense port (visual-only, no saved turret state)\",TASK,engineering,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,1.53,3.67,14.07,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nTEC-057,Garage / Shop port,TASK,engineering,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,4.65,11.3,45.8,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nTEC-058,DISCOVERY: offline contracts experiment status,TASK,engineering,P3,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,\nTEC-059,DISCOVERY: technical design for Planning A systems,TASK,engineering,P1,QA_PASS,MLG-B,QA_PASS,§6 option A (schema 5) APPROVED as architectural baseline (D-069 D1); runtime HOLD,,D-069,0.25,0.5,1,2026-11-23,2026-11-24,,,\nTEC-060,Art import standard for factory assets,TASK,art-audio,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,\nTEC-061,Re-import [worker] and A6 kits and re-capture,TASK,art-audio,P1,BLOCKED,M2,,registry approval NOT_REQUIRED,,,1,1.83,3.62,2026-11-23,2026-11-26,,,captures need TEC-004 or a supervised session\nTEC-062,Import LP T4 prop removal,TASK,art-audio,P2,BLOCKED,MLG-A,,registry approval NOT_REQUIRED,,,1,1.83,3.62,2026-11-23,2026-11-25,,,art change not committed\nTEC-063,Import Cinder Socket_Turret re-export,TASK,art-audio,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,1,1.83,3.62,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nTEC-064,\"Import sector reward art (livery, drone, Pathfinder hull)\",TASK,art-audio,P3,BLOCKED,M2,,registry approval PENDING,,,1,1.83,3.62,,,,,sector reward art not produced; depends on TEC-052 scope (HOLD)\nTEC-065,Emission keyword check over all emissive materials,TASK,qa,P1,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,1.35,2.1,4.73,,,,,\nTEC-066,Resources/ usage audit,TASK,engineering,P3,PLANNED,M2,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,\nTEC-070,S2-B device baseline session (manual),SESSION,design,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0,0,0,,,,,\nTEC-071,Per-feature Android budgets,TASK,android-perf,P1,PLANNED,M2-Q04b,,registry approval PENDING,,D-072,0.5,1.5,4,2026-11-23,2026-11-24,,,\nTEC-072,\"DevPerfLogger: CPU/GPU frame time, draw calls, memory\",TASK,android-perf,P1,DONE,M2-Q04b,TECHNICAL_ACCEPTED,technical accepted (D-059); device numbers recorded by the logger in the clean E1 baseline (D-072),,D-059;D-068;D-072,0.8,2.3,6.6,,,,,\nTEC-073,Per-feature device sessions,SESSION,android-perf,P1,PLANNED,M2,,registry approval NOT_REQUIRED,,,0,0,0,2026-11-24,2026-11-27,,,\nTEC-074,DISCOVERY: device coverage and minimum spec,TASK,android-perf,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,\nTEC-075,\"Memory and texture budget (RT preview, album thumbnails)\",TASK,android-perf,P2,PLANNED,M2,,registry approval NOT_REQUIRED,,,0.5,1.5,4,,,,,\nTEC-076,Low Effects mode verification,TASK,android-perf,P2,PLANNED,M2,,registry approval NOT_REQUIRED,,,0.5,1.5,4,,,,,\nTEC-080,Build automation script,TASK,release,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,1.35,4.1,12.2,2026-11-23,2026-11-25,,,\nTEC-081,Release (non-development) build configuration,TASK,release,P1,PLANNED,RC,,registry approval PENDING,,,1.35,4.1,12.2,2026-11-27,2026-12-02,,,\nTEC-082,Release signing prerequisites,TASK,release,P1,PLANNED,RC,,registry approval PENDING,,,1,3,8,2026-11-27,2026-12-02,,,\nTEC-083,Store build requirements,TASK,release,P1,PLANNED,RC,,registry approval PENDING,,,1.35,4.1,12.2,2026-12-02,2026-12-04,,,\nTEC-084,Package id and product name rename,TASK,release,P2,BLOCKED,MLG-B,,registry approval PENDING,,D-081,1.35,4.1,12.2,2026-11-23,2026-11-27,,,Director decision on final package id / name\nTEC-085,Release-build prototype exclusion assertion,TASK,release,P1,QA_PASS,M2,QA_PASS,lead gate PASS; approval PENDING in registry,,,1.35,4.1,12.2,,,,,\nTEC-086,DISCOVERY/decision: legacy Main game in release,TASK,engineering,P2,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,\nTEC-087,Monetization SDK integration (ads / IAP),TASK,engineering,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,1.28,2.3,4.85,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nTEC-088,Internal testing track upload and install verification (manual),SESSION,release,P1,PLANNED,RC,,registry approval PENDING,,,0,0,0,2026-12-08,2026-12-11,,,\nTEC-089,Promotion process candidate -\u003e main,TASK,production,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,\nTEC-090,DISCOVERY: crash reporting and analytics,TASK,engineering,P2,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,\nTEC-098,DISCOVERY: effort calibration in agent-hours,TASK,production,P1,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,\nTEC-100,Headless full-suite runner,TASK,qa,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,1.35,2.1,4.73,2026-11-23,2026-11-26,,,\nTEC-101,EconomySim identity gate automation,TASK,qa,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,1.35,2.1,4.73,,,,,\nTEC-102,Manual acceptance checklist template and BLOCKED register,TASK,qa,P1,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,\nTEC-103,Flaky-test fixes,TASK,qa,P2,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,1.35,2.1,4.73,,,,,\nTEC-104,DISCOVERY: Unity Test Framework adoption,TASK,qa,P3,PLANNED,M2,,registry approval PENDING,,,1.28,2.3,4.85,,,,,\nTEC-105,Touch-target and Android back automated checks,TASK,qa,P2,QA_PASS,M2-Q04b,QA_PASS,post-merge PASS GameplayQa 503/503; approval PENDING in registry,,,1.35,2.1,4.73,,,,,\nTEC-110,M2-Q04a technical exit gate,GATE,production,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0,0,0,,,,,\nTEC-111,M2-Q04b technical exit gate,GATE,production,P1,PLANNED,M2-Q04b,,registry approval PENDING,,,0,0,0,2026-12-03,2026-12-04,,,\nTEC-112,M2 complete (G4) technical gate,GATE,production,P1,PLANNED,M2,,registry approval PENDING,,,0,0,0,2026-12-04,2026-12-07,,,\nTEC-113,DISCOVERY: Queue 04 benchmarks 04.6-04.10 scope,TASK,production,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-23,,,\nTEC-114,Minimum Lovable Game technical gate,GATE,production,P1,PLANNED,MLG-B,,registry approval PENDING,,,0,0,0,2026-12-09,2026-12-10,,,\nTEC-115,Release candidate technical gate,GATE,production,P0,PLANNED,RC,,registry approval PENDING,,,0,0,0,2027-01-28,2027-01-29,,,\nUXC-001,UX information architecture v1 adoption,TASK,design,P0,PLANNED,M2-Q04b,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,\nUXC-002,DISCOVERY: Director screenshot findings root cause,TASK,engineering,P0,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-23,2026-11-23,,,\nUXC-003,Map HUD readability fixes (Director findings) inside the UX2 port,TASK,engineering,P0,PLANNED,M2-Q04b,,registry approval PENDING,,,1,1.83,3.62,2026-11-27,2026-12-03,,,\nUXC-004,Single goal surface: mission card hierarchy spec (incl. star-3 visibility),TASK,design,P0,PLANNED,M2-Q04b,,registry approval PENDING,,,0.25,0.5,1,2026-11-24,2026-11-27,,,\nUXC-005,Star-3 / contract visibility UI implementation,TASK,engineering,P0,QA_PASS,M2,TECHNICAL_ACCEPTED,TECHNICAL ACCEPTED (D-085); device NOT TESTED; S4/S5 moved to QD-02 (D-084); MissionCard 2 slots conditionally accepted (D-084),,D-049;D-069;D-072;D-079;D-085,1,1.83,3.62,2026-11-23,2026-11-24,2026-11-20,2026-11-20,waiting for the Unity lock (APK 2 build)\nUXC-006,Welcome-back recap card (UI),TASK,engineering,P1,PLANNED,M2,,registry approval PENDING,,,1,1.83,3.62,2026-11-24,2026-11-27,,,\nUXC-007,Sector entry framing card (UI + copy),TASK,engineering,P2,PLANNED,M2,,registry approval PENDING,,,1,1.83,3.62,,,,,\nUXC-008,Reveal and toast orchestration rules,TASK,design,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-24,2026-11-27,,,\nUXC-009,Progress indicator system spec,TASK,design,P1,PLANNED,M2,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,\nUXC-010,Galaxy Map sector card additions (UI),TASK,engineering,P2,PLANNED,M2,,registry approval PENDING,,,1,1.83,3.62,,,,,\nUXC-011,Home Station 2.0 revision visual acceptance support,TASK,design,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.25,0.5,1,,,,,\nUXC-012,Album thumbnail strategy decision (baked PNG vs render texture),DECISION,engineering,P1,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.25,0.5,1,,,,,\nUXC-013,Galactic Projects UI spec and wireframes (design candidate),TASK,design,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,2026-11-26,2026-12-01,,,\nUXC-014,Galactic Projects UI implementation,TASK,engineering,P1,PLANNED,MLG-B,,registry approval PENDING,,,1,1.83,3.62,2026-12-07,2026-12-09,,,\nUXC-015,Discovery feedback final spec,TASK,design,P1,PLANNED,MLG-A,,registry approval PENDING,,,0.25,0.5,1,2026-12-01,2026-12-04,,,\nUXC-016,Sector completion screen final spec,TASK,design,P1,PLANNED,M2-Q04b,,registry approval PENDING,,,0.25,0.5,1,2026-11-27,2026-12-03,,,\nUXC-017,Workshop UX states spec (owned / equipped / locked / how-to),TASK,design,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,,,,,\nUXC-018,\"Shop / premium pack wireframes (PROPOSED, paper only)\",TASK,design,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nUXC-019,Low Effects visual matrix per feature,TASK,art-audio,P1,PLANNED,M2,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,\nUXC-020,\"UX copy pass (HUD, recap, sector framing, gates, projects)\",TASK,design,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,2026-11-27,2026-12-02,,,\nUXC-021,DISCOVERY: localization and font licensing,TASK,production,P2,DIRECTOR_ACCEPTED,MLG-B,DIRECTOR_ACCEPTED,fonts Fredoka + Nunito approved and integrated via R2 (D-057); licences screen = QD-04,,D-057,0.25,0.5,1,,,,,\nUXC-022,\"Galactic Projects content (names, stage text, lore) for the MLG subset\",TASK,design,P2,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,,,,,\nUXC-023,Discovery chapters S2-S4 content,TASK,design,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nUXC-030,Screenshot baseline state list (4 resolutions),TASK,qa,P1,PLANNED,M2-Q04b,,registry approval NOT_REQUIRED,,,0.25,0.5,1,2026-11-24,2026-11-26,,,\nUXC-031,Supervised graphical acceptance batch per milestone,TASK,qa,P0,BLOCKED,M2,,registry approval PENDING,,,1.35,2.1,4.73,2026-11-26,2026-12-04,,,zero pop-up rule (D-024): needs a supervised session or offscreen harness\nUXC-032,Device visual and readability pass checklist,TASK,qa,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.25,0.5,1,2026-11-26,2026-12-03,,,\nUXC-033,Accessibility and layout automated checks scope,TASK,qa,P2,PLANNED,M2,,registry approval NOT_REQUIRED,,,1.35,2.1,4.73,,,,,\nUXC-040,DISCOVERY + decision: audio pipeline extension and music scope,TASK,art-audio,P1,PLANNED,M2,,registry approval PENDING,,,0.25,0.5,1,2026-11-23,2026-11-24,,,\nUXC-041,Effort calibration for UX/art task classes,TASK,production,P1,PLANNED,M2-Q04a,,registry approval NOT_REQUIRED,,,0.25,0.5,1,,,,,\nUXC-042,Approval batching calendar,DECISION,production,P0,PLANNED,M2-Q04a,,registry approval PENDING,,,0.25,0.5,1,,,,,\nUXC-043,Idle Defense: asset freeze (no work),TASK,production,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.25,0.5,1,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nUXC-050,Privacy and store compliance content,TASK,release,P1,PLANNED,RC,,registry approval PENDING,,,1,3,8,2026-11-24,2026-11-27,,,\nUXC-090,MLG UX/content gate,GATE,production,P0,PLANNED,MLG-B,,registry approval PENDING,,,0,0,0,2026-12-10,2026-12-11,,,\nUXC-091,RC UX/content and store asset gate,GATE,production,P0,PLANNED,RC,,registry approval PENDING,,,0,0,0,2027-01-29,2027-02-01,,,\nUXC-092,Full Vision content gate,GATE,production,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0,0,0,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nAST-WP-01,\"UI icon set v1 (nav, currency, stats, states)\",TASK,art-audio,P1,PLANNED,M2-Q04b,,registry approval PENDING,,,1,3,8,2026-11-24,2026-11-27,,,\nAST-WP-02,\"Cozy component kit (USS): cards, chips, pips, bars, buttons\",TASK,engineering,P0,DONE,M2-Q04b,DIRECTOR_ACCEPTED,registry approval APPROVED,,,1,1.83,3.62,,,,,\nAST-WP-03,Readability fix for 3 weak skin pairs (Blender),TASK,art-audio,P2,PLANNED,M2,,registry approval PENDING,,,0.47,0.83,1.53,,,,,\nAST-WP-04,\"Thumbnail set (rockets, skins, album items)\",TASK,art-audio,P1,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.47,0.83,1.53,,,,,\nAST-WP-05,Skin VFX final pass for shipped packs,TASK,art-audio,P1,PLANNED,M2,,registry approval PENDING,,,0.62,1.4,4.73,,,,,\nAST-WP-06,A6 idle animation runtime tuning,TASK,art-audio,P2,PLANNED,M2,,registry approval PENDING,,,0.62,1.4,4.73,,,,,\nAST-WP-07,Factory import standard application (MLG subset),TASK,art-audio,P1,PLANNED,M2,,registry approval NOT_REQUIRED,,,0.62,1.4,4.73,,,,,\nAST-WP-08,Living Planets LP-1 polish (5 archetypes),TASK,art-audio,P1,PLANNED,MLG-A,,registry approval PENDING,,,0.47,0.83,1.53,2026-12-01,2026-12-03,,,\nAST-WP-09,Discovery props S2-S4 (Blender batches),TASK,art-audio,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.47,0.83,1.53,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nAST-WP-10,Galactic Projects construction stages: MLG subset (Blender),TASK,art-audio,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.47,0.83,1.53,2026-11-26,2026-12-01,,,\nAST-WP-11,Galactic Projects P3-P6 construction stages (Blender),TASK,art-audio,P2,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.47,0.83,1.53,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nAST-WP-12,Galactic Projects VFX and completion visuals (MLG subset),TASK,art-audio,P1,PLANNED,MLG-B,,registry approval PENDING,,,1,1.83,3.62,2026-12-09,2026-12-10,,,\nAST-WP-13,Home Station content mapping (Display / Monument / Scout scale),TASK,art-audio,P0,DONE,M2-Q04a,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.62,1.4,4.73,,,,,\nAST-WP-14,Sector reward art: existing kinds only (CANDIDATE expansion excluded),TASK,art-audio,P2,PLANNED,M2,,registry approval PENDING,,,0.47,0.83,1.53,,,,,\nAST-WP-15,Reveal and feedback VFX kit (UI + world),TASK,art-audio,P1,PLANNED,MLG-B,,registry approval PENDING,,,1,1.83,3.62,2026-11-27,2026-12-03,,,\nAST-WP-16,SFX batch: new feature events,TASK,art-audio,P1,PLANNED,MLG-B,,registry approval PENDING,,,0.8,2.3,6.6,2026-11-24,2026-11-27,,,\nAST-WP-17,Music: additional loops (scope TBD),TASK,art-audio,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,0.8,2.3,6.6,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nAST-WP-18,Store listing assets,TASK,art-audio,P1,PLANNED,RC,,registry approval PENDING,,,1,3,8,2026-12-04,2026-12-07,,,\nAST-WP-19,Premium pack presentation assets (PROPOSED),TASK,art-audio,P3,HOLD,POST-LAUNCH/DEFERRED,,registry approval PENDING,,,1,3,8,,,,,deferred: milestone POST-LAUNCH/DEFERRED (out of launch scope)\nAST-WP-20,\"Galaxy and sector presentation pass (backgrounds, cargo visuals)\",TASK,art-audio,P2,PLANNED,MLG-B,,registry approval PENDING,,,0.47,0.83,1.53,,,,,\nGAP-GP-ENG,\"Galactic Projects runtime (P1+P2 lite, existing rule types)\",TASK,engineering,P0,HOLD,MLG-B,,registry approval PENDING,,D-069;D-072,6.68,14.9,38.8,2026-12-03,2026-12-07,,,GP runtime HOLD (D-072 item 8)\nGAP-GP-EVAL,Galactic Projects 5+1 evaluation incl. Mk 3 soft deadlock,TASK,design,P0,DONE,MLG-B,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.25,0.5,1,,,,,\nGAP-DISC-EVAL,\"Discovery pacing evaluation: tier gates, milestone unlocks, guaranteed path, return caps\",TASK,design,P1,DONE,MLG-A,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.8,2.3,6.6,,,,,\nGAP-ECON-RESIM,MLG integrated economy re-simulation and retention check (late-game sink),TASK,design,P0,PLANNED,MLG-B,,registry approval PENDING,,,0.8,2.3,6.6,2026-12-07,2026-12-09,,,\nGAP-PROG-TARGET,Validate the target player-progression hypothesis (D-036),TASK,design,P1,DONE,MLG-B,DIRECTOR_ACCEPTED,registry approval APPROVED,,,0.8,2.3,6.6,,,,,\nGAP-QA-EDGE,Edge-case and hard-deadlock tests in the real game,TASK,qa,P0,PLANNED,MLG-B,,registry approval PENDING,,,1.35,2.1,4.73,2026-12-07,2026-12-08,,,\nGAP-GATE-MLGA,MLG-A acceptance gate (living galaxy),GATE,production,P1,PLANNED,MLG-A,,registry approval PENDING,,,0,0,0,2026-12-07,2026-12-08,,,\nGAP-REL-VER,Versioning policy and automation (bundleVersion / versionCode),TASK,release,P1,PLANNED,RC,,registry approval PENDING,,,1.35,4.1,12.2,2026-11-25,2026-12-01,,,\nGAP-REL-PIPE,Release pipeline: signed AAB from a frozen main commit,TASK,release,P1,PLANNED,RC,,registry approval PENDING,,,1.35,4.1,12.2,2026-12-04,2026-12-08,,,\nGAP-REL-PUB,Public release gate (production track rollout),GATE,production,P1,PLANNED,PUBLIC,,registry approval PENDING,,,0,0,0,2027-02-01,2027-02-04,,,\nTEC-050-P0,TEC-050 P0: pure moves out of SliceHud + edit-mode Map HUD capture harness,TASK,engineering,P1,QA_PASS,M2-Q04b,TECHNICAL_ACCEPTED,TECHNICAL ACCEPTED at [commit] (D-080); DEVICE VALIDATED PENDING; FULL ACCEPTANCE PENDING; A-7 PENDING,NOT TESTED,D-072;D-079;D-080,0,0,0,,,2026-11-20,2026-11-20,\nTEC-050-P1,\"TEC-050 P1: UX2 Map HUD views beside legacy (-legacyhud), SliceAudio option B, GameplayQaMapHud\",TASK,engineering,P1,QA_PASS,M2-Q04b,TECHNICAL_ACCEPTED,TECHNICAL ACCEPTED at [commit] (D-080); DEVICE VALIDATED PENDING; FULL ACCEPTANCE PENDING; A-7 PENDING,NOT TESTED,D-072;D-079;D-080,0,0,0,,,2026-11-20,2026-11-20,\nTEC-050-P2,\"TEC-050 P2: parity gate (legacy vs UX2 captures, parity table, occupancy)\",TASK,engineering,P1,QA_PASS,M2-Q04b,TECHNICAL_ACCEPTED,TECHNICAL ACCEPTED at [commit] (D-080); DEVICE VALIDATED PENDING; FULL ACCEPTANCE PENDING; A-7 PENDING,NOT TESTED,D-072;D-079;D-080,0,0,0,,,2026-11-20,2026-11-20,\nTEC-050-P3,\"TEC-050 P3: delete legacy Map HUD + -legacyhud (QD-01), coin flyers, dead USS\",TASK,engineering,P1,QA_PASS,M2-Q04b,TECHNICAL_ACCEPTED,TECHNICAL ACCEPTED at [commit] (D-080); DEVICE VALIDATED PENDING; FULL ACCEPTANCE PENDING; A-7 PENDING,NOT TESTED,D-072;D-079;D-080,0,0,0,,,2026-11-20,2026-11-20,\nTEC-050-FIX,TEC-050 DEF-1 fix: hint pill no longer covers CENTER VIEW + overlap assertion + SliceAudioPlayCheck names,TASK,engineering,P1,QA_PASS,M2-Q04b,TECHNICAL_ACCEPTED,TECHNICAL ACCEPTED at [commit] (D-080); DEVICE VALIDATED PENDING; FULL ACCEPTANCE PENDING; A-7 PENDING,NOT TESTED,D-075;D-079;D-080,0,0,0,,,2026-11-20,2026-11-20,\nTEC-050-GATE,TEC-050 technical gate: lead re-audit + full re-regression + 2nd dev APK + Director Review Package,GATE,qa,P1,DONE,M2-Q04b,TECHNICAL_ACCEPTED,\"gate step done: re-regression PASS, APK 2 [path] sha256 [hash], Review Package reviewed (D-080); result TEC-050 TECHNICAL ACCEPTED (D-080), device NOT TESTED (W2B3-ADB1), A-7 PENDING (TEC-050-A7)\",N/A,D-072;D-073;D-075;D-076;D-079;D-080;D-081,0,0,0,,,2026-11-20,2026-11-20,\nW2B3-APK1,Baseline dev APK built from [branch],TASK,release,P0,DONE,M2-Q04b,QA_PASS,\"build Succeeded, sha256 [hash], fp unchanged (lead)\",,D-069,0,0,0,,,2026-11-20,2026-11-20,\nW2B3-E1,\"Device baseline E1 (clean run s2-20261120-131742, S2 / 6 AUTO / 600 s)\",SESSION,android-perf,P0,DONE,M2-Q04b,DIRECTOR_ACCEPTED,E1 ACCEPTED (D-072); preliminary s2-20261120-125735 kept as PROTOCOL DEVIATION (D-071),PASS,D-071;D-072,0,0,0,,,2026-11-20,2026-11-20,\nW2B3-DES,\"W2-B3 read-only design: schema 5 migration, SectorStars compatibility, TEC-050 preflight\",TASK,design,P1,QA_PASS,M2-Q04b,QA_PASS,lead gate PASS (3 docs); risks R1-R4 recorded,,D-069,0,0,0,,,2026-11-20,2026-11-20,\nW2B3-R4,R4 SectorStars: enum slot 8 + pin + rule + fixtures (FX-10),TASK,engineering,P1,HOLD,MLG-B,,,,D-049;D-069;D-081,1,1.5,4,2026-11-23,2026-11-27,,,technical preparation + fixture design APPROVED (D-069 D3); enum implementation HOLD (D-049 item 15)\nW2B3-SCH5,\"Schema 5 batch: global.projects + P6.2 delivery counter (from P6.1 built) + O4d last-find; fixtures 4-\u003e5, downgrade, reload\",TASK,engineering,P1,HOLD,MLG-B,,,,D-064;D-069;D-081,3,6,16,2026-11-27,2026-12-02,,,\"Option A approved as baseline (D-069 D1); runtime/save implementation HOLD until migration design, fixtures and file ownership verified\"\nW2B-P62,P6.2 gate redesign simulation (Lighthouse calibration),TASK,design,P0,DONE,MLG-B,DIRECTOR_ACCEPTED,ACCEPTED as simulation/design gate (D-064); no runtime approval,,D-064,0,0,0,,,,2026-11-20,\nW2B-V1PT,V1 paper playtest (Director with 2-4 testers),SESSION,design,P1,READY,MLG-B,,,,D-052;D-053;D-059,0,0,0,2026-11-23,2026-11-25,,,\nQD-01,QA debt QD-01: -legacyhud switch and legacy HUD path removed,TASK,qa,P1,QA_PASS,RC,QA_PASS,T50-L01 PASS; re-verify at RC exit,,D-050,0,0,0,,,,,\nQD-02,\"QA debt QD-02: visual seam + readability debt of old screens to 12 sp / 14 sp CTA (Workshop, Album, Home)\",TASK,engineering,P1,PLANNED,RC,,,,D-050;D-076;D-084,5,12,30,2026-11-23,2026-11-26,,,must be resolved before RC; not a TEC-050 / R7 blocker (D-076 item 5); no worker now\nQD-03,\"QA debt QD-03: device validation 12 sp, touch targets, HUD occupancy on the RC build\",SESSION,qa,P1,PLANNED,RC,,,,D-050;D-071,0,0,0,2027-01-29,2027-02-03,,,\nRC-ENDURANCE,RC device QA: formal thermal + battery endurance on the RC build,SESSION,android-perf,P1,PLANNED,RC,,,,D-073;D-074,0,0,0,2027-01-29,2027-02-03,,,\nQD-04,QA debt QD-04: Credits / Licenses screen (Fredoka + Nunito OFL),TASK,engineering,P2,PLANNED,RC,,,,D-057,0.7,1.3,2.3,2026-11-23,2026-11-26,,,\nQD-05,QA debt QD-05: Workshop 3D preview renders on device,SESSION,qa,P2,QA_PASS,M2-Q04b,DEVICE_VALIDATED,PASS on device in the clean E1 session (Classic -\u003e Sunrise -\u003e Classic),PASS,D-058;D-072,0,0,0,2026-11-23,2026-11-25,,,\nGLT-001,\"GL100 Phase 1 feasibility docs (audit, plan, executive feasibility, decision package)\",TASK,gl100-design,P1,DONE,GL100-PH1,QA_PASS,Phase 2 GO built on it (D-061),,D-060;D-061,0,0,0,,,2026-11-19,2026-11-19,\nGLT-002,\"GL100 Phase 2 design baseline (100-zone + 100-rocket catalogs, pilot plan, dependencies)\",TASK,gl100-design,P1,DONE,GL100-PH2,DIRECTOR_ACCEPTED,ACCEPTED as completed design baseline (D-062),,D-062,0,0,0,,,2026-11-20,2026-11-20,\nGLT-003,GL100 Phase 3 gate proposal P3-A..D,TASK,gl100-design,P1,IMPLEMENTED,GL100-PH2,IMPLEMENTED,PROPOSAL: nothing in Phase 3 approved,,D-062,0,0,0,2026-11-23,2026-11-23,,,\nGLT-004,GL100 rockets 100/100 prototypes (ART-1..ART-5),TASK,gl100-art,P1,IMPLEMENTED,GL100-PROTO,IMPLEMENTED,PRODUCED PROTOTYPE; 45 AUTO QA PASS / 55 NEEDS DIRECTOR REVIEW at ART-5; 0 DIRECTOR ACCEPTED (D-068),,D-063;D-065;D-068,0,0,0,,,,,\nGLT-005,GL100 Master Asset Registry + audit A1-A18 ([worker]),TASK,gl100-qa,P1,QA_PASS,GL100-PROTO,QA_PASS,lead gate PASS (15 PASS / A5 WARN / A14-15 NOT TESTED / 0 FAIL),,D-067,0,0,0,,,,,\nGLT-006,\"GL100 [worker] prototypes: MOD library, ZON/LMK s05-s10, partial ENV\",TASK,gl100-art,P2,IMPLEMENTED,GL100-PROTO,IMPLEMENTED,\"lead gate PASS; prototypes, 0 Director accepted\",,D-066,0,0,0,,,,,\nGLT-007,GL100 [worker] prototypes: VFX source + UI sheets/thumbs,TASK,gl100-art,P2,IMPLEMENTED,GL100-PROTO,IMPLEMENTED,\"lead gate PASS; prototypes, 0 Director accepted\",,D-066,0,0,0,,,,,\nGLT-008,GL100 registry-driven gallery generator ([worker]),TASK,gl100-qa,P2,QA_PASS,GL100-PROTO,QA_PASS,lead gate PASS; A14/A15 PASS,,,0,0,0,,,,,\nGLT-009,GL100 [worker] ingest-assets command + 16 tests,TASK,gl100-qa,P2,QA_PASS,GL100-PROTO,QA_PASS,\"merged with lead fixes ([commit], [commit])\",,,0,0,0,,,,,\nGLT-010,GL100 W1: shared engine-kit fix + disc flight pose + FN15 + 93 rebuilds,TASK,gl100-art,P1,QA_PASS,GL100-PROTO,QA_PASS,technical completion ACCEPTED (D-070); no visual acceptance,,D-068;D-070,0,0,0,,,,,\nGLT-011,GL100 W2: 7 bespoke premium rockets + 5 milestone signature VFX,TASK,gl100-art,P1,QA_PASS,GL100-PROTO,QA_PASS,technical completion ACCEPTED (D-070); all seven NEEDS DIRECTOR REVIEW,,D-068;D-070,0,0,0,,,,,\nGLT-012,GL100 W3: remaining-asset inventory (440) + 8 spec proposals + weak-spot fixes,TASK,gl100-design,P1,QA_PASS,GL100-PROTO,QA_PASS,lead gate PASS; specs are PROPOSALS needing Director decision,,D-068,0,0,0,2026-11-23,2026-11-23,,,\nGLT-013,\"GL100 lead integration round 1 ([branch], registry ingest, gallery v3, production report)\",TASK,gl100-qa,P1,DONE,GL100-PROTO,QA_PASS,452/892 produced; audit 16 PASS / A12 WARN / A5 FAIL (honest),,,0,0,0,,,2026-11-20,2026-11-20,\nGLT-014,\"GL100 lead integration round 2 ([branch], registry [commit], gallery v4)\",TASK,gl100-qa,P1,DONE,GL100-PROTO,QA_PASS,\"451 produced; AUTO QA PASS 339 / REVIEW 112; audit 15 PASS / A5,A12 WARN / A8 FAIL (s10 1424 \u003e 1300 tris, see GLT-024)\",,,0,0,0,,,2026-11-20,2026-11-20,\nGLT-020,D-070 rework: s25 Tempest Quartet single readable spacecraft silhouette at 52/72/96 px,TASK,gl100-art,P1,DIRECTOR_ACCEPTED,GL100-PROTO,DIRECTOR_ACCEPTED,Director ACCEPT model/silhouette on image evidence (D-085); milestone [path] [path] NOT TESTED,,D-070;D-079;D-085,0.5,1,2.5,2026-11-23,2026-11-23,2026-11-20,2026-11-20,\nGLT-021,D-070 rework: s100 Genesis Seed hero presentation reads as collection peak (no bloom),TASK,gl100-art,P1,QA_PASS,GL100-PROTO,QA_PASS,Director CONDITIONAL ACCEPT model/silhouette (D-085): strengthen final-milestone feel in reveal/runtime; device NOT TESTED,,D-070;D-079;D-085,0.5,1,2.5,2026-11-23,2026-11-23,2026-11-20,2026-11-20,\nGLT-022,\"D-070 rework: s64 thinner petal crown, floral identity + propulsion readable\",TASK,gl100-art,P2,DIRECTOR_ACCEPTED,GL100-PROTO,DIRECTOR_ACCEPTED,Director ACCEPT model/silhouette on image evidence (D-085); milestone [path] [path] NOT TESTED,,D-070;D-079;D-085,0.3,0.6,1.5,2026-11-23,2026-11-23,2026-11-20,2026-11-20,\nGLT-023,D-070 rework: s50 sky-galleon cloth look within budget/material rules,TASK,gl100-art,P2,DIRECTOR_ACCEPTED,GL100-PROTO,DIRECTOR_ACCEPTED,Director ACCEPT model/silhouette on image evidence (D-085); milestone [path] [path] NOT TESTED,,D-070;D-079;D-085,0.5,1,2.5,2026-11-23,2026-11-23,2026-11-20,2026-11-20,\nGLT-024,D-070 rework: s10 engine visibility after W1 + gameplay tri budget (A8 1424 \u003e 1300),TASK,gl100-art,P1,DIRECTOR_ACCEPTED,GL100-PROTO,DIRECTOR_ACCEPTED,Director ACCEPT model/silhouette on image evidence (D-085); milestone [path] [path] NOT TESTED,,D-070;D-079;D-085,0.3,0.6,1.5,2026-11-23,2026-11-23,2026-11-20,2026-11-20,\nGLT-025,Bespoke engine tagging (engine_faces) so E1/P2 checks measure bespoke rockets,TASK,gl100-art,P2,QA_PASS,GL100-PROTO,QA_PASS,,,D-070;D-079,0.3,0.6,1.5,2026-11-23,2026-11-23,2026-11-20,2026-11-20,\nGLT-026,Milestone add-on sheets s25-s100 (never implemented) regenerated after rework,TASK,gl100-art,P2,QA_PASS,GL100-PROTO,QA_PASS,,,D-070;D-079,0.3,0.8,2,2026-11-23,2026-11-23,2026-11-20,2026-11-20,\nGLT-027,\"GL100 integration round 3: merge rework, recompute silhouettes 100, rebuild thumbs/sheets, ingest + audit, gallery\",TASK,gl100-qa,P1,QA_PASS,GL100-PROTO,QA_PASS,,,D-070,0.5,1,2,2026-11-23,2026-11-25,2026-11-20,2026-11-20,\nGLT-028,Director visual review round 3: s04 s10 s25 s50 s64 s75 s100,DECISION,director,P1,READY,GL100-PROTO,,,,D-070,0,0,0,2026-11-25,2026-11-26,,,\nGLT-030,Director decision: spec proposal LMK-1 landmarks s11-s100 + MOD-12 kits (177 records),DECISION,director,P1,READY,GL100-SPEC,,,,D-068,0,0,0,2026-11-23,2026-11-24,,,\nGLT-031,Director decision: spec proposal ZON-1 zone packages s11-s100 incl. ENV-5 sky presets (90),DECISION,director,P1,READY,GL100-SPEC,,,,D-068,0,0,0,2026-11-23,2026-11-24,,,\nGLT-032,Director decision: spec proposal ENV-1 planet sets ch02-ch10 (45),DECISION,director,P1,READY,GL100-SPEC,,,,D-068,0,0,0,2026-11-23,2026-11-24,,,\nGLT-033,Director decision: spec proposal VFX-3 ambient events (61),DECISION,director,P1,READY,GL100-SPEC,,,,D-068,0,0,0,2026-11-23,2026-11-24,,,\nGLT-034,Director decision: spec proposal UI-4 chapter crests (10),DECISION,director,P1,READY,GL100-SPEC,,,,D-068,0,0,0,2026-11-23,2026-11-24,,,\nGLT-035,Director decision: spec proposal UI-6 tier / moment banners (proposes 6),DECISION,director,P1,READY,GL100-SPEC,,,,D-068,0,0,0,2026-11-23,2026-11-24,,,\nGLT-036,Director decision: spec proposal UI-9 galaxy map markers (proposes 15 icon sources),DECISION,director,P1,READY,GL100-SPEC,,,,D-068,0,0,0,2026-11-23,2026-11-24,,,\nGLT-037,Director decision: spec proposal CHP-1 chapter records ch02-ch10 (9),DECISION,director,P1,READY,GL100-SPEC,,,,D-068,0,0,0,2026-11-23,2026-11-24,,,\nGLT-040,Director decision: OD-4 additive visuals in frozen zones s01-s04 (13 records),DECISION,director,P2,READY,GL100-SPEC,,,,,0,0,0,,,,,\nGLT-041,Director decision: ENV-4 / OD-7 planet life layer (gates chp.ch02),DECISION,director,P2,READY,GL100-SPEC,,,,,0,0,0,2026-11-23,2026-11-24,,,\nGLT-042,Director decision: LMK-2 Home Station monuments for s06+,DECISION,director,P2,READY,GL100-SPEC,,,,,0,0,0,,,,,\nGLT-043,Director decision: UI-7 archetype cue: icon vs ring colour (5),DECISION,director,P2,READY,GL100-SPEC,,,,,0,0,0,,,,,\nGLT-044,Director decision: MOD-11 bespoke XL materials s50 silk / s100 nacre (milestone bespoke go),DECISION,director,P2,READY,GL100-SPEC,,,,,0,0,0,,,,,\nGLT-045,\"Director decision: UI-8 claim / reveal UI (runtime panel, P3-A)\",DECISION,director,P2,READY,GL100-SPEC,,,,,0,0,0,2026-11-23,2026-11-24,,,\nGLT-046,Director decision: ENV-1 planet-set variant count (1 or 3 per set),DECISION,director,P2,READY,GL100-SPEC,,,,,0,0,0,2026-11-23,2026-11-24,,,\nGLT-047,Director decision: VFX-3 ambient reuse level (30 vs 61),DECISION,director,P2,READY,GL100-SPEC,,,,,0,0,0,2026-11-23,2026-11-24,,,\nGLT-048,Director decision: ENV-2 chapter palettes ch04/05/07/09/10 confirm or replace (decision 7),DECISION,director,P2,READY,GL100-SPEC,,,,,0,0,0,,,,,\nGLT-049,Director: P3-A GO with frozen scope (after TEC-050 gate; TEC-052/054 scopes from D-069),DECISION,director,P0,PLANNED,GL100-P3A,,,,D-062;D-069,0,0,0,2026-11-23,2026-11-24,,,\nGLT-050,GL100 LMK-1 landmarks s11-s100 + MOD-12 kits production,TASK,gl100-art,P1,PLANNED,GL100-P3D,,,,,4,10,24,2026-11-24,2026-12-01,,,\nGLT-051,GL100 ZON-1 zone packages s11-s100 + sky presets,TASK,gl100-art,P1,PLANNED,GL100-P3D,,,,,3,8,20,2026-12-01,2026-12-04,,,\nGLT-052,GL100 ENV-1 planet sets ch02-ch10,TASK,gl100-art,P1,PLANNED,GL100-P3D,,,,,3,7,16,2026-11-24,2026-12-01,,,\nGLT-053,GL100 VFX-3 ambient events,TASK,gl100-art,P2,PLANNED,GL100-P3D,,,,,2.5,6,18,2026-11-24,2026-12-01,,,\nGLT-054,GL100 UI-4 crests + UI-6 banners + UI-9 map markers,TASK,gl100-art,P2,PLANNED,GL100-P3D,,,,,1.5,4,12,2026-11-24,2026-12-01,,,\nGLT-055,GL100 CHP-1 chapter records ch02-ch10,TASK,gl100-design,P2,PLANNED,GL100-P3D,,,,,1,3,8,2026-12-04,2026-12-07,,,\nGLT-056,\"GL100 zone tasks as data s11-s100 (idle-compatible, OD-2)\",TASK,gl100-design,P1,PLANNED,GL100-P3D,,,,D-062;D-064,4,12,32,2026-12-14,2026-12-17,,,\nGLT-057,GL100 rocket acceptance rounds ch02-ch10 (2-4 review rounds),TASK,gl100-art,P1,PLANNED,GL100-P3D,,,,,5,13,42,2026-11-26,2026-12-03,,,\nGLT-058,\"GL100 UI zone sheets ch02-ch10, UI-10 reveal cams s90/s95/s99, MOD-9 L module list\",TASK,gl100-art,P3,PLANNED,GL100-P3D,,,,,1,3,8,2026-12-04,2026-12-04,,,\nGLT-059,GL100 registry + gallery maintenance (per integration round; lead single writer),TASK,gl100-qa,P2,IN_PROGRESS,GL100-P3D,,,,D-067,0,0,0,,,,,\nGLT-060,\"GL100 registry fixes: DESIGN RECORD lifecycle mapping, stale ui.backdrop/A5/A12 findings\",TASK,gl100-qa,P3,READY,GL100-P3D,,,,,0.3,0.7,1.5,,,,,\nGLT-070,\"P3-A zone reward track: ZoneRewardDefinition, state-based zone-complete rule, reward.zone.sNN (absorbs TEC-052)\",TASK,gl100-runtime,P0,PLANNED,GL100-P3A,,,,D-062,2.5,5,12,2026-11-24,2026-11-27,,,\nGLT-071,\"P3-A TEC-054 Body scope: distinct-body path, 16 class sockets, on-demand load, body.any.sNN verified\",TASK,gl100-runtime,P0,PLANNED,GL100-P3A,,,,D-062,2.5,6,15,2026-11-24,2026-11-27,,,\nGLT-072,\"P3-A claim / reveal panel (CLAIM, CLAIM \u0026 EQUIP, skip, Low Effects)\",TASK,gl100-runtime,P0,PLANNED,GL100-P3A,,,,D-062,1.5,3.5,9,2026-11-27,2026-12-02,,,\nGLT-073,\"P3-A baker extension: silhouette, phone-size render, contact sheet\",TASK,gl100-runtime,P1,PLANNED,GL100-P3A,,,,D-062,0.7,1.5,4,2026-11-24,2026-11-27,,,\nGLT-074,\"P3-A GL100 save fixtures: claims, new slot, kill-mid-reveal, downgrade, unclaimed reward\",TASK,gl100-qa,P0,PLANNED,GL100-P3A,,,,D-062,1,2,5,2026-11-27,2026-12-02,,,\nGLT-075,P3-A exit gate (lead audit + regression; zones 1-4 unchanged refs),GATE,gl100-qa,P0,PLANNED,GL100-P3A,,,,D-062,0,0,0,2026-12-02,2026-12-04,,,\nGLT-080,\"Director: P3-B GO (5-zone vertical slice, 5 rockets)\",DECISION,director,P0,PLANNED,GL100-P3B,,,,D-062,0,0,0,2026-12-04,2026-12-07,,,\nGLT-081,P3-B 5 rockets s01-s05 through the full pipeline (spec -\u003e assets -\u003e art QA),TASK,gl100-art,P0,PLANNED,GL100-P3B,,,,D-062,1,2.5,6,2026-12-07,2026-12-07,,,\nGLT-082,P3-B s05 Lantern Reach as authored zone,TASK,gl100-runtime,P0,PLANNED,GL100-P3B,,,,D-062,1,2.5,6,2026-12-07,2026-12-07,,,\nGLT-083,P3-B chapter import + regression,TASK,gl100-runtime,P0,PLANNED,GL100-P3B,,,,D-062,1.5,3,12,2026-12-07,2026-12-08,,,\nGLT-084,P3-B Director chapter review sitting,DECISION,director,P0,PLANNED,GL100-P3B,,,,D-062,0,0,0,2026-12-08,2026-12-09,,,\nGLT-085,\"P3-B phone session (device bars HYPOTHESIS: \u003e=55 fps flight, \u003e=45 fps reveal)\",SESSION,gl100-qa,P0,PLANNED,GL100-P3B,,,,D-062,0,0,0,2026-12-08,2026-12-11,,,\nGLT-086,P3-B exit gate X1-X6 + metrics M1-M10,GATE,gl100-qa,P0,PLANNED,GL100-P3B,,,,D-062,0,0,0,2026-12-11,2026-12-11,,,\nGLT-090,Director: P3-C GO (10-zone pilot),DECISION,director,P0,PLANNED,GL100-P3C,,,,D-062,0,0,0,2026-12-11,2026-12-14,,,\nGLT-091,P3-C chapter I s06-s10 + s20 L sample: rockets + zone assets,TASK,gl100-art,P0,PLANNED,GL100-P3C,,,,D-062,1.5,4,10,2026-12-14,2026-12-14,,,\nGLT-092,P3-C zone tasks s06-s10 as data + OD-2 idle-compatible alternative,TASK,gl100-design,P0,PLANNED,GL100-P3C,,,,D-062,1,2,5,2026-12-14,2026-12-14,,,\nGLT-093,P3-C s10 milestone reveal + signature,TASK,gl100-runtime,P0,PLANNED,GL100-P3C,,,,D-062,1,2,5,2026-12-14,2026-12-14,,,\nGLT-094,P3-C import (2 chapter-sized runs) + regression,TASK,gl100-runtime,P0,PLANNED,GL100-P3C,,,,D-062,2,5,20,2026-12-14,2026-12-15,,,\nGLT-095,P3-C GL-17 8-route device test,SESSION,gl100-qa,P0,PLANNED,GL100-P3C,,,,D-062,0,0,0,2026-12-15,2026-12-18,,,\nGLT-096,P3-C Director chapter review,DECISION,director,P0,PLANNED,GL100-P3C,,,,D-062,0,0,0,2026-12-15,2026-12-16,,,\nGLT-097,P3-C exit + mandatory re-forecast (GL-2: 100 at launch vs contingency),GATE,gl100-qa,P0,PLANNED,GL100-P3C,,,,D-062,0,0,0,2026-12-18,2026-12-22,,,\nGLT-100,Director: P3-D GO with re-forecast date,DECISION,director,P0,PLANNED,GL100-P3D,,,,D-062,0,0,0,2026-12-22,2026-12-23,,,\nGLT-101,P3-D Galaxy Map refresh / paging (before ch03),TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,1.5,4,13,2026-12-23,2027-01-05,,,\nGLT-102,P3-D Workshop / Album paging (before ~30 rockets),TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,1.5,4,13,2026-12-23,2027-01-06,,,\nGLT-103,P3-D mission versioning: ids + frozen hash (before any public build),TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,1,4,14,2026-12-23,2027-01-06,,,\nGLT-104,P3-D chapter ch02 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2026-12-23,2027-01-06,,,\nGLT-105,P3-D chapter ch03 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2027-01-06,2027-01-08,,,\nGLT-106,P3-D chapter ch04 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2027-01-08,2027-01-12,,,\nGLT-107,P3-D chapter ch05 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2027-01-12,2027-01-14,,,\nGLT-108,P3-D chapter ch06 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2027-01-14,2027-01-18,,,\nGLT-109,P3-D chapter ch07 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2027-01-18,2027-01-19,,,\nGLT-110,P3-D chapter ch08 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2027-01-19,2027-01-21,,,\nGLT-111,P3-D chapter ch09 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2027-01-21,2027-01-25,,,\nGLT-112,P3-D chapter ch10 batch: import + bake + regression + device sample + review sitting,TASK,gl100-runtime,P1,PLANNED,GL100-P3D,,,,D-062,2.4,5.8,26.4,2027-01-25,2027-01-27,,,\nGLT-113,GL-14 late-zone economy balancing (long-horizon sims),TASK,design,P1,PLANNED,GL100-P3D,,,,,4,15,85,2026-12-22,2027-01-04,,,\nGLT-114,GL-15 offline-cap study,TASK,design,P1,PLANNED,GL100-P3D,,,,,4,15,85,2026-12-22,2027-01-05,,,\nGLT-115,Director approval of GL-14 / GL-15 results,DECISION,director,P1,PLANNED,GL100-P3D,,,,,0,0,0,2027-01-05,2027-01-06,,,\nGLT-120,GL100 launch content gate: 100 zones + 100 rockets integrated and device validated,GATE,gl100-qa,P0,PLANNED,PUBLIC,,,,,0,0,0,2027-01-27,2027-01-28,,,\nTEC-050-A7,TEC-050 A-7: runtime screenshot of a rocket on its pad (a11y A-7 evidence),SESSION,qa,P1,PLANNED,M2-Q04b,,,NOT TESTED,D-080,0,0,0,,,,,never PASS from stub-world captures (D-075 item 6)\nW2B3-ADB1,\"Combined ADB device session after R7 technical PASS (600 s S2 / 6 AUTO, D-072 thresholds)\",SESSION,android-perf,P0,READY,M2-Q04b,,,NOT TESTED,D-080,0,0,0,,,,,\"Director permission required before any ADB operation (D-074, D-080 item 12)\"\nQD-06,QA debt QD-06: truncated sector names (ellipsis) on the Map HUD,TASK,engineering,P3,PLANNED,RC,,,,D-080,0,0,0,2026-11-23,2026-11-23,,,\nQD-07,QA debt QD-07: D2 conditional - temporary hint occupancy 42.3 % notch / 47.5 % panned; MAPHUD-8/9 must keep passing,TASK,qa,P2,PLANNED,RC,,,,D-080,0,0,0,2026-11-23,2026-11-23,,,\nPM-001,\"Project Execution Tracker (D-077/D-078): unified registry, run log, resource ledger, pm.py, Gantt, dashboard\",TASK,pm,P2,QA_PASS,M2-Q04b,QA_PASS,,,D-078,0,0,0,,,,2026-11-20,\nGO-W2B3-SCH,Director: implementation GO for R4 SectorStars + schema 5 batch (release of W2B3-R4 / W2B3-SCH5),DECISION,director,P1,PLANNED,MLG-B,,,,D-069,0,0,0,2026-11-23,2026-11-23,,,\nGO-GP-RUNTIME,Director: GP runtime GO (TEC-059 implementation; release of GAP-GP-ENG),DECISION,director,P0,PLANNED,MLG-B,,,,D-072,0,0,0,2026-12-02,2026-12-03,,,\nGO-G-LP0,Director: G-LP0 gate for the LP-0 Living Planets port (release of TEC-053),DECISION,director,P1,PLANNED,M2-Q04b,,,,,0,0,0,2026-11-23,2026-11-23,,,\nGO-TEC055,\"Director: MD-1 choices, offline trip option + seed option (release of TEC-055)\",DECISION,director,P1,PLANNED,MLG-A,,,,,0,0,0,2026-11-24,2026-11-25,,,\nGO-TEC084,Director: final package id / product name (release of TEC-084),DECISION,director,P2,PLANNED,MLG-B,,,,,0,0,0,2026-11-23,2026-11-23,,,\nPM-002,Portable static project dashboard + GitHub Pages pipeline (sanitised public dataset; not activated),TASK,pm,P3,QA_PASS,M2-Q04b,QA_PASS,Pages NOT activated; preview + public-dataset check delivered for Director final approval (D-083),,D-083;D-087;D-088,0,0,0,,,2026-11-20,2026-11-20,Awaiting Director: create empty public repo + separate execution GO (D-088)\nPROC-001,Process violation: [worker] wrote Blender output to [path] (outside Game Baru); path guard + negative test (D-085 item 7),TASK,qa,P1,QA_PASS,M2,QA_PASS,,,D-085,0,0,0,,,,2026-11-20,\nR7-MC,D-084 MissionCard two presentation slots: contract verification (9 conditions),TASK,qa,P1,IN_PROGRESS,M2-Q04b,,\"CONDITIONAL ACCEPT (D-084): 7/9 proven (presentation-only, no mechanic, no [path] change [STAR3-8, c0/m1], deterministic priority [STAR3-2 26/26], no button cover [STAR3-7/MAPHUD-8], readability small screens [STAR3-5], no regression [842 identical]); 1 DEFECT (DEF-R7-1 duplicate/contradictory counts in S1b); 1 NOT TESTED (empty-data fallback)\",,D-084,0,0,0,,,,,\nDEF-R7-1,\"R7 defect: S1b MissionCard shows two '1/3' counts with different meanings (bar = stars, support line = contracts) - violates D-084 'no duplicate or contradictory information'\",TASK,qa,P2,IN_PROGRESS,M2-Q04b,,,,D-084;D-086,0,0,0,,,2026-11-20,,limited fix to be proposed/approved (D-084): label or drop the support-line count; plus QA rows for empty-data fallback\n"},"manifest":{"decision":"D-083; public-data policy D-087","files":[{"columns":["task_id","title","node_type","workstream","priority","status","milestone","ladder","acceptance_status","device_status","decision_ref","effort_opt_h","effort_base_h","effort_cons_h","planned_start","planned_end","actual_start","actual_end","blocker"],"name":"tasks.csv","rows":345,"sha256":"efe0c566b97c421c4addd6f68d7c57f256a0b25b7c17ab02fd1cb80b80fd12bc"},{"columns":["run_id","kind","date","duration_min","unity_lock_min"],"name":"runs.csv","rows":106,"sha256":"443b378eda2a7b6f90b383b5d410a5e1981834db1bf34dffdb338b8069917562"},{"columns":["scenario","task_id","start","finish"],"name":"schedule.csv","rows":510,"sha256":"2fed1aca52fae7a0162bcc5cf08e47f18ef1b8bf91159368588ad2100973570f"}],"forecast":{"label":"PROVISIONAL","note":"Last finish date of the launch scope in the tracker's capacity- and dependency-aware schedule (3 worker slots, 1 serial Unity lock, serial lead, Director latency as waiting time, holidays 24 Dec-1 Jan and 8-12 Mar 2027). PROVISIONAL (D-081): the bridge to the calibrated timeline is in review; the communicated target stays April-May 2027; re-forecast after GL100 P3-C."},"manifest_version":1,"project":"Idle Space Courier 2.0","schema":{"runs.csv":["run_id","kind","date","duration_min","unity_lock_min"],"schedule.csv":["scenario","task_id","start","finish"],"tasks.csv":["task_id","title","node_type","workstream","priority","status","milestone","ladder","acceptance_status","device_status","decision_ref","effort_opt_h","effort_base_h","effort_cons_h","planned_start","planned_end","actual_start","actual_end","blocker"]},"snapshot":"2026-11-20T17:39:02","snapshot_basis":"latest entry of the tracker changelog (local time); not the build time","source_commit":"70244c7","source_commit_time":"2026-11-20T17:39:03+07:00","title":"ISC 2.0 Project Execution Dashboard"}}</script>
+<script>
+/* ISC 2.0 portable project dashboard (D-083). Plain JS, no dependencies, no external requests.
+   Pure calculation functions are exported for Node tests (module.exports); the browser part boots on DOMContentLoaded. */
+(function (root, factory) {
+  'use strict';
+  var PM = factory();
+  if (typeof module === 'object' && module.exports) module.exports = PM;
+  else root.PM = PM;
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function () { PM.boot(root); });
+    else PM.boot(root);
+  }
+})(typeof self !== 'undefined' ? self : this, function () {
+  'use strict';
+
+  // ------------------------------------------------------------ constants
+  var DONE = ['DONE', 'RELEASED'];
+  var TECH = ['IMPLEMENTED', 'QA_PASS', 'DIRECTOR_ACCEPTED'];
+  var RUNGS = ['IMPLEMENTED', 'QA_PASS', 'TECHNICAL_ACCEPTED', 'DEVICE_VALIDATED', 'DIRECTOR_ACCEPTED'];
+  var SCN = ['opt', 'base', 'cons'];
+  var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  var SVGNS = 'http://www.w3.org/2000/svg';
+
+  // ------------------------------------------------------------ CSV
+  function parseCSV(text) {
+    var rows = [], row = [], f = '', q = false, i = 0, c;
+    text = String(text || '').replace(/^﻿/, '');
+    for (; i < text.length; i++) {
+      c = text[i];
+      if (q) {
+        if (c === '"') { if (text[i + 1] === '"') { f += '"'; i++; } else q = false; }
+        else f += c;
+      } else if (c === '"') q = true;
+      else if (c === ',') { row.push(f); f = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (c === '\r' && text[i + 1] === '\n') i++;
+        row.push(f); rows.push(row); row = []; f = '';
+      } else f += c;
+    }
+    if (f !== '' || row.length) { row.push(f); rows.push(row); }
+    if (!rows.length) return { columns: [], rows: [] };
+    var cols = rows[0];
+    var out = [];
+    for (var r = 1; r < rows.length; r++) {
+      if (rows[r].length === 1 && rows[r][0] === '') continue;
+      var o = {};
+      for (var k = 0; k < cols.length; k++) o[cols[k]] = rows[r][k] === undefined ? '' : rows[r][k];
+      out.push(o);
+    }
+    return { columns: cols, rows: out };
+  }
+
+  function csvCell(v) {
+    var s = v == null ? '' : String(v);
+    return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+  }
+  function toCSV(columns, rows) {
+    var lines = [columns.map(csvCell).join(',')];
+    rows.forEach(function (r) { lines.push(columns.map(function (c) { return csvCell(r[c]); }).join(',')); });
+    return lines.join('\n') + '\n';
+  }
+
+  // ------------------------------------------------------------ helpers
+  function num(v) { var x = parseFloat(v); return isFinite(x) && String(v).trim() !== '' ? x : null; }
+  function r1(x) { return Math.round(x * 10) / 10; }
+  function isExec(r) { return r.node_type !== 'EPIC' && r.node_type !== 'PARENT'; }
+  function has(arr, v) { return arr.indexOf(v) >= 0; }
+  function fmtDate(s) {
+    if (!s || !/^\d{4}-\d{2}-\d{2}/.test(s)) return s || '—';
+    var p = s.slice(0, 10).split('-');
+    return parseInt(p[2], 10) + ' ' + MONTHS[parseInt(p[1], 10) - 1] + ' ' + p[0];
+  }
+  function fmtInt(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  function dayNum(s) { var p = s.split('-'); return Date.UTC(+p[0], +p[1] - 1, +p[2]) / 864e5; }
+  function groupBy(rows, keyFn, init) {
+    var order = [], m = {};
+    rows.forEach(function (r) { var k = keyFn(r); if (!(k in m)) { m[k] = init(k); order.push(k); } m[k].__rows.push(r); });
+    return order.map(function (k) { return m[k]; });
+  }
+
+  // ------------------------------------------------------------ calculations (pure)
+  function kpi(tasks) {
+    var t = tasks.filter(isExec);
+    var c = function (f) { return t.filter(f).length; };
+    var done = c(function (r) { return has(DONE, r.status); });
+    return {
+      total: t.length, done: done,
+      technical: c(function (r) { return has(TECH, r.status); }),
+      in_progress: c(function (r) { return r.status === 'IN_PROGRESS'; }),
+      hold: c(function (r) { return r.status === 'HOLD'; }),
+      blocked: c(function (r) { return r.status === 'BLOCKED'; }),
+      hold_blocked: c(function (r) { return r.status === 'HOLD' || r.status === 'BLOCKED'; }),
+      pct_done: t.length ? r1(done / t.length * 100) : 0
+    };
+  }
+
+  function ladder(tasks) {
+    var t = tasks.filter(isExec);
+    var at = {}, reached = {};
+    RUNGS.forEach(function (g) { at[g] = 0; });
+    var none = 0;
+    t.forEach(function (r) { if (has(RUNGS, r.ladder)) at[r.ladder]++; else none++; });
+    var acc = 0;
+    for (var i = RUNGS.length - 1; i >= 0; i--) { acc += at[RUNGS[i]]; reached[RUNGS[i]] = acc; }
+    return { rungs: RUNGS.map(function (g) { return { rung: g, at: at[g], reached: reached[g] }; }), none: none, total: t.length };
+  }
+
+  function forecast(schedule) {
+    return SCN.map(function (s) {
+      var f = schedule.filter(function (r) { return r.scenario === s && r.finish; }).map(function (r) { return r.finish; }).sort();
+      return { scenario: s, launch: f.length ? f[f.length - 1] : null };
+    });
+  }
+
+  function statusGroup(st) {
+    if (has(DONE, st)) return 'done';
+    if (has(TECH, st)) return 'technical';
+    if (st === 'IN_PROGRESS') return 'active';
+    if (st === 'HOLD' || st === 'BLOCKED') return 'hold_blocked';
+    return 'open';
+  }
+
+  function msProgress(tasks) {
+    return groupBy(tasks.filter(isExec), function (r) { return r.milestone || '(none)'; }, function (k) {
+      return { milestone: k, total: 0, done: 0, technical: 0, active: 0, hold_blocked: 0, open: 0, __rows: [] };
+    }).map(function (o) {
+      o.__rows.forEach(function (r) { o.total++; o[statusGroup(r.status)]++; });
+      delete o.__rows; o.pct = o.total ? r1(o.done / o.total * 100) : 0; return o;
+    }).sort(function (a, b) { return b.total - a.total || (a.milestone < b.milestone ? -1 : 1); });
+  }
+
+  function wsStatus(tasks) {
+    return groupBy(tasks.filter(isExec), function (r) { return r.workstream || '(none)'; }, function (k) {
+      return { workstream: k, total: 0, done: 0, technical: 0, active: 0, hold_blocked: 0, open: 0, __rows: [] };
+    }).map(function (o) {
+      o.__rows.forEach(function (r) { o.total++; o[statusGroup(r.status)]++; });
+      delete o.__rows; return o;
+    }).sort(function (a, b) { return b.total - a.total || (a.workstream < b.workstream ? -1 : 1); });
+  }
+
+  function ganttBase(schedule, tasks) {
+    var ms = {};
+    tasks.forEach(function (r) { ms[r.task_id] = r.milestone || '(none)'; });
+    var g = {}, order = [];
+    schedule.forEach(function (r) {
+      if (r.scenario !== 'base' || !r.start || !r.finish) return;
+      var m = ms[r.task_id] || '(none)';
+      if (!g[m]) { g[m] = { milestone: m, start: r.start, finish: r.finish, tasks: 0 }; order.push(m); }
+      var o = g[m];
+      if (r.start < o.start) o.start = r.start;
+      if (r.finish > o.finish) o.finish = r.finish;
+      o.tasks++;
+    });
+    return order.map(function (m) { return g[m]; }).sort(function (a, b) {
+      return a.start < b.start ? -1 : a.start > b.start ? 1 : (a.milestone < b.milestone ? -1 : 1);
+    });
+  }
+
+  function resByDate(runs) {
+    var g = groupBy(runs, function (r) { return r.date || 'UNKNOWN'; }, function (k) {
+      return { date: k, runs: 0, worker_min: 0, lock_min: 0, __rows: [] };
+    });
+    return g.map(function (o) {
+      o.__rows.forEach(function (r) {
+        o.runs++;
+        if (r.kind === 'worker') o.worker_min += num(r.duration_min) || 0;
+        o.lock_min += num(r.unity_lock_min) || 0;
+      });
+      delete o.__rows;
+      o.worker_min = r1(o.worker_min); o.lock_min = r1(o.lock_min);
+      return o;
+    }).sort(function (a, b) { return a.date < b.date ? -1 : 1; });
+  }
+
+  function resTotal(runs) {
+    var w = runs.filter(function (r) { return r.kind === 'worker'; });
+    var sum = function (rows, k) { return rows.reduce(function (a, r) { return a + (num(r[k]) || 0); }, 0); };
+    return {
+      worker_runs: w.length,
+      worker_min: r1(sum(w, 'duration_min')),
+      worker_h: r1(sum(w, 'duration_min') / 60),
+      lock_min: r1(sum(runs, 'unity_lock_min')),
+      lock_h: r1(sum(runs, 'unity_lock_min') / 60),
+      unknown_runs: w.filter(function (r) { return num(r.duration_min) === null; }).length
+    };
+  }
+
+  function activeRows(tasks) { return tasks.filter(function (t) { return t.status === 'IN_PROGRESS' && t.node_type !== 'EPIC'; }); }
+  function holdRows(tasks) {
+    return tasks.filter(function (t) {
+      return (t.status === 'HOLD' || t.status === 'BLOCKED') && t.node_type !== 'EPIC' && !/POST-LAUNCH|DEFERRED/.test(t.milestone || '');
+    });
+  }
+  function filterRegister(tasks, f) {
+    var q = String(f.q || '').trim().toLowerCase();
+    return tasks.filter(function (r) {
+      return (!f.status || r.status === f.status) && (!f.ws || r.workstream === f.ws) &&
+        (!q || (r.task_id + ' ' + r.title).toLowerCase().indexOf(q) >= 0);
+    });
+  }
+  function distinct(rows, field) {
+    var s = {};
+    rows.forEach(function (r) { if (r[field]) s[r[field]] = 1; });
+    return Object.keys(s).sort();
+  }
+  function parseQuery(search) {
+    var o = {};
+    String(search || '').replace(/^\?/, '').split('&').forEach(function (kv) {
+      if (!kv) return;
+      var i = kv.indexOf('='), k = i < 0 ? kv : kv.slice(0, i), v = i < 0 ? '' : kv.slice(i + 1);
+      try { o[decodeURIComponent(k)] = decodeURIComponent(v.replace(/\+/g, ' ')); } catch (e) { /* malformed */ }
+    });
+    return o;
+  }
+  function takeaway(k, fc) {
+    var base = fc.filter(function (x) { return x.scenario === 'base'; })[0];
+    return k.done + ' of ' + k.total + ' executable tasks are done (' + k.pct_done + '%), ' + k.in_progress + ' are in progress and ' +
+      k.hold_blocked + ' are on hold or blocked. The provisional base forecast puts public launch on ' + fmtDate(base && base.launch) + '.';
+  }
+
+  function computeAll(data) {
+    var tasks = data.tasks, runs = data.runs, schedule = data.schedule;
+    var k = kpi(tasks), fc = forecast(schedule);
+    return {
+      kpi: k, ladder: ladder(tasks), forecast: fc, ms: msProgress(tasks), ws: wsStatus(tasks),
+      gantt: ganttBase(schedule, tasks), resByDate: resByDate(runs), resTotal: resTotal(runs),
+      active: activeRows(tasks), hold: holdRows(tasks), takeaway: takeaway(k, fc)
+    };
+  }
+
+  // ------------------------------------------------------------ browser rendering
+  var doc, win, state = { data: null, manifest: null, texts: null, calc: null, filter: { q: '', status: '', ws: '' } };
+
+  function el(tag, attrs, kids) {
+    var e = doc.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (a) {
+      if (a === 'text') e.textContent = attrs[a];
+      else if (a === 'cls') e.className = attrs[a];
+      else e.setAttribute(a, attrs[a]);
+    });
+    (kids || []).forEach(function (c) { if (c != null) e.appendChild(typeof c === 'string' ? doc.createTextNode(c) : c); });
+    return e;
+  }
+  function sv(tag, attrs, text) {
+    var e = doc.createElementNS(SVGNS, tag);
+    Object.keys(attrs || {}).forEach(function (a) { if (a === 'style') Object.assign(e.style, attrs[a]); else e.setAttribute(a, attrs[a]); });
+    if (text != null) e.textContent = text;
+    return e;
+  }
+  function $(id) { return doc.getElementById(id); }
+  function show(v) { return v == null || v === '' ? '—' : String(v); }
+  function td(tr, v, cls) { var c = tr.insertCell(); c.textContent = show(v); if (cls) c.className = cls; return c; }
+  function titleTd(tr, r) {
+    var c = tr.insertCell();
+    if (has(DONE, r.status)) { var s = el('s', { text: r.title }); c.appendChild(s); c.appendChild(el('span', { cls: 'skip', text: ' (done)' })); }
+    else c.textContent = r.title;
+    return c;
+  }
+  function chipTd(tr, s) { var c = tr.insertCell(); c.appendChild(el('span', { cls: 'chip st-' + String(s || '').replace(/[^A-Z_]/g, ''), text: s || '—' })); return c; }
+  function tile(v, label, cls) {
+    return el('div', { cls: 'tile' + (cls ? ' ' + cls : '') }, [el('span', { cls: 'v', text: show(v) }), el('span', { cls: 'l', text: label })]);
+  }
+  function fill(id, nodes) { var e = $(id); e.replaceChildren.apply(e, nodes); }
+  function emptyRow(tbody, cols, msg) { var tr = tbody.insertRow(); var c = tr.insertCell(); c.colSpan = cols; c.textContent = msg; }
+  function textW(s) { return String(s).length * 6.4; }
+
+  function tipFor(container) {
+    var t = container.querySelector('.tip');
+    if (!t) { t = el('div', { cls: 'tip', role: 'status' }); t.hidden = true; container.appendChild(t); }
+    return {
+      show: function (text, x, y) {
+        t.textContent = text; t.hidden = false;
+        var w = container.clientWidth;
+        t.style.left = Math.max(0, Math.min(x + 12, w - 230)) + 'px'; t.style.top = (y + 12) + 'px';
+      },
+      hide: function () { t.hidden = true; }
+    };
+  }
+  function bindTip(node, tip, container, text) {
+    node.setAttribute('tabindex', '0');
+    node.setAttribute('aria-label', text);
+    node.appendChild(sv('title', {}, text));
+    node.addEventListener('pointermove', function (ev) {
+      var b = container.getBoundingClientRect(); tip.show(text, ev.clientX - b.left, ev.clientY - b.top);
+    });
+    node.addEventListener('pointerleave', tip.hide);
+    node.addEventListener('focus', function () {
+      var b = container.getBoundingClientRect(), n = node.getBoundingClientRect(); tip.show(text, n.left - b.left, n.bottom - b.top - 8);
+    });
+    node.addEventListener('blur', tip.hide);
+  }
+
+  function renderHeader() {
+    var c = state.calc, m = state.manifest;
+    $('takeaway').textContent = c.takeaway;
+    $('meta').textContent = 'Snapshot ' + m.snapshot.replace('T', ' ') + ' (tracker changelog) · source commit ' + m.source_commit + ' · forecast ' + m.forecast.label;
+    var k = c.kpi;
+    fill('kpi-tiles', [
+      tile(k.total, 'Executable tasks'), tile(k.done, 'Done or released', 'ok'),
+      tile(k.technical, 'Implemented, QA pass or Director accepted, not yet done', 'ok'),
+      tile(k.in_progress, 'In progress'), tile(k.hold, 'On hold (waits for a Director GO)', 'warn'),
+      tile(k.blocked, 'Blocked', 'bad'), tile(k.pct_done + '%', 'Completion by task count (done ÷ executable)')
+    ]);
+    $('fc-label').textContent = m.forecast.label;
+    var names = { opt: 'Optimistic', base: 'Base (P50)', cons: 'Conservative' };
+    fill('fc-tiles', c.forecast.map(function (f) {
+      return tile(fmtDate(f.launch), names[f.scenario] + ' · ' + m.forecast.label.toLowerCase(), f.scenario === 'cons' ? 'warn' : '');
+    }));
+    $('fc-note').textContent = m.forecast.note;
+  }
+
+  function renderLadder() {
+    var box = $('ladder-chart'), L = state.calc.ladder;
+    box.replaceChildren();
+    var rows = L.rungs.map(function (g) { return { label: g.rung.replace(/_/g, ' '), v: g.at, reached: g.reached }; });
+    rows.push({ label: 'NOT IMPLEMENTED YET', v: L.none, reached: null });
+    var W = Math.max(300, box.clientWidth || 600), rowH = 20, gap = 6, lw = 0;
+    rows.forEach(function (r) { lw = Math.max(lw, textW(r.label)); });
+    var padL = Math.ceil(lw) + 10, padR = 120, H = rows.length * (rowH + gap);
+    var max = Math.max.apply(null, rows.map(function (r) { return r.v; }).concat([1]));
+    var x = function (v) { return (W - padL - padR) * v / max; };
+    var aria = 'Acceptance ladder, highest rung per executable task: ' + rows.map(function (r) { return r.label.toLowerCase() + ' ' + r.v; }).join(', ');
+    var svg = sv('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': aria });
+    var tip = tipFor(box);
+    rows.forEach(function (r, i) {
+      var y = i * (rowH + gap);
+      svg.appendChild(sv('text', { x: padL - 8, y: y + rowH / 2 + 4, 'text-anchor': 'end' }, r.label));
+      var bar = sv('rect', { x: padL, y: y, width: Math.max(r.v ? 2 : 0, x(r.v)), height: rowH, rx: 4, 'class': 'bar',
+        style: { fill: r.reached === null ? 'var(--neutral)' : 'var(--series-1)' } });
+      svg.appendChild(bar);
+      bindTip(bar, tip, box, r.label + ': ' + r.v + ' tasks' + (r.reached !== null ? ' (' + r.reached + ' at this rung or higher)' : ''));
+      svg.appendChild(sv('text', { x: padL + x(r.v) + 6, y: y + rowH / 2 + 4, 'class': 'val' },
+        r.v + (r.reached !== null ? '  (≥ rung: ' + r.reached + ')' : '')));
+    });
+    box.appendChild(svg);
+  }
+
+  var WS_KEYS = [
+    ['done', 'Done', 'var(--good)'], ['technical', 'Technical (not done)', 'var(--series-1)'], ['active', 'In progress', 'var(--series-7)'],
+    ['hold_blocked', 'Hold / blocked', 'var(--warning)'], ['open', 'Planned / ready', 'var(--neutral)']
+  ];
+  function renderWs() {
+    var box = $('ws-chart'), rows = state.calc.ws;
+    box.replaceChildren();
+    var W = Math.max(280, box.clientWidth || 500), rowH = 18, gap = 6, lw = 0;
+    rows.forEach(function (r) { lw = Math.max(lw, textW(r.workstream)); });
+    var padL = Math.ceil(lw) + 10, padR = 34, H = rows.length * (rowH + gap);
+    var max = Math.max.apply(null, rows.map(function (r) { return r.total; }).concat([1]));
+    var sx = function (v) { return (W - padL - padR) * v / max; };
+    var svg = sv('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img',
+      'aria-label': 'Executable tasks per workstream split by status group: ' + rows.map(function (r) {
+        return r.workstream + ' ' + r.total + ' (' + r.done + ' done)'; }).join(', ') });
+    var tip = tipFor(box);
+    rows.forEach(function (r, i) {
+      var y = i * (rowH + gap), acc = 0;
+      svg.appendChild(sv('text', { x: padL - 8, y: y + rowH / 2 + 4, 'text-anchor': 'end' }, r.workstream));
+      WS_KEYS.forEach(function (k) {
+        var v = r[k[0]]; if (!v) return;
+        var x0 = padL + sx(acc), w = Math.max(1, sx(v) - 2);
+        var seg = sv('rect', { x: x0, y: y, width: w, height: rowH, rx: 2, style: { fill: k[2] } });
+        svg.appendChild(seg);
+        bindTip(seg, tip, box, r.workstream + ': ' + k[1].toLowerCase() + ' ' + v + ' of ' + r.total);
+        acc += v;
+      });
+      svg.appendChild(sv('text', { x: padL + sx(r.total) + 4, y: y + rowH / 2 + 4, 'class': 'val' }, String(r.total)));
+    });
+    box.appendChild(svg);
+    fill('ws-legend', WS_KEYS.map(function (k) {
+      var i = el('i'); i.style.background = k[2]; return el('span', {}, [i, k[1]]);
+    }));
+  }
+
+  function renderGantt() {
+    var box = $('gantt-chart'), rows = state.calc.gantt.filter(function (r) { return r.milestone !== '(none)'; });
+    box.replaceChildren();
+    var today = state.manifest.snapshot.slice(0, 10);
+    $('gantt-note').textContent = 'Each bar runs from the earliest start to the latest finish of the milestone\'s scheduled tasks in the base scenario (provisional). ' +
+      'The dashed line is the snapshot date (' + fmtDate(today) + ').';
+    if (!rows.length) { box.textContent = 'No scheduled tasks in the base scenario.'; return; }
+    var W = Math.max(300, box.clientWidth || 800), rowH = 18, gap = 6, padT = 22, lw = 0;
+    rows.forEach(function (r) { lw = Math.max(lw, textW(r.milestone)); });
+    var padL = Math.ceil(lw) + 10, padR = 12, H = padT + rows.length * (rowH + gap);
+    var lo = Math.min(dayNum(today), Math.min.apply(null, rows.map(function (r) { return dayNum(r.start); })));
+    var hi = Math.max.apply(null, rows.map(function (r) { return dayNum(r.finish); })) + 1;
+    var x = function (d) { return padL + (W - padL - padR) * (d - lo) / Math.max(1, hi - lo); };
+    var svg = sv('svg', { viewBox: '0 0 ' + W + ' ' + H, role: 'img', 'aria-label': 'Milestone timeline, base scenario: ' +
+      rows.map(function (r) { return r.milestone + ' ' + fmtDate(r.start) + ' to ' + fmtDate(r.finish); }).join('; ') });
+    // month ticks
+    var d0 = new Date(lo * 864e5), months = [];
+    for (var y = d0.getUTCFullYear(), mo = d0.getUTCMonth() + 1; ; mo++) {
+      if (mo > 11) { mo = 0; y++; }
+      var dn = Date.UTC(y, mo, 1) / 864e5;
+      if (dn > hi) break;
+      months.push({ d: dn, label: MONTHS[mo] + (mo === 0 ? ' ' + y : '') });
+    }
+    var step = Math.max(1, Math.ceil(months.length / Math.max(2, Math.floor((W - padL) / 64))));
+    months.forEach(function (m, i) {
+      svg.appendChild(sv('line', { x1: x(m.d), x2: x(m.d), y1: padT - 4, y2: H, style: { stroke: 'var(--line)' } }));
+      if (i % step === 0) svg.appendChild(sv('text', { x: x(m.d), y: 12, 'text-anchor': 'middle' }, m.label));
+    });
+    var tip = tipFor(box);
+    rows.forEach(function (r, i) {
+      var yy = padT + i * (rowH + gap);
+      svg.appendChild(sv('text', { x: padL - 8, y: yy + rowH / 2 + 4, 'text-anchor': 'end' }, r.milestone));
+      var bar = sv('rect', { x: x(dayNum(r.start)), y: yy, width: Math.max(4, x(dayNum(r.finish) + 1) - x(dayNum(r.start))), height: rowH, rx: 4,
+        style: { fill: 'var(--series-1)' } });
+      svg.appendChild(bar);
+      bindTip(bar, tip, box, r.milestone + ': ' + fmtDate(r.start) + ' to ' + fmtDate(r.finish) + ' (' + r.tasks + ' tasks)');
+    });
+    svg.appendChild(sv('line', { x1: x(dayNum(today)), x2: x(dayNum(today)), y1: padT - 4, y2: H,
+      style: { stroke: 'var(--ink-2)', strokeDasharray: '4 3', strokeWidth: '1.5' } }));
+    svg.appendChild(sv('text', { x: x(dayNum(today)) + 4, y: padT - 6, 'class': 'val' }, 'snapshot'));
+    box.appendChild(svg);
+  }
+
+  function renderTables() {
+    var c = state.calc, b;
+    b = $('ms-body'); b.replaceChildren();
+    c.ms.forEach(function (r) {
+      var tr = b.insertRow();
+      td(tr, r.milestone); td(tr, r.total, 'num'); td(tr, r.done, 'num'); td(tr, r.technical, 'num'); td(tr, r.active, 'num');
+      td(tr, r.hold_blocked, 'num'); td(tr, r.pct + '%', 'num');
+    });
+    b = $('active-body'); b.replaceChildren();
+    c.active.forEach(function (r) {
+      var tr = b.insertRow(); td(tr, r.task_id, 'id'); titleTd(tr, r); td(tr, r.workstream); td(tr, r.milestone); td(tr, fmtDate(r.actual_start)); td(tr, r.acceptance_status);
+    });
+    if (!c.active.length) emptyRow(b, 6, 'Nothing in progress.');
+    b = $('hold-body'); b.replaceChildren();
+    c.hold.forEach(function (r) {
+      var tr = b.insertRow(); td(tr, r.task_id, 'id'); titleTd(tr, r); chipTd(tr, r.status); td(tr, r.milestone); td(tr, r.blocker);
+    });
+    if (!c.hold.length) emptyRow(b, 5, 'Nothing on hold or blocked before launch.');
+    var t = c.resTotal;
+    fill('res-tiles', [
+      tile(t.worker_h, 'Worker hours (summed agent time, not elapsed)'), tile(t.worker_runs, 'Worker runs'),
+      tile(t.lock_h, 'Unity-lock hours (known runs)'), tile(t.unknown_runs, 'Worker runs with unknown duration')
+    ]);
+    $('res-note').textContent = 'Only measured runs are summed. Lead minutes and Director review minutes are not recorded (UNKNOWN). ' +
+      'Token usage and worker identities are not published (D-087).';
+    b = $('res-body'); b.replaceChildren();
+    c.resByDate.forEach(function (r) {
+      var tr = b.insertRow(); td(tr, r.date); td(tr, r.runs, 'num'); td(tr, r.worker_min, 'num'); td(tr, r.lock_min, 'num');
+    });
+  }
+
+  function renderRegister() {
+    var rows = filterRegister(state.data.tasks, state.filter), b = $('reg-body');
+    b.replaceChildren();
+    rows.forEach(function (r) {
+      var tr = b.insertRow();
+      td(tr, r.task_id, 'id'); titleTd(tr, r); chipTd(tr, r.status); td(tr, r.workstream); td(tr, r.milestone); td(tr, r.effort_base_h, 'num');
+      td(tr, r.ladder ? r.ladder.replace(/_/g, ' ') : ''); td(tr, r.acceptance_status); td(tr, r.device_status); td(tr, r.decision_ref);
+    });
+    if (!rows.length) emptyRow(b, 10, 'No task matches the filters.');
+    $('reg-count').textContent = rows.length + ' of ' + state.data.tasks.length + ' rows shown';
+  }
+
+  function setupFilters() {
+    var mk = function (id, label, vals, key) {
+      var s = $(id);
+      s.replaceChildren.apply(s, [new win.Option(label, '')].concat(vals.map(function (v) { return new win.Option(v, v); })));
+      s.addEventListener('change', function () { state.filter[key] = s.value; renderRegister(); });
+    };
+    mk('f-status', 'All statuses', distinct(state.data.tasks, 'status'), 'status');
+    mk('f-ws', 'All workstreams', distinct(state.data.tasks, 'workstream'), 'ws');
+    // deep links: ?q=...&status=...&ws=... pre-fill the register filters
+    var qs = parseQuery(win.location.search || '');
+    if (qs.q) { state.filter.q = qs.q; $('f-q').value = qs.q; }
+    if (qs.status && distinct(state.data.tasks, 'status').indexOf(qs.status) >= 0) { state.filter.status = qs.status; $('f-status').value = qs.status; }
+    if (qs.ws && distinct(state.data.tasks, 'workstream').indexOf(qs.ws) >= 0) { state.filter.ws = qs.ws; $('f-ws').value = qs.ws; }
+    $('f-q').addEventListener('input', function (e) { state.filter.q = e.target.value; renderRegister(); });
+    $('reg-export').addEventListener('click', function () {
+      var cols = state.manifest.schema['tasks.csv'];
+      download('tasks-filtered.csv', toCSV(cols, filterRegister(state.data.tasks, state.filter)));
+    });
+  }
+
+  function download(name, text) {
+    var blob = new win.Blob([text], { type: 'text/csv;charset=utf-8' });
+    var url = win.URL.createObjectURL(blob);
+    var a = el('a', { href: url, download: name });
+    doc.body.appendChild(a); a.click(); a.remove();
+    win.setTimeout(function () { win.URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function renderSources() {
+    var m = state.manifest, b = $('src-body');
+    b.replaceChildren();
+    m.files.forEach(function (f) {
+      var tr = b.insertRow();
+      td(tr, f.name); td(tr, f.rows, 'num');
+      var h = tr.insertCell(); h.appendChild(el('code', { cls: 'hash', text: f.sha256 }));
+      td(tr, m.snapshot.replace('T', ' ')); td(tr, m.source_commit);
+      var c = tr.insertCell();
+      var btn = el('button', { type: 'button', cls: 'dl', text: 'CSV', 'aria-label': 'Download ' + f.name });
+      btn.addEventListener('click', function () { download(f.name, state.texts[f.name]); });
+      c.appendChild(btn);
+    });
+    $('src-note').textContent = 'Public, sanitised snapshot (D-083, D-087): only allow-listed columns are published; free text is scrubbed of paths, branch names, ' +
+      'commit ids and worker labels (shown as [worker]); token usage is never published. Snapshot = latest tracker changelog entry; source commit = last commit of the tracker source files' +
+      (m.source_commit_time ? ' (' + m.source_commit_time + ')' : '') + '. Forecast: ' + m.forecast.label + '.';
+    fill('src-schema', Object.keys(m.schema).sort().map(function (k) {
+      return el('li', {}, [el('code', { text: k }), ': ' + m.schema[k].join(', ')]);
+    }));
+  }
+
+  function renderCharts() { renderLadder(); renderWs(); renderGantt(); }
+
+  function setupTheme() {
+    var btn = $('theme-btn'), html = doc.documentElement, modes = ['auto', 'light', 'dark'], mode = 'auto';
+    try { mode = win.localStorage.getItem('pm-theme') || 'auto'; } catch (e) { /* storage blocked */ }
+    var qt = parseQuery(win.location.search || '').theme;
+    if (qt === 'light' || qt === 'dark' || qt === 'auto') mode = qt;
+    var apply = function () {
+      if (mode === 'auto') html.removeAttribute('data-theme'); else html.setAttribute('data-theme', mode);
+      btn.textContent = 'Theme: ' + mode;
+      btn.setAttribute('aria-label', 'Colour theme: ' + (mode === 'auto' ? 'follow system' : mode) + '. Activate to change.');
+    };
+    apply();
+    btn.addEventListener('click', function () {
+      mode = modes[(modes.indexOf(mode) + 1) % modes.length];
+      try { win.localStorage.setItem('pm-theme', mode); } catch (e) { /* ignore */ }
+      apply();
+    });
+  }
+
+  function loadData() {
+    var emb = doc.getElementById('pm-embed');
+    if (emb) {
+      var d = JSON.parse(emb.textContent);
+      return Promise.resolve({ manifest: d.manifest, texts: d.files });
+    }
+    return win.fetch('data/manifest.json', { cache: 'no-cache' }).then(function (r) {
+      if (!r.ok) throw new Error('manifest ' + r.status);
+      return r.json();
+    }).then(function (manifest) {
+      return Promise.all(manifest.files.map(function (f) {
+        return win.fetch('data/' + f.name, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(f.name + ' ' + r.status); return r.text(); });
+      })).then(function (txts) {
+        var texts = {};
+        manifest.files.forEach(function (f, i) { texts[f.name] = txts[i]; });
+        return { manifest: manifest, texts: texts };
+      });
+    });
+  }
+
+  function datasetFromTexts(texts) {
+    var d = {};
+    Object.keys(texts).forEach(function (n) { d[n.replace(/\.csv$/, '')] = parseCSV(texts[n]).rows; });
+    return d;
+  }
+
+  function boot(root) {
+    win = root; doc = root.document;
+    setupTheme();
+    loadData().then(function (res) {
+      state.manifest = res.manifest; state.texts = res.texts;
+      state.data = datasetFromTexts(res.texts);
+      state.calc = computeAll(state.data);
+      renderHeader(); renderTables(); setupFilters(); renderRegister(); renderSources(); renderCharts();
+      var t; win.addEventListener('resize', function () { win.clearTimeout(t); t = win.setTimeout(renderCharts, 150); });
+      doc.documentElement.setAttribute('data-ready', '1');
+    }).catch(function (e) {
+      var p = $('takeaway');
+      p.className = 'take err';
+      p.textContent = 'The dataset could not be loaded (' + e.message + '). Serve this folder over HTTP, or open portable.html for local use.';
+    });
+  }
+
+  return {
+    parseCSV: parseCSV, toCSV: toCSV, kpi: kpi, ladder: ladder, forecast: forecast, msProgress: msProgress, wsStatus: wsStatus,
+    ganttBase: ganttBase, resByDate: resByDate, resTotal: resTotal, activeRows: activeRows, holdRows: holdRows,
+    filterRegister: filterRegister, distinct: distinct, parseQuery: parseQuery, takeaway: takeaway, computeAll: computeAll, datasetFromTexts: datasetFromTexts,
+    fmtDate: fmtDate, isExec: isExec, RUNGS: RUNGS, boot: boot
+  };
+});
+</script>
+</body>
+</html>

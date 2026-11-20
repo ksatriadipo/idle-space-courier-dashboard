@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data: blob:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
+<title>ISC 2.0 Execution Dashboard</title>
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<a class="skip" href="#register">Skip to the task register</a>
+<main class="pm" id="top">
+  <header>
+    <div class="topbar">
+      <h1>ISC 2.0 Project Execution Dashboard</h1>
+      <button type="button" id="theme-btn" aria-label="Colour theme: follow system">Theme: auto</button>
+    </div>
+    <p class="lede">Idle Space Courier 2.0, core development and GL100, built from a sanitised public snapshot of the project tracker (D-083). Technical, device and Director acceptance are separate gates and are never merged.</p>
+    <p class="take" id="takeaway" aria-live="polite">Loading the dataset…</p>
+    <p class="meta" id="meta"></p>
+  </header>
+
+  <section id="status" aria-labelledby="h-status">
+    <h2 id="h-status">Status of executable tasks</h2>
+    <div class="tiles" id="kpi-tiles"></div>
+    <p class="note">Executable tasks are tasks, requirement items, gates, sessions and decisions. Epics and parent rows (node type EPIC / PARENT) are excluded so parent and child effort is never counted twice.</p>
+  </section>
+
+  <section id="ladder" class="card" aria-labelledby="h-ladder">
+    <h2 id="h-ladder">Acceptance ladder</h2>
+    <div class="chart" id="ladder-chart"></div>
+    <p class="note">Highest rung reached per executable task, derived by the tracker from three independent fields: status (technical), acceptance status (technical acceptance by decision) and device status (pass on a device). DONE is counted separately because the definition of done differs per task.</p>
+  </section>
+
+  <section id="forecast" aria-labelledby="h-forecast">
+    <h2 id="h-forecast">Launch forecast <span class="badge" id="fc-label">PROVISIONAL</span></h2>
+    <div class="tiles" id="fc-tiles"></div>
+    <p class="note" id="fc-note"></p>
+  </section>
+
+  <section class="grid2" aria-label="Milestones and workstreams">
+    <div class="card" id="milestones">
+      <h2>Progress by milestone</h2>
+      <div class="wrap"><table>
+        <thead><tr><th scope="col">Milestone</th><th scope="col" class="num">Tasks</th><th scope="col" class="num">Done</th><th scope="col" class="num">Technical</th><th scope="col" class="num">Active</th><th scope="col" class="num">Hold / blocked</th><th scope="col" class="num">Done %</th></tr></thead>
+        <tbody id="ms-body"></tbody>
+      </table></div>
+    </div>
+    <div class="card" id="workstreams">
+      <h2>Tasks by workstream</h2>
+      <div class="chart" id="ws-chart"></div>
+      <div class="legend" id="ws-legend"></div>
+    </div>
+  </section>
+
+  <section id="gantt" class="card" aria-labelledby="h-gantt">
+    <h2 id="h-gantt">Timeline by milestone (base scenario)</h2>
+    <div class="chart" id="gantt-chart"></div>
+    <p class="note" id="gantt-note"></p>
+  </section>
+
+  <section id="active" class="card" aria-labelledby="h-active">
+    <h2 id="h-active">In progress now</h2>
+    <div class="wrap"><table>
+      <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Workstream</th><th scope="col">Milestone</th><th scope="col">Started</th><th scope="col">Acceptance</th></tr></thead>
+      <tbody id="active-body"></tbody>
+    </table></div>
+  </section>
+
+  <section id="hold" class="card" aria-labelledby="h-hold">
+    <h2 id="h-hold">On hold or blocked before launch</h2>
+    <div class="wrap"><table>
+      <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Milestone</th><th scope="col">Blocker / waiting for</th></tr></thead>
+      <tbody id="hold-body"></tbody>
+    </table></div>
+    <p class="note">Post-launch and deferred items are left out of this list.</p>
+  </section>
+
+  <section class="grid2" aria-label="Resources">
+    <div class="card" id="resources">
+      <h2>Resources used (recorded runs)</h2>
+      <div class="tiles" id="res-tiles"></div>
+      <p class="note" id="res-note"></p>
+    </div>
+    <div class="card">
+      <h2>Runs by date</h2>
+      <div class="wrap"><table>
+        <thead><tr><th scope="col">Date</th><th scope="col" class="num">Runs</th><th scope="col" class="num">Worker min</th><th scope="col" class="num">Lock min</th></tr></thead>
+        <tbody id="res-body"></tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <section id="register" class="card" aria-labelledby="h-register">
+    <h2 id="h-register">Task register</h2>
+    <div class="filters">
+      <label class="field grow" for="f-q">Search ID or title<input id="f-q" type="search" autocomplete="off"></label>
+      <label class="field" for="f-status">Status<select id="f-status"></select></label>
+      <label class="field" for="f-ws">Workstream<select id="f-ws"></select></label>
+      <button type="button" class="dl" id="reg-export">Export shown rows (CSV)</button>
+      <span class="count" id="reg-count" aria-live="polite"></span>
+    </div>
+    <div class="wrap"><table>
+      <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Workstream</th><th scope="col">Milestone</th><th scope="col" class="num">Base h</th><th scope="col">Ladder</th><th scope="col">Acceptance</th><th scope="col">Device</th><th scope="col">Decision</th></tr></thead>
+      <tbody id="reg-body"></tbody>
+    </table></div>
+    <p class="note">Done tasks stay in the register and show struck through; their title and status are unchanged in the data.</p>
+  </section>
+
+  <section id="sources" class="card" aria-labelledby="h-sources">
+    <h2 id="h-sources">Sources</h2>
+    <div class="wrap"><table>
+      <thead><tr><th scope="col">Dataset</th><th scope="col" class="num">Rows</th><th scope="col">SHA-256</th><th scope="col">Snapshot</th><th scope="col">Source commit</th><th scope="col">Export</th></tr></thead>
+      <tbody id="src-body"></tbody>
+    </table></div>
+    <p class="note" id="src-note"></p>
+    <details><summary>Published columns (allow-list)</summary><ul id="src-schema"></ul></details>
+  </section>
+
+  <footer>Static build of the sanitised public dataset; every figure, the Sources panel and the CSV exports come from the files listed above. Generated by build_dashboard.py (D-083). No tracking, no external requests.</footer>
+</main>
+
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+{
+ "decision": "D-083; public-data policy D-087",
+ "files": [
+  {
+   "columns": [
+    "task_id",
+    "title",
+    "node_type",
+    "workstream",
+    "priority",
+    "status",
+    "milestone",
+    "ladder",
+    "acceptance_status",
+    "device_status",
+    "decision_ref",
+    "effort_opt_h",
+    "effort_base_h",
+    "effort_cons_h",
+    "planned_start",
+    "planned_end",
+    "actual_start",
+    "actual_end",
+    "blocker"
+   ],
+   "name": "tasks.csv",
+   "rows": 345,
+   "sha256": "efe0c566b97c421c4addd6f68d7c57f256a0b25b7c17ab02fd1cb80b80fd12bc"
+  },
+  {
+   "columns": [
+    "run_id",
+    "kind",
+    "date",
+    "duration_min",
+    "unity_lock_min"
+   ],
+   "name": "runs.csv",
+   "rows": 106,
+   "sha256": "443b378eda2a7b6f90b383b5d410a5e1981834db1bf34dffdb338b8069917562"
+  },
+  {
+   "columns": [
+    "scenario",
+    "task_id",
+    "start",
+    "finish"
+   ],
+   "name": "schedule.csv",
+   "rows": 510,
+   "sha256": "2fed1aca52fae7a0162bcc5cf08e47f18ef1b8bf91159368588ad2100973570f"
+  }
+ ],
+ "forecast": {
+  "label": "PROVISIONAL",
+  "note": "Last finish date of the launch scope in the tracker's capacity- and dependency-aware schedule (3 worker slots, 1 serial Unity lock, serial lead, Director latency as waiting time, holidays 24 Dec-1 Jan and 8-12 Mar 2027). PROVISIONAL (D-081): the bridge to the calibrated timeline is in review; the communicated target stays April-May 2027; re-forecast after GL100 P3-C."
+ },
+ "manifest_version": 1,
+ "project": "Idle Space Courier 2.0",
+ "schema": {
+  "runs.csv": [
+   "run_id",
+   "kind",
+   "date",
+   "duration_min",
+   "unity_lock_min"
+  ],
+  "schedule.csv": [
+   "scenario",
+   "task_id",
+   "start",
+   "finish"
+  ],
+  "tasks.csv": [
+   "task_id",
+   "title",
+   "node_type",
+   "workstream",
+   "priority",
+   "status",
+   "milestone",
+   "ladder",
+   "acceptance_status",
+   "device_status",
+   "decision_ref",
+   "effort_opt_h",
+   "effort_base_h",
+   "effort_cons_h",
+   "planned_start",
+   "planned_end",
+   "actual_start",
+   "actual_end",
+   "blocker"
+  ]
+ },
+ "snapshot": "2026-11-20T17:39:02",
+ "snapshot_basis": "latest entry of the tracker changelog (local time); not the build time",
+ "source_commit": "70244c7",
+ "source_commit_time": "2026-11-20T17:39:03+07:00",
+ "title": "ISC 2.0 Project Execution Dashboard"
+}
