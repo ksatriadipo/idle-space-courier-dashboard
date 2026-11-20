@@ -302,9 +302,9 @@ GLT-080,"Director: P3-B GO (5-zone vertical slice, 5 rockets)",DECISION,director
 GLT-081,P3-B 5 rockets s01-s05 through the full pipeline (spec -> assets -> art QA),TASK,gl100-art,P0,CANCELLED,GL100-P3B,,,,D-062;D-105,1,2.5,6,2026-12-07,2026-12-07,,,
 GLT-082,P3-B s05 Lantern Reach as authored zone,TASK,gl100-runtime,P0,HOLD,GL100-P3B,,,,D-062;D-110;D-111,1,2.5,6,2026-12-07,2026-12-07,,,DEFERRED (D-111): s05 economy design needs a separate Director GO; not a GLT-083/GLT-086 exit blocker; must be done before GLT-097
 GLT-083,P3-B chapter import + regression,TASK,gl100-runtime,P0,QA_PASS,GL100-P3B,QA_PASS,"IMPORT PASS / SHIPPING PASS (editor harness; release build NOT tested) / RUNTIME PASS desktop; GameplayQa 1167, Stab 16, BuildQa 41, c0/m1 identical, fingerprint unchanged; dev APK +171416 B; device NOT TESTED",,D-062;D-105;D-108;D-111;D-110,1.5,3,12,2026-12-07,2026-12-08,2026-11-20,2026-11-20,
-GLT-084,P3-B Director chapter review sitting,DECISION,director,P0,PLANNED,GL100-P3B,,,,D-062,0,0,0,2026-12-08,2026-12-09,,,
-GLT-085,"P3-B phone session (device bars HYPOTHESIS: >=55 fps flight, >=45 fps reveal)",SESSION,gl100-qa,P0,PLANNED,GL100-P3B,,,,D-062,0,0,0,2026-12-08,2026-12-11,,,
-GLT-086,P3-B exit gate X1-X6 + metrics M1-M10,GATE,gl100-qa,P0,PLANNED,GL100-P3B,,"D-110 criteria: s01-s04 real play -> [path]; claim+install via Hangar UI; persistence [path]; stages 5-9 + map-10 activation via isolated fixtures (never shipped, never touching normal saves); GLT-083 [path] + full regression + dev APK delta",,D-062;D-105;D-110,0,0,0,2026-12-11,2026-12-11,,,
+GLT-084,P3-B Director chapter review sitting,DECISION,director,P0,DONE,GL100-P3B,QA_PASS,Director review sittings: r01 asset review (D-107/D-109) and P3-B exit review (D-112),,D-062;D-112,0,0,0,2026-12-08,2026-12-09,2026-11-20,2026-11-20,
+GLT-085,"P3-B phone session (device bars HYPOTHESIS: >=55 fps flight, >=45 fps reveal)",SESSION,gl100-qa,P0,BLOCKED,GL100-P3B,,,,D-062;D-112,0,0,0,2026-12-08,2026-12-11,,,ADB HOLD: device session not authorised; carried as D-112 residual risk R2/R5 into the next ADB session (W2B3-ADB1 checklist section 9); not a P3-B technical-exit blocker
+GLT-086,P3-B exit gate X1-X6 + metrics M1-M10,GATE,gl100-qa,P0,QA_PASS,GL100-P3B,QA_PASS,"D-112: P3-B TECHNICAL EXIT PASS (technical vertical slice only; not production readiness, not organic Zone 1); residual R1-R5 accepted for technical scope; device performance NOT TESTED",,D-062;D-105;D-110;D-112,0,0,0,2026-12-11,2026-12-11,2026-11-20,2026-11-20,
 GLT-090,Director: P3-C GO (10-zone pilot),DECISION,director,P0,PLANNED,GL100-P3C,,,,D-062;D-105;D-107,0,0,0,2026-12-11,2026-12-14,,,
 GLT-091,P3-C chapter I s06-s10 + s20 L sample: rockets + zone assets,TASK,gl100-art,P0,PLANNED,GL100-P3C,,,,D-062,1.5,4,10,2026-12-14,2026-12-14,,,
 GLT-092,P3-C zone tasks s06-s10 as data + OD-2 idle-compatible alternative,TASK,gl100-design,P0,PLANNED,GL100-P3C,,,,D-062,1,2,5,2026-12-14,2026-12-14,,,
@@ -329,7 +329,7 @@ GLT-112,P3-D chapter ch10 batch: import + bake + regression + device sample + re
 GLT-113,GL-14 late-zone economy balancing (long-horizon sims),TASK,design,P1,PLANNED,GL100-P3D,,,,,4,15,85,2026-12-22,2027-01-04,,,
 GLT-114,GL-15 offline-cap study,TASK,design,P1,PLANNED,GL100-P3D,,,,,4,15,85,2026-12-22,2027-01-05,,,
 GLT-115,Director approval of GL-14 / GL-15 results,DECISION,director,P1,PLANNED,GL100-P3D,,,,,0,0,0,2027-01-05,2027-01-06,,,
-GLT-120,GL100 launch content gate: 100 zones + 100 rockets integrated and device validated,GATE,gl100-qa,P0,PLANNED,PUBLIC,,,,,0,0,0,2027-01-27,2027-01-28,,,
+GLT-120,GL100 launch content gate: 100 zones + 100 rockets integrated and device validated,GATE,gl100-qa,P0,PLANNED,PUBLIC,,,,D-112,0,0,0,2027-01-27,2027-01-28,,,
 TEC-050-A7,TEC-050 A-7: runtime screenshot of a rocket on its pad (a11y A-7 evidence),SESSION,qa,P1,PLANNED,M2-Q04b,,,NOT TESTED,D-080,0,0,0,,,,,never PASS from stub-world captures (D-075 item 6)
 W2B3-ADB1,"Combined ADB device session after R7 technical PASS (600 s S2 / 6 AUTO, D-072 thresholds)",SESSION,android-perf,P0,READY,M2-Q04b,,,NOT TESTED,D-080;D-086,0,0,0,,,,,ADB HOLD until explicit ADB GO
 QD-06,QA debt QD-06: truncated sector names (ellipsis) on the Map HUD,TASK,engineering,P3,PLANNED,RC,,,,D-080,0,0,0,2026-11-23,2026-11-23,,,
@@ -363,3 +363,4 @@ GLT-136,D-105 G2 baker assembly extension: part icons 128/52 px + stage contact 
 GLT-140,"D-105 F3 hangar + reward-panel layout / accessibility audit (6 layouts, 12 sp, touch targets, Low Effects)",TASK,gl100-qa,P0,QA_PASS,GL100-P3B,QA_PASS,,,D-105;D-106,0.7,1.5,4,,,2026-11-20,2026-11-20,
 GLT-141,"D-105 G3 per-rocket palette: RocketBodyDef.palette path, CosmeticBinder.Resolve material cache (no SliceKit change)",TASK,gl100-runtime,P0,QA_PASS,GL100-P3B,QA_PASS,,,D-105;D-106,0.5,1,2.5,,,2026-11-20,2026-11-20,
 GO-S05-ECON,"Director: s05 economy design GO (planets, contracts, costs, progression consistent with s01-s04; release of GLT-082)",DECISION,director,P1,PLANNED,GL100-P3C,,,,D-111,0,0,0,,,,,
+GLT-142,"R3 (D-112): family-1 class modules [path]* for r01 (pod/boost per class) - outstanding visual scope, needs scope authorisation",TASK,gl100-art,P2,PLANNED,GL100-P3D,,,,D-112,1,2.5,6,,,,,
