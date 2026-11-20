@@ -371,3 +371,4 @@ GLT-146,Zone-task predicates + data s06-s10 (monotonic TierCount / FleetMk via Z
 GLT-147,HUD guidance to missing parts / pending sector + mandatory task / Mk-level hints / return to passed sectors (D-115 acceptance requirement),TASK,gl100-runtime,P0,QA_PASS,GL100-P3C,QA_PASS,,,D-115,2,5,10,2026-11-23,2026-11-23,2026-11-21,2026-11-21,
 GLT-148,"EconomySim Zone 1 support: sim-only catalog limit, Z1_mixed mandatory regression gate, ClaimsGift=false runs, deadlock checks with/without HUD guidance",TASK,gl100-qa,P0,QA_PASS,GL100-P3C,QA_PASS,,,D-115,1.5,3,6,2026-11-23,2026-11-23,2026-11-21,2026-11-21,
 GLT-149,"QA updates for 10 sectors: three 4-sector assertions, s01-s04 golden hash test, Galaxy Map 10-node check",TASK,gl100-qa,P0,QA_PASS,GL100-P3C,QA_PASS,,,D-115,1,2,4,2026-11-23,2026-11-23,2026-11-21,2026-11-21,
+QD-02-STATS,QD-02 slice: planet panel stats line truncation (GLT-147 finding),TASK,engineering,P2,PLANNED,RC,,,,D-126,0.5,1,2,,,,,
