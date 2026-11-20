@@ -36,8 +36,8 @@
     "unity_lock_min"
    ],
    "name": "runs.csv",
-   "rows": 141,
-   "sha256": "eb3ac148b91fc21a37783b39ea9722ac85d8bb680ea06457756137af7c826cd0"
+   "rows": 142,
+   "sha256": "0f643bfd8a4261619d7197aac35b711ca247423c4550f2a4f019e82f08d730c7"
   },
   {
    "columns": [
@@ -93,9 +93,9 @@
    "blocker"
   ]
  },
- "snapshot": "2026-11-21T05:38:59",
+ "snapshot": "2026-11-21T06:04:36",
  "snapshot_basis": "latest entry of the tracker changelog (local time); not the build time",
- "source_commit": "6df59d9",
- "source_commit_time": "2026-11-21T05:39:00+07:00",
+ "source_commit": "b29d600",
+ "source_commit_time": "2026-11-21T06:04:48+07:00",
  "title": "ISC 2.0 Project Execution Dashboard"
 }
