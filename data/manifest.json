@@ -25,7 +25,7 @@
    ],
    "name": "tasks.csv",
    "rows": 372,
-   "sha256": "fc27ee2898cd8ae05389a1f7e23eb82e251c87fa829be9be413b1cd2b8992c6a"
+   "sha256": "7bb2e71de4fd07e35ec823f637ee9a165250fd52306242ced5d6c4f72d91cc25"
   },
   {
    "columns": [
@@ -36,8 +36,8 @@
     "unity_lock_min"
    ],
    "name": "runs.csv",
-   "rows": 111,
-   "sha256": "a8691243219a67871cabd2ccba72e73228d0a42a06fe7ccd07097a20e3e19bba"
+   "rows": 112,
+   "sha256": "8217331a8f72f83ef915ce44e570b5ffd1f49a3db9100ebfdaaec246761226a5"
   },
   {
    "columns": [
@@ -47,8 +47,8 @@
     "finish"
    ],
    "name": "schedule.csv",
-   "rows": 444,
-   "sha256": "69527aa05ac420363671304d0dc69840857d6f507562da759c6affdc9de489cd"
+   "rows": 441,
+   "sha256": "23ddffa4662aa21f2c9db62a6fe2abf8f49206a611e560c3ca8bb8150bb2c21f"
   }
  ],
  "forecast": {
@@ -93,9 +93,9 @@
    "blocker"
   ]
  },
- "snapshot": "2026-11-21T00:41:08",
+ "snapshot": "2026-11-21T01:04:51",
  "snapshot_basis": "latest entry of the tracker changelog (local time); not the build time",
- "source_commit": "eb8c2f0",
- "source_commit_time": "2026-11-21T00:41:09+07:00",
+ "source_commit": "0d8f4ba",
+ "source_commit_time": "2026-11-21T01:05:02+07:00",
  "title": "ISC 2.0 Project Execution Dashboard"
 }
