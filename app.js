@@ -1342,7 +1342,10 @@
     b = $('ac-dec-body'); b.replaceChildren();
     A.decisions.forEach(function (d) {
       var tr = b.insertRow();
-      nodeTd(tr, taskButton(d.task.task_id), 'id'); td(tr, d.task.title); chipTd(tr, d.task.status);
+      nodeTd(tr, taskButton(d.task.task_id), 'id');
+      var tc = tr.insertCell(); tc.appendChild(doc.createTextNode(d.task.title));
+      if (d.task.blocker) tc.appendChild(el('div', { cls: 'ac-brief', text: d.task.blocker }));   // Director brief for the decision (scope, criteria, consequences)
+      chipTd(tr, d.task.status);
       nodeTd(tr, idList(d.unlocks, taskButton));
       td(tr, fmtH(d.effort.opt) + ' / ' + fmtH(d.effort.base) + ' / ' + fmtH(d.effort.cons), 'num');
       td(tr, d.downstream + ' · ' + fmtH(d.downstream_base) + ' h', 'num');
