@@ -1515,7 +1515,14 @@
       notes.forEach(function (p) { det.appendChild(p); });
       card.appendChild(det);
     });
-    Array.prototype.forEach.call(root.querySelectorAll('p.note[id]'), function (p) { p.classList.add('footline'); });
+    Array.prototype.forEach.call(root.querySelectorAll('p.note[id]'), function (p) {
+      if (p.classList.contains('footline')) return;
+      p.classList.add('footline'); p.tabIndex = 0; p.setAttribute('role', 'button'); p.setAttribute('aria-expanded', 'false');
+      p.title = 'Click, tap or press Enter to show the full line';
+      var tog = function () { var o = p.classList.toggle('open'); p.setAttribute('aria-expanded', String(o)); };
+      p.addEventListener('click', tog);
+      p.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tog(); } });
+    });
   }
   function renderDecisions() {
     var all = filterDecisions(state.data.decisions || [], state.dfilter), box = $('dec-list');

@@ -365,3 +365,8 @@ button.more:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px
 #meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 #meta:hover, #meta:focus { white-space: normal; }
 details.defs > summary { cursor: pointer; }
+
+/* footline: full text on click / tap / keyboard (not hover only) */
+p.note.footline { cursor: pointer; }
+p.note.footline.open { white-space: normal; }
+p.note.footline:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
