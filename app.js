@@ -862,9 +862,9 @@
   }
 
   // ---- D-133 (pure): freshness, acceptance kinds, Director Action Center, decisions, one-snapshot check
-  var KIND_ORDER = ['impl_done', 'technical_accepted', 'spec_accepted', 'director_accepted', 'awaiting_acceptance', 'decision_pending', 'open', 'cancelled', 'container'];
+  var KIND_ORDER = ['impl_done', 'technical_accepted', 'spec_accepted', 'design_only', 'director_accepted', 'awaiting_acceptance', 'decision_pending', 'open', 'cancelled', 'container'];
   var KIND_LABELS = {
-    impl_done: 'Implementation DONE', technical_accepted: 'Technical acceptance', spec_accepted: 'Specification / decision accepted',
+    impl_done: 'Implementation DONE', technical_accepted: 'Technical acceptance', spec_accepted: 'Specification / decision accepted', design_only: 'Design / spec accepted, not implementation GO',
     director_accepted: 'Director accepted (not DONE)', awaiting_acceptance: 'Technically complete, awaiting acceptance',
     decision_pending: 'Decision pending', open: 'Open (not technically complete)', cancelled: 'Cancelled', container: 'Container (roll-up)'
   };
@@ -952,7 +952,9 @@
         : (depsOpen.length || /^WAITING/i.test(bt)) ? 'waiting' : 'ready';
       // immediate unlock = open dependents whose every other dependency / release gate is already satisfied (they become dependency-ready)
       var imm = u.filter(function (x) {
-        var r = by[x]; return blkIds(r.depends_on).concat(blkIds(r.release_gate)).every(function (y) { return y === t.task_id || !by[y] || !blkOpen(by[y]); });
+        var r = by[x];
+        return blkIds(r.depends_on).every(function (y) { return y === t.task_id || !by[y] || !blkOpen(by[y]); }) &&
+          blkIds(r.release_gate).every(function (y) { return y === t.task_id || !by[y] || !(blkOpen(by[y]) || by[y].acceptance_kind === 'design_only'); });   // a design-only GO does not release
       });
       return { task: t, unlocks: u, effort: eff(u), downstream: d.length, downstream_base: eff(d).base, triage: triage, deps_open: depsOpen,
         immediate: imm, immediate_base: eff(imm).base };
