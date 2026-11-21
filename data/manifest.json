@@ -1,6 +1,67 @@
 {
- "decision": "D-083; public-data policy D-087",
+ "acceptance_kinds": {
+  "awaiting_acceptance": "Technically complete, awaiting acceptance",
+  "cancelled": "Cancelled",
+  "container": "Container (roll-up)",
+  "decision_pending": "Decision pending",
+  "director_accepted": "Director accepted (not DONE)",
+  "impl_done": "Implementation DONE",
+  "open": "Open (not technically complete)",
+  "spec_accepted": "Specification / decision accepted",
+  "technical_accepted": "Technical acceptance"
+ },
+ "built_at": "2026-11-21T13:36:35Z",
+ "changelog_seq": 2571,
+ "decision": "D-083; public-data policy D-087; dashboard-first D-133",
+ "decision_log": {
+  "newest": "D-133",
+  "path": "DECISION-LOG.md",
+  "rows": 116
+ },
  "files": [
+  {
+   "columns": [
+    "decision_id",
+    "date",
+    "title",
+    "summary",
+    "scope",
+    "status",
+    "superseded_by",
+    "referenced_tasks",
+    "mentioned_tasks",
+    "source",
+    "snapshot_id"
+   ],
+   "name": "decisions.csv",
+   "rows": 116,
+   "sha256": "a5dd5ab19bc1b0a3497082fe7fb1fc682ad8cd8ab42fb4190fe7832cfa766f9d"
+  },
+  {
+   "columns": [
+    "run_id",
+    "kind",
+    "date",
+    "duration_min",
+    "unity_lock_min",
+    "snapshot_id"
+   ],
+   "name": "runs.csv",
+   "rows": 156,
+   "sha256": "d062f93ecbff9a9809568131917bbfe36b054d2cefecc01e34d3f114fcf5ad15"
+  },
+  {
+   "columns": [
+    "scenario",
+    "task_id",
+    "start",
+    "finish",
+    "snapshot_id"
+   ],
+   "name": "schedule.csv",
+   "rows": 369,
+   "sha256": "ac77a70b59f526f290e8aa248302509705ba68795efbffd1d65b94c6e900e24e"
+  },
   {
    "columns": [
     "task_id",
@@ -21,55 +82,73 @@
     "planned_end",
     "actual_start",
     "actual_end",
-    "blocker"
+    "blocker",
+    "owner",
+    "parent",
+    "depends_on",
+    "gate",
+    "release_gate",
+    "acceptance_kind",
+    "remaining_base_h",
+    "launch_path",
+    "snapshot_id"
    ],
    "name": "tasks.csv",
    "rows": 396,
-   "sha256": "da2a1ba7537fb8c7d248a365092881f4eadfb70e9955951b0536a584fd421fc0"
+   "sha256": "903dd145937ab3dd4279af724173535d45d609ef779fc7aac86fabbd2bf5b809"
   },
   {
    "columns": [
-    "run_id",
-    "kind",
-    "date",
-    "duration_min",
-    "unity_lock_min"
+    "worker",
+    "state",
+    "current_task",
+    "next_tasks",
+    "blocker",
+    "needs_director",
+    "branch",
+    "commit",
+    "updated_at",
+    "snapshot_id"
    ],
-   "name": "runs.csv",
-   "rows": 153,
-   "sha256": "f0bb60c6127e7f7c605322c87518ff089c48fb553931d4bcc299f1adf228a29f"
-  },
-  {
-   "columns": [
-    "scenario",
-    "task_id",
-    "start",
-    "finish"
-   ],
-   "name": "schedule.csv",
-   "rows": 369,
-   "sha256": "a984fe6c58a67d6e7cb7ed16e333762eff34bc0265428d037442d84eb3d40869"
+   "name": "workers.csv",
+   "rows": 3,
+   "sha256": "5f4817d35a0f3b1263ca9e61942e20a4c4e67f1a9d27f746a8d2c4cafa958d42"
   }
  ],
  "forecast": {
   "label": "PROVISIONAL",
   "note": "Last finish date of the launch scope in the tracker's capacity- and dependency-aware schedule (3 worker slots, 1 serial Unity lock, serial lead, Director latency as waiting time, holidays 24 Dec-1 Jan and 8-12 Mar 2027). PROVISIONAL (D-081): the bridge to the calibrated timeline is in review; the communicated target stays April-May 2027; re-forecast after GL100 P3-C."
  },
- "manifest_version": 1,
+ "manifest_version": 2,
  "project": "Idle Space Courier 2.0",
  "schema": {
+  "decisions.csv": [
+   "decision_id",
+   "date",
+   "title",
+   "summary",
+   "scope",
+   "status",
+   "superseded_by",
+   "referenced_tasks",
+   "mentioned_tasks",
+   "source",
+   "snapshot_id"
+  ],
   "runs.csv": [
    "run_id",
    "kind",
    "date",
    "duration_min",
-   "unity_lock_min"
+   "unity_lock_min",
+   "snapshot_id"
   ],
   "schedule.csv": [
    "scenario",
    "task_id",
    "start",
-   "finish"
+   "finish",
+   "snapshot_id"
   ],
   "tasks.csv": [
    "task_id",
@@ -90,12 +169,41 @@
    "planned_end",
    "actual_start",
    "actual_end",
-   "blocker"
+   "blocker",
+   "owner",
+   "parent",
+   "depends_on",
+   "gate",
+   "release_gate",
+   "acceptance_kind",
+   "remaining_base_h",
+   "launch_path",
+   "snapshot_id"
+  ],
+  "workers.csv": [
+   "worker",
+   "state",
+   "current_task",
+   "next_tasks",
+   "blocker",
+   "needs_director",
+   "branch",
+   "commit",
+   "updated_at",
+   "snapshot_id"
   ]
  },
- "snapshot": "2026-11-21T18:14:34",
+ "snapshot": "2026-11-21T20:36:23",
  "snapshot_basis": "latest entry of the tracker changelog (local time); not the build time",
- "source_commit": "99bab1a",
- "source_commit_time": "2026-11-21T18:15:17+07:00",
- "title": "ISC 2.0 Project Execution Dashboard"
+ "snapshot_id": "7cfd9f7-20261121T133635Z",
+ "snapshot_utc": "2026-11-21T13:36:23Z",
+ "source_commit": "7cfd9f7",
+ "source_commit_time": "2026-11-21T20:36:34+07:00",
+ "stale_after_hours": 6,
+ "title": "ISC 2.0 Project Execution Dashboard",
+ "worker_commits": [
+  "5e22884",
+  "d00e494",
+  "faab6da"
+ ]
 }

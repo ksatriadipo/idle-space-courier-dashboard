@@ -601,6 +601,7 @@
     var q = String(f.q || '').trim().toLowerCase();
     return tasks.filter(function (r) {
       return (!f.status || r.status === f.status) && (!f.ws || r.workstream === f.ws) &&
+        (!f.owner || r.owner === f.owner) && (!f.kind || r.acceptance_kind === f.kind) &&
         (!q || (r.task_id + ' ' + r.title).toLowerCase().indexOf(q) >= 0);
     });
   }
@@ -698,10 +699,11 @@
     }).slice(0, limit || 1e9);
   }
 
-  var SORT_KEYS = ['task_id', 'title', 'status', 'workstream', 'milestone', 'effort_base_h', 'ladder', 'decision_ref'];
+  var SORT_KEYS = ['task_id', 'title', 'status', 'workstream', 'milestone', 'effort_base_h', 'ladder', 'decision_ref',
+    'acceptance_kind', 'owner', 'priority', 'remaining_base_h'];
   function sortRegister(rows, key, dir) {
     if (SORT_KEYS.indexOf(key) < 0) return rows.slice();
-    var sgn = dir === 'desc' ? -1 : 1, numeric = key === 'effort_base_h';
+    var sgn = dir === 'desc' ? -1 : 1, numeric = key === 'effort_base_h' || key === 'remaining_base_h';
     return rows.map(function (r, i) { return { r: r, i: i }; }).sort(function (a, b) {
       var x = a.r[key] || '', y = b.r[key] || '';
       if (numeric) { x = num(x); y = num(y); if (x === null) x = ''; if (y === null) y = ''; }
@@ -802,6 +804,111 @@
     return { kpi: lk, effort: eff, milestones: launchMilestones(tasks), summary: realitySummary(lk, eff, fc), critical_path: null };
   }
 
+  // ---- D-133 (pure): freshness, acceptance kinds, Director Action Center, decisions, one-snapshot check
+  var KIND_ORDER = ['impl_done', 'technical_accepted', 'spec_accepted', 'director_accepted', 'awaiting_acceptance', 'decision_pending', 'open', 'cancelled', 'container'];
+  var KIND_LABELS = {
+    impl_done: 'Implementation DONE', technical_accepted: 'Technical acceptance', spec_accepted: 'Specification / decision accepted',
+    director_accepted: 'Director accepted (not DONE)', awaiting_acceptance: 'Technically complete, awaiting acceptance',
+    decision_pending: 'Decision pending', open: 'Open (not technically complete)', cancelled: 'Cancelled', container: 'Container (roll-up)'
+  };
+  var COMPLETE = ['DONE', 'RELEASED', 'DIRECTOR_ACCEPTED', 'CANCELLED'];
+  function splitIds(v) { return String(v || '').split(/[;,]/).map(function (s) { return s.trim(); }).filter(Boolean); }
+  function pad2(n) { return (n < 10 ? '0' : '') + n; }
+  function fmtStamp(t, offsetH) {
+    var d = new Date(t + offsetH * 36e5);
+    return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear() + ' ' + pad2(d.getUTCHours()) + ':' + pad2(d.getUTCMinutes());
+  }
+  // "21 Nov 2026 11:04 UTC (18:04 WIB)"; WIB = UTC+7 (the project's working time zone)
+  function fmtUtcWib(iso) {
+    var t = Date.parse(iso || '');
+    if (!isFinite(t)) return '—';
+    var u = fmtStamp(t, 0), w = fmtStamp(t, 7), same = u.split(' ').slice(0, 3).join(' ') === w.split(' ').slice(0, 3).join(' ');
+    return u + ' UTC (' + (same ? w.split(' ').pop() : w) + ' WIB)';
+  }
+  function fmtAge(h) { return h < 1 ? Math.max(0, Math.round(h * 60)) + ' min' : h < 48 ? r1(h) + ' h' : Math.round(h / 24) + ' days'; }
+  // STALE when the build is older than the threshold on the viewer's clock, when it was built from a dirty tracker, or when the
+  // tracker's last change is later than the build. Snapshots built before D-133 have no build time: 'unknown'.
+  function freshness(m, nowMs) {
+    var th = (m && num(m.stale_after_hours)) || 6, reasons = [];
+    var built = Date.parse((m && m.built_at) || '');
+    if (!m || !isFinite(built)) return { level: 'unknown', age_h: null, threshold_h: th, reasons: ['This snapshot has no build time (built before D-133); treat it as possibly stale.'] };
+    var age = (nowMs - built) / 36e5;    // unrounded: STALE starts exactly at the threshold, not after display rounding
+    if (age > th) reasons.push('Built ' + fmtAge(age) + ' ago, more than ' + th + ' h before your clock.');
+    if (/dirty/.test(m.source_commit || '')) reasons.push('Built from uncommitted tracker changes (source commit ' + m.source_commit + ').');
+    var snap = Date.parse(m.snapshot_utc || '');
+    if (isFinite(snap) && snap > built + 6e4) reasons.push('The tracker changed after this build.');
+    return { level: reasons.length ? 'stale' : 'fresh', age_h: age, threshold_h: th, reasons: reasons };
+  }
+  // Datasets whose rows carry a snapshot id other than the manifest's (a cached CSV mixed with a newer page). [] = one snapshot.
+  function snapshotMismatch(data, m) {
+    if (!m || !m.snapshot_id) return [];
+    return Object.keys(data || {}).filter(function (k) {
+      return (data[k] || []).some(function (r) { return Object.prototype.hasOwnProperty.call(r, 'snapshot_id') && r.snapshot_id !== m.snapshot_id; });
+    }).sort();
+  }
+  function acceptanceKinds(tasks) {
+    var c = {};
+    KIND_ORDER.forEach(function (k) { c[k] = 0; });
+    tasks.forEach(function (t) { var k = t.acceptance_kind || 'open'; c[k] = (c[k] || 0) + 1; });
+    return KIND_ORDER.map(function (k) { return { kind: k, label: KIND_LABELS[k], count: c[k] }; });
+  }
+  function isDecisionTask(r) { return r.node_type === 'DECISION' || r.workstream === 'director'; }
+  function isOpenTask(r) { return !has(COMPLETE, r.status); }
+  function cmpId(a, b) { return String(a).localeCompare(String(b), 'en', { numeric: true }); }
+  function byUrgency(a, b) {
+    var la = a.launch_path === 'yes' ? 0 : 1, lb = b.launch_path === 'yes' ? 0 : 1;
+    return la - lb || String(a.priority || 'P9').localeCompare(String(b.priority || 'P9')) || cmpId(a.task_id, b.task_id);
+  }
+  function dependents(tasks) {
+    var m = {};
+    tasks.forEach(function (t) {
+      splitIds(t.depends_on).concat(t.release_gate ? [t.release_gate] : []).forEach(function (d) {
+        if (!m[d]) m[d] = [];
+        if (m[d].indexOf(t.task_id) < 0) m[d].push(t.task_id);
+      });
+    });
+    return m;
+  }
+  function actionCenter(tasks, workers) {
+    var by = {}, dep = dependents(tasks);
+    tasks.forEach(function (t) { by[t.task_id] = t; });
+    var openDep = function (id) { return (dep[id] || []).filter(function (x) { return by[x] && isOpenTask(by[x]); }); };
+    var eff = function (ids) {
+      var o = { opt: 0, base: 0, cons: 0 };
+      ids.forEach(function (x) { var t = by[x]; if (!t || !isExec(t)) return; o.opt += effC(t.effort_opt_h); o.base += effC(t.effort_base_h); o.cons += effC(t.effort_cons_h); });
+      return { opt: o.opt / 100, base: o.base / 100, cons: o.cons / 100 };
+    };
+    var down = function (id) {
+      var seen = {}, st = openDep(id).slice();
+      while (st.length) { var u = st.pop(); if (seen[u]) continue; seen[u] = 1; st = st.concat(openDep(u)); }
+      return Object.keys(seen);
+    };
+    var union = {};
+    var decisions = tasks.filter(function (t) { return isExec(t) && isDecisionTask(t) && isOpenTask(t) && !isDeferred(t); }).map(function (t) {
+      var u = openDep(t.task_id), d = down(t.task_id);
+      u.forEach(function (x) { union[x] = 1; });
+      return { task: t, unlocks: u, effort: eff(u), downstream: d.length, downstream_base: eff(d).base };
+    }).sort(function (a, b) { return b.downstream_base - a.downstream_base || b.downstream - a.downstream || cmpId(a.task.task_id, b.task.task_id); });
+    return {
+      decisions: decisions,
+      unlock: eff(Object.keys(union)), unlock_tasks: Object.keys(union).length,
+      acceptances: tasks.filter(function (t) { return t.acceptance_kind === 'awaiting_acceptance' && isLaunch(t); }).sort(byUrgency),
+      blockers: tasks.filter(function (t) { return (t.status === 'HOLD' || t.status === 'BLOCKED') && t.launch_path === 'yes' && isExec(t); }).sort(byUrgency),
+      workerBlockers: (workers || []).filter(function (w) { return w.needs_director === 'yes' || w.state === 'BLOCKED'; })
+    };
+  }
+  function decNum(id) { var m = /^D-(\d+)$/.exec(id || ''); return m ? +m[1] : -1; }
+  function decisionIndex(decs) { var m = {}; (decs || []).forEach(function (d) { m[d.decision_id] = d; }); return m; }
+  function decisionsFor(task, idx) {
+    return splitIds(task.decision_ref).map(function (id) { return { id: id, title: idx[id] ? idx[id].title : null, known: !!idx[id] }; });
+  }
+  function filterDecisions(decs, f) {
+    var q = String((f && f.q) || '').trim().toLowerCase(), st = (f && f.status) || '';
+    return (decs || []).filter(function (d) {
+      return (!st || d.status === st) && (!q || [d.decision_id, d.date, d.title, d.summary, d.scope, d.referenced_tasks, d.mentioned_tasks].join(' ').toLowerCase().indexOf(q) >= 0);
+    }).sort(function (a, b) { return decNum(b.decision_id) - decNum(a.decision_id) || (a.decision_id < b.decision_id ? -1 : 1); });
+  }
+
   function computeAll(data) {
     var tasks = data.tasks, runs = data.runs, schedule = data.schedule;
     var k = kpi(tasks), fc = forecast(schedule);
@@ -816,11 +923,14 @@
     out.galaxy = galaxy(out.ms, out.gantt);
     out.decisionsHold = decisionRefs(out.hold);
     out.decisionsAll = decisionRefs(tasks.filter(isExec), 12);
+    out.kinds = acceptanceKinds(tasks);
+    out.action = actionCenter(tasks, data.workers || []);
     return out;
   }
 
   // ------------------------------------------------------------ browser rendering
-  var doc, win, state = { data: null, manifest: null, texts: null, calc: null, filter: { q: '', status: '', ws: '' }, sort: { key: '', dir: 'asc' }, open: {} };
+  var doc, win, state = { data: null, manifest: null, texts: null, calc: null, filter: { q: '', status: '', ws: '', owner: '', kind: '' }, sort: { key: '', dir: 'asc' }, open: {},
+    dfilter: { q: '', status: '' }, decOpen: {}, decIdx: {} };
 
   function el(tag, attrs, kids) {
     var e = doc.createElement(tag);
@@ -885,9 +995,10 @@
     var c = state.calc, m = state.manifest;
     $('takeaway').textContent = c.takeaway;
     var ps = $('proj-status'); ps.textContent = c.status.label; ps.setAttribute('data-tone', c.status.tone);
-    $('snap-text').textContent = 'Snapshot ' + m.snapshot.replace('T', ' ');
+    $('snap-text').textContent = 'Tracker last changed ' + m.snapshot.replace('T', ' ') + ' WIB';
     renderOverview();
-    $('meta').textContent = 'Snapshot ' + m.snapshot.replace('T', ' ') + ' (tracker changelog) · source commit ' + m.source_commit + ' · forecast ' + m.forecast.label;
+    $('meta').textContent = 'Snapshot ' + (m.snapshot_id || m.snapshot) + ' · built ' + fmtUtcWib(m.built_at) + ' · source commit ' + m.source_commit +
+      ' · tracker changelog ' + m.snapshot.replace('T', ' ') + ' · forecast ' + m.forecast.label;
     var k = c.reality.kpi;
     fill('kpi-tiles', [
       tile(k.total, 'Executable launch tasks (denominator)'), tile(k.done, 'DONE or released', 'ok'),
@@ -1136,17 +1247,18 @@
     if (!c.active.length) emptyRow(b, 6, 'Nothing in progress.');
     b = $('hold-body'); b.replaceChildren();
     c.hold.forEach(function (r) {
-      var tr = b.insertRow(); td(tr, r.task_id, 'id'); titleTd(tr, r); chipTd(tr, r.status); td(tr, r.milestone); td(tr, (r.decision_ref || '').replace(/;/g, '; ')); td(tr, r.blocker);
+      var tr = b.insertRow(); nodeTd(tr, taskButton(r.task_id), 'id'); titleTd(tr, r); chipTd(tr, r.status); td(tr, r.milestone);
+      nodeTd(tr, idList(splitIds(r.decision_ref), function (x) { return decButton(x); })); td(tr, r.blocker);
     });
     if (!c.hold.length) emptyRow(b, 6, 'Nothing on hold or blocked before launch.');
     var decList = function (id, list, empty) {
       fill(id, list.length ? list.map(function (d) {
-        return el('li', {}, [el('b', { text: d.id }), el('span', { text: d.count + (d.count === 1 ? ' task' : ' tasks') })]);
+        return el('li', {}, [decButton(d.id, true), el('span', { text: d.count + (d.count === 1 ? ' task' : ' tasks') })]);
       }) : [el('li', {}, [el('span', { text: empty })])]);
     };
     decList('dec-hold', c.decisionsHold, 'No decision referenced');
     decList('dec-all', c.decisionsAll, 'No decision referenced');
-    $('dec-note').textContent = 'Decision IDs from the public decision_ref column (the decision log itself is internal). Counts are executable tasks that reference each decision.';
+    $('dec-note').textContent = 'Decision IDs from the decision_ref column; counts are executable tasks that reference each decision. Select a decision to open it in the Decisions view.';
     var t = c.resTotal;
     fill('res-tiles', [
       tile(t.worker_h, 'Worker hours (summed agent time, not elapsed)'), tile(t.worker_runs, 'Worker runs'),
@@ -1160,18 +1272,183 @@
     });
   }
 
-  var DETAIL = [['node_type', 'Node type'], ['priority', 'Priority'], ['status', 'Status'], ['ladder', 'Ladder'], ['acceptance_status', 'Acceptance'],
-    ['device_status', 'Device'], ['decision_ref', 'Decision'], ['effort_opt_h', 'Effort opt h'], ['effort_base_h', 'Effort base h'], ['effort_cons_h', 'Effort cons h'],
+  // ---------------------------------------------------------------- D-133 views: freshness, Action Center, workers, decisions, kinds
+  function kindLabel(k) { var m = state.manifest && state.manifest.acceptance_kinds; return (m && m[k]) || KIND_LABELS[k] || k || '—'; }
+  function safeId(s) { return String(s || 'snapshot').replace(/[^A-Za-z0-9._-]+/g, '_'); }
+  function linkBtn(text, label, fn, cls) {
+    var b = el('button', { type: 'button', cls: 'lnk' + (cls ? ' ' + cls : ''), text: text, 'aria-label': label });
+    b.addEventListener('click', fn); return b;
+  }
+  function taskTitle(id) { var t = state.byId && state.byId[id]; return t ? t.title : ''; }
+  function taskButton(id) {
+    var t = state.byId && state.byId[id];
+    return linkBtn(id, 'Open task ' + id + (t ? ': ' + t.title + ' (' + t.status + ')' : ''), function () { openTask(id); }, t ? 'st-' + t.status : 'unknown');
+  }
+  function decButton(id, bold) {
+    var d = state.decIdx[id];
+    var b = linkBtn(id, 'Open decision ' + id + (d ? ': ' + d.title : ' (not in the decision log)'), function () { openDecision(id); }, (bold ? 'b' : '') + (d ? '' : ' unknown'));
+    if (d) b.title = d.title;
+    return b;
+  }
+  function idList(ids, mk) {
+    var span = el('span', { cls: 'ids' });
+    ids.forEach(function (x, i) { if (i) span.appendChild(doc.createTextNode(' ')); span.appendChild(mk(x)); });
+    if (!ids.length) span.textContent = '—';
+    return span;
+  }
+  function nodeTd(tr, node, cls) { var c = tr.insertCell(); if (cls) c.className = cls; c.appendChild(node); return c; }
+  function openTask(id) {
+    state.filter = { q: id, status: '', ws: '', owner: '', kind: '' };
+    $('f-q').value = id; ['f-status', 'f-ws', 'f-owner', 'f-kind'].forEach(function (s) { if ($(s)) $(s).value = ''; });
+    state.open[id] = true;
+    renderRegister();
+    var r = $('register'); if (r.scrollIntoView) r.scrollIntoView({ block: 'start' });
+  }
+  function openDecision(id) {
+    state.dfilter = { q: id, status: '' }; $('d-q').value = id; $('d-status').value = '';
+    state.decOpen[id] = true;
+    renderDecisions();
+    var e = $('dec-' + id) || $('decisions-view'); if (e.scrollIntoView) e.scrollIntoView({ block: 'start' });
+  }
+
+  function renderFreshness() {
+    var m = state.manifest, f = freshness(m, Date.now()), box = $('fresh');
+    var mixed = snapshotMismatch(state.data, m), banner = $('stale-banner');
+    // a mixed snapshot overrides every other state: the header chip must never say 'Current snapshot' next to a Do-not-use banner
+    box.setAttribute('data-level', mixed.length ? 'mixed' : f.level);
+    $('fresh-level').textContent = mixed.length ? 'Do not use: mixed snapshot' : f.level === 'fresh' ? 'Current snapshot' : f.level === 'stale' ? 'STALE snapshot' : 'Snapshot age unknown';
+    $('fresh-id').textContent = m.snapshot_id || '—';
+    $('fresh-built').textContent = 'built ' + fmtUtcWib(m.built_at) + (f.age_h !== null ? ' · ' + fmtAge(Math.max(0, f.age_h)) + ' ago' : '');
+    $('fresh-src').textContent = 'source commit ' + m.source_commit;
+    var msgs = f.level === 'fresh' ? [] : f.reasons.slice();
+    if (mixed.length) msgs.unshift('MIXED SNAPSHOT: ' + mixed.join(', ') + ' come from another snapshot than the page (' + m.snapshot_id + '). Reload the page; do not use these numbers.');
+    banner.hidden = !msgs.length;
+    banner.setAttribute('data-level', mixed.length ? 'mixed' : f.level);
+    banner.replaceChildren();
+    if (msgs.length) {
+      banner.appendChild(el('strong', { text: mixed.length ? 'Do not use: mixed snapshot. ' : f.level === 'stale' ? 'STALE: this may not be the latest project state. ' : 'Snapshot age unknown. ' }));
+      banner.appendChild(doc.createTextNode(msgs.join(' ') + ' Snapshot ' + (m.snapshot_id || m.snapshot) + ', built ' + fmtUtcWib(m.built_at) + ', source commit ' + m.source_commit + '.'));
+    }
+  }
+
+  function renderAction() {
+    var A = state.calc.action, b;
+    fill('ac-tiles', [
+      tile(A.decisions.length, 'Decisions waiting · unlock ' + A.unlock_tasks + ' tasks, ' + fmtH(A.unlock.base) + ' h base', A.decisions.length ? 'warn' : 'ok'),
+      tile(A.acceptances.length, 'Acceptances waiting (technically complete)', A.acceptances.length ? 'warn' : 'ok'),
+      tile(A.blockers.length, 'Critical blockers (hold / blocked on the launch path)', A.blockers.length ? 'bad' : 'ok'),
+      tile(A.workerBlockers.length, 'Worker blockers needing the Director', A.workerBlockers.length ? 'bad' : 'ok')
+    ]);
+    b = $('ac-dec-body'); b.replaceChildren();
+    A.decisions.forEach(function (d) {
+      var tr = b.insertRow();
+      nodeTd(tr, taskButton(d.task.task_id), 'id'); td(tr, d.task.title); chipTd(tr, d.task.status);
+      nodeTd(tr, idList(d.unlocks, taskButton));
+      td(tr, fmtH(d.effort.opt) + ' / ' + fmtH(d.effort.base) + ' / ' + fmtH(d.effort.cons), 'num');
+      td(tr, d.downstream + ' · ' + fmtH(d.downstream_base) + ' h', 'num');
+    });
+    if (!A.decisions.length) emptyRow(b, 6, 'No decision is waiting for the Director.');
+    $('ac-acc-count').textContent = String(A.acceptances.length);
+    b = $('ac-acc-body'); b.replaceChildren();
+    A.acceptances.forEach(function (t) {
+      var tr = b.insertRow(); nodeTd(tr, taskButton(t.task_id), 'id'); titleTd(tr, t); chipTd(tr, t.status); td(tr, t.owner); td(tr, t.acceptance_status);
+    });
+    if (!A.acceptances.length) emptyRow(b, 5, 'No acceptance is waiting.');
+    b = $('ac-crit-body'); b.replaceChildren();
+    A.blockers.forEach(function (t) {
+      var tr = b.insertRow(); nodeTd(tr, taskButton(t.task_id), 'id'); titleTd(tr, t); chipTd(tr, t.status);
+      var c = tr.insertCell(); c.appendChild(doc.createTextNode(show(t.blocker)));
+      if (t.release_gate) { c.appendChild(doc.createTextNode(' · GO gate ')); c.appendChild(taskButton(t.release_gate)); }
+    });
+    if (!A.blockers.length) emptyRow(b, 4, 'No critical blocker.');
+    fill('ac-wb', A.workerBlockers.length ? A.workerBlockers.map(function (w) {
+      return el('li', {}, [el('b', { text: w.worker + ' · ' + w.state }), ' ', w.blocker || '(no blocker text)', w.current_task ? ' · ' : '', w.current_task ? taskButton(w.current_task) : null]);
+    }) : [el('li', { text: 'None.' })]);
+  }
+
+  function renderWorkers() {
+    var ws = state.data.workers || [];
+    fill('workers-grid', ws.length ? ws.map(function (w) {
+      var ref = (w.branch || '—') + (w.commit ? ' @ ' + w.commit : '');
+      var dl = el('dl', {}, [
+        el('div', {}, [el('dt', { text: 'Now' }), el('dd', {}, [w.current_task ? taskButton(w.current_task) : '—', w.current_task ? ' ' + taskTitle(w.current_task) : ''])]),
+        el('div', {}, [el('dt', { text: 'Next in queue' }), el('dd', {}, [idList(splitIds(w.next_tasks), taskButton)])]),
+        el('div', {}, [el('dt', { text: 'Blocker' }), el('dd', { text: show(w.blocker) })]),
+        el('div', {}, [el('dt', { text: 'Branch @ commit' }), el('dd', {}, [el('code', { text: ref })])]),
+        el('div', {}, [el('dt', { text: 'Updated' }), el('dd', { text: fmtUtcWib(w.updated_at) })])
+      ]);
+      return el('div', { cls: 'worker', 'data-state': w.state }, [
+        el('div', { cls: 'whead' }, [el('h3', { text: w.worker }), el('span', { cls: 'chip ws-' + w.state, text: w.state }),
+          w.needs_director === 'yes' ? el('span', { cls: 'badge bad', text: 'NEEDS DIRECTOR' }) : null]), dl]);
+    }) : [el('p', { cls: 'note', text: 'No worker board in this snapshot (workers.csv, pm.py worker-set).' })]);
+    $('workers-note').textContent = 'From workers.csv (pm.py worker-set, written by the lead). Branch names are shown as [branch] in the public build (D-087); the commit is the short id.';
+  }
+
+  function renderKinds() {
+    fill('ak-tiles', state.calc.kinds.filter(function (k) { return k.count || k.kind !== 'cancelled'; }).map(function (k) {
+      var t = tile(k.count, k.label, k.kind === 'impl_done' ? 'ok' : k.kind === 'decision_pending' || k.kind === 'awaiting_acceptance' ? 'warn' : '');
+      t.setAttribute('role', 'button'); t.setAttribute('tabindex', '0'); t.setAttribute('aria-label', 'Filter the register: ' + k.label + ' (' + k.count + ')');
+      var go = function () { state.filter.kind = k.kind; $('f-kind').value = k.kind; renderRegister(); var r = $('register'); if (r.scrollIntoView) r.scrollIntoView({ block: 'start' }); };
+      t.addEventListener('click', go);
+      t.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } });
+      return t;
+    }));
+  }
+
+  function renderDecisions() {
+    var decs = filterDecisions(state.data.decisions || [], state.dfilter), box = $('dec-list');
+    box.replaceChildren();
+    decs.forEach(function (d) {
+      var det = el('details', { cls: 'dec', id: 'dec-' + d.decision_id, 'data-status': d.status });
+      if (state.decOpen[d.decision_id]) det.open = true;
+      det.addEventListener('toggle', function () { state.decOpen[d.decision_id] = det.open; });
+      var ref = splitIds(d.referenced_tasks), men = splitIds(d.mentioned_tasks), sup = splitIds(d.superseded_by);
+      det.appendChild(el('summary', {}, [el('b', { text: d.decision_id }), el('span', { cls: 'ddate', text: fmtDate(d.date) }), el('span', { cls: 'dtitle', text: d.title }),
+        el('span', { cls: 'chip ds-' + (d.status === 'in force' ? 'force' : d.status === 'range note' ? 'note' : 'sup'), text: d.status + (sup.length ? ' (' + sup.join(', ') + ')' : '') }),
+        el('span', { cls: 'dcount', text: ref.length + ' referenced · ' + men.length + ' mentioned' })]));
+      det.appendChild(el('p', { cls: 'dsum', text: d.summary }));
+      if (d.scope) det.appendChild(el('p', { cls: 'dscope' }, [el('b', { text: 'Scope / limits: ' }), d.scope]));
+      var dl = el('dl', {}, [
+        el('div', { cls: 'wide' }, [el('dt', { text: 'Affected tasks · referenced (decision_ref names ' + d.decision_id + ')' }), el('dd', {}, [idList(ref, taskButton)])]),
+        el('div', { cls: 'wide' }, [el('dt', { text: 'Affected tasks · mentioned in the text only' }), el('dd', {}, [idList(men, taskButton)])])
+      ]);
+      if (sup.length) dl.appendChild(el('div', {}, [el('dt', { text: 'Superseded in part by' }), el('dd', {}, [idList(sup, function (x) { return decButton(x); })])]));
+      dl.appendChild(el('div', {}, [el('dt', { text: 'Source (full text)' }), el('dd', {}, [el('code', { text: d.source })])]));
+      det.appendChild(dl);
+      box.appendChild(det);
+    });
+    if (!decs.length) box.appendChild(el('p', { cls: 'note', text: 'No decision matches the search.' }));
+    var all = (state.data.decisions || []).length;
+    $('d-count').textContent = decs.length + ' of ' + all + ' decisions shown';
+    var m = state.manifest;
+    $('dec-source').textContent = 'Parsed from ' + ((m.decision_log && m.decision_log.path) || 'the decision log') + ' (' + all + ' rows, newest ' +
+      ((m.decision_log && m.decision_log.newest) || '—') + ') in the same snapshot as the tasks (' + (m.snapshot_id || m.snapshot) + '). Title = first bold phrase; ' +
+      'status "superseded in part" = a later decision says it supersedes or reverses part of it; "range note" = the aggregate log row for earlier decisions (D-0xx), not a decision. The Markdown log stays the full source.';
+  }
+
+  var DETAIL = [['node_type', 'Node type'], ['workstream', 'Workstream'], ['owner', 'Owner'], ['priority', 'Priority'], ['status', 'Status'],
+    ['acceptance_kind', 'Acceptance kind'], ['ladder', 'Ladder'], ['acceptance_status', 'Acceptance'], ['device_status', 'Device'],
+    ['gate', 'Acceptance gate'], ['release_gate', 'Release gate (GO)'], ['parent', 'Parent'], ['depends_on', 'Depends on'], ['launch_path', 'On launch path'],
+    ['effort_opt_h', 'Effort opt h'], ['effort_base_h', 'Effort base h'], ['effort_cons_h', 'Effort cons h'], ['remaining_base_h', 'Remaining base h'],
     ['planned_start', 'Planned start'], ['planned_end', 'Planned end'], ['actual_start', 'Actual start'], ['actual_end', 'Actual end'], ['blocker', 'Blocker / waiting for']];
+  var DETAIL_IDS = { parent: 1, depends_on: 1, release_gate: 1 };
   function detailRow(b, r) {
     var tr = b.insertRow(); tr.className = 'detail';
     var c = tr.insertCell(); c.colSpan = 10;
     var dl = el('dl');
     DETAIL.forEach(function (f) {
       var v = r[f[0]];
+      if (v === undefined) return;
       if (/_start$|_end$/.test(f[0])) v = v ? fmtDate(v) : v;
-      dl.appendChild(el('div', { cls: f[0] === 'blocker' || f[0] === 'acceptance_status' ? 'wide' : '' }, [el('dt', { text: f[1] }), el('dd', { text: show(v) })]));
+      if (f[0] === 'acceptance_kind') v = kindLabel(v);
+      var dd = DETAIL_IDS[f[0]] ? el('dd', {}, [idList(splitIds(v), taskButton)]) : el('dd', { text: show(v) });
+      dl.appendChild(el('div', { cls: f[0] === 'blocker' || f[0] === 'acceptance_status' ? 'wide' : '' }, [el('dt', { text: f[1] }), dd]));
     });
+    var decs = decisionsFor(r, state.decIdx);
+    var dd = el('dd', { cls: 'decrefs' });
+    decs.forEach(function (d) { dd.appendChild(el('div', {}, [decButton(d.id, true), ' ', d.known ? d.title : '(not in the decision log)'])); });
+    if (!decs.length) dd.textContent = '—';
+    dl.appendChild(el('div', { cls: 'wide' }, [el('dt', { text: 'Decisions' }), dd]));
     c.appendChild(dl);
   }
   function renderRegister() {
@@ -1189,8 +1466,11 @@
         Array.prototype.forEach.call($('reg-body').querySelectorAll('button.idbtn'), function (x) { if (x.getAttribute('data-id') === r.task_id) x.focus(); });
       });
       idc.appendChild(btn);
-      titleTd(tr, r); chipTd(tr, r.status); td(tr, r.workstream); td(tr, r.milestone); td(tr, r.effort_base_h, 'num');
-      td(tr, r.ladder ? r.ladder.replace(/_/g, ' ') : ''); td(tr, r.acceptance_status); td(tr, r.device_status); td(tr, r.decision_ref);
+      titleTd(tr, r); chipTd(tr, r.status);
+      var kc = tr.insertCell(); kc.appendChild(el('span', { cls: 'kind k-' + (r.acceptance_kind || 'open'), text: kindLabel(r.acceptance_kind || 'open') }));
+      td(tr, r.owner); td(tr, r.priority); td(tr, r.milestone); td(tr, r.remaining_base_h !== undefined ? r.remaining_base_h : r.effort_base_h, 'num');
+      td(tr, (r.gate && r.gate !== 'none' ? r.gate : '') + (r.release_gate ? (r.gate && r.gate !== 'none' ? ' · ' : '') + 'GO ' + r.release_gate : ''));
+      nodeTd(tr, idList(splitIds(r.decision_ref), function (x) { return decButton(x); }));
       if (open) detailRow(b, r);
     });
     Array.prototype.forEach.call($('reg-head').cells, function (th) {
@@ -1210,11 +1490,20 @@
     };
     mk('f-status', 'All statuses', distinct(state.data.tasks, 'status'), 'status');
     mk('f-ws', 'All workstreams', distinct(state.data.tasks, 'workstream'), 'ws');
-    // deep links: ?q=...&status=...&ws=... pre-fill the register filters
+    mk('f-owner', 'All owners', distinct(state.data.tasks, 'owner'), 'owner');
+    var ks = $('f-kind');
+    ks.replaceChildren.apply(ks, [new win.Option('All kinds', '')].concat(KIND_ORDER.map(function (k) { return new win.Option(kindLabel(k), k); })));
+    ks.addEventListener('change', function () { state.filter.kind = ks.value; renderRegister(); });
+    // deep links: ?q=...&status=...&ws=...&owner=...&kind=... pre-fill the register filters; ?decision=D-131 opens a decision
     var qs = parseQuery(win.location.search || '');
     if (qs.q) { state.filter.q = qs.q; $('f-q').value = qs.q; }
     if (qs.status && distinct(state.data.tasks, 'status').indexOf(qs.status) >= 0) { state.filter.status = qs.status; $('f-status').value = qs.status; }
     if (qs.ws && distinct(state.data.tasks, 'workstream').indexOf(qs.ws) >= 0) { state.filter.ws = qs.ws; $('f-ws').value = qs.ws; }
+    if (qs.owner && distinct(state.data.tasks, 'owner').indexOf(qs.owner) >= 0) { state.filter.owner = qs.owner; $('f-owner').value = qs.owner; }
+    if (qs.kind && KIND_ORDER.indexOf(qs.kind) >= 0) { state.filter.kind = qs.kind; ks.value = qs.kind; }
+    if (qs.decision && state.decIdx[qs.decision]) { state.dfilter.q = qs.decision; $('d-q').value = qs.decision; state.decOpen[qs.decision] = true; }
+    $('d-q').addEventListener('input', function (e) { state.dfilter.q = e.target.value; renderDecisions(); });
+    $('d-status').addEventListener('change', function (e) { state.dfilter.status = e.target.value; renderDecisions(); });
     if (qs.sort && SORT_KEYS.indexOf(qs.sort) >= 0) { state.sort.key = qs.sort; state.sort.dir = qs.dir === 'desc' ? 'desc' : 'asc'; }
     if (qs.task) {
       var hit = state.data.tasks.filter(function (r) { return r.task_id === qs.task; })[0];
@@ -1234,7 +1523,9 @@
     $('f-q').addEventListener('input', function (e) { state.filter.q = e.target.value; renderRegister(); });
     $('reg-export').addEventListener('click', function () {
       var cols = state.manifest.schema['tasks.csv'];
-      download('tasks-filtered.csv', toCSV(cols, sortRegister(filterRegister(state.data.tasks, state.filter), state.sort.key, state.sort.dir)));
+      // D-133: the export carries the snapshot id in its file name and in every row (snapshot_id column)
+      download('tasks-filtered-' + safeId(state.manifest.snapshot_id || state.manifest.snapshot) + '.csv',
+        toCSV(cols, sortRegister(filterRegister(state.data.tasks, state.filter), state.sort.key, state.sort.dir)));
     });
   }
 
@@ -1253,15 +1544,16 @@
       var tr = b.insertRow();
       td(tr, f.name); td(tr, f.rows, 'num');
       var h = tr.insertCell(); h.appendChild(el('code', { cls: 'hash', text: f.sha256 }));
-      td(tr, m.snapshot.replace('T', ' ')); td(tr, m.source_commit);
+      td(tr, m.snapshot_id || m.snapshot.replace('T', ' ')); td(tr, m.source_commit);
       var c = tr.insertCell();
       var btn = el('button', { type: 'button', cls: 'dl', text: 'CSV', 'aria-label': 'Download ' + f.name });
-      btn.addEventListener('click', function () { download(f.name, state.texts[f.name]); });
+      btn.addEventListener('click', function () { download(f.name.replace(/\.csv$/, '') + '-' + safeId(m.snapshot_id || m.snapshot) + '.csv', state.texts[f.name]); });
       c.appendChild(btn);
     });
-    $('src-note').textContent = 'Public, sanitised snapshot (D-083, D-087): only allow-listed columns are published; free text is scrubbed of paths, branch names, ' +
-      'commit ids and worker labels (shown as [worker]); token usage is never published. Snapshot = latest tracker changelog entry; source commit = last commit of the tracker source files' +
-      (m.source_commit_time ? ' (' + m.source_commit_time + ')' : '') + '. Forecast: ' + m.forecast.label + '.';
+    $('src-note').textContent = 'Public, sanitised snapshot (D-083, D-087, D-133): only allow-listed columns are published; free text is scrubbed of paths, branch names, ' +
+      'commit ids and internal worker labels (shown as [worker]; Worker A / B / C and Lead are shown); token usage is never published. Every file and every row carries the snapshot id ' +
+      (m.snapshot_id || '—') + ' (built ' + fmtUtcWib(m.built_at) + '); source commit = last commit of the tracker sources and the decision log' +
+      (m.source_commit_time ? ' (' + m.source_commit_time + ')' : '') + '; tracker last changed ' + m.snapshot.replace('T', ' ') + ' WIB. Forecast: ' + m.forecast.label + '.';
     fill('src-schema', Object.keys(m.schema).sort().map(function (k) {
       return el('li', {}, [el('code', { text: k }), ': ' + m.schema[k].join(', ')]);
     }));
@@ -1293,12 +1585,15 @@
       var d = JSON.parse(emb.textContent);
       return Promise.resolve({ manifest: d.manifest, texts: d.files });
     }
-    return win.fetch('data/manifest.json', { cache: 'no-cache' }).then(function (r) {
+    // D-133 cache-busting (Pages serves max-age=600): the manifest is never taken from a cache; every data file is requested with the
+    // manifest's snapshot id, so a cached CSV of another snapshot cannot be mixed in (snapshotMismatch() double-checks every row).
+    return win.fetch('data/manifest.json?t=' + Date.now(), { cache: 'no-store' }).then(function (r) {
       if (!r.ok) throw new Error('manifest ' + r.status);
       return r.json();
     }).then(function (manifest) {
+      var v = manifest.snapshot_id ? '?v=' + encodeURIComponent(manifest.snapshot_id) : '?t=' + Date.now();
       return Promise.all(manifest.files.map(function (f) {
-        return win.fetch('data/' + f.name, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(f.name + ' ' + r.status); return r.text(); });
+        return win.fetch('data/' + f.name + v, { cache: 'no-cache' }).then(function (r) { if (!r.ok) throw new Error(f.name + ' ' + r.status); return r.text(); });
       })).then(function (txts) {
         var texts = {};
         manifest.files.forEach(function (f, i) { texts[f.name] = txts[i]; });
@@ -1322,8 +1617,11 @@
       state.manifest = res.manifest; state.texts = res.texts;
       state.data = datasetFromTexts(res.texts);
       state.calc = computeAll(state.data);
-      renderHeader(); renderTables(); setupFilters(); renderRegister(); renderSources(); renderCharts();
+      state.decIdx = decisionIndex(state.data.decisions);
+      state.byId = {}; state.data.tasks.forEach(function (t) { state.byId[t.task_id] = t; });
+      renderFreshness(); renderHeader(); renderAction(); renderWorkers(); renderTables(); setupFilters(); renderDecisions(); renderKinds(); renderRegister(); renderSources(); renderCharts();
       var t; win.addEventListener('resize', function () { win.clearTimeout(t); t = win.setTimeout(renderCharts, 150); });
+      win.setInterval(renderFreshness, 5 * 60 * 1000);   // the STALE banner follows the viewer's clock while the page stays open
       doc.documentElement.setAttribute('data-ready', '1');
     }).catch(function (e) {
       var p = $('takeaway');
@@ -1340,6 +1638,8 @@
     projectStatus: projectStatus, activeWorkstreams: activeWorkstreams, overview: overview, galaxy: galaxy, galaxyLayout: galaxyLayout,
     decisionRefs: decisionRefs, sortRegister: sortRegister, SORT_KEYS: SORT_KEYS,
     isDeferred: isDeferred, isLaunch: isLaunch, bucket: bucket, techReason: techReason, launchKpi: launchKpi, effortSplit: effortSplit,
-    launchMilestones: launchMilestones, realitySummary: realitySummary, progressReality: progressReality, fmtH: fmtH
+    launchMilestones: launchMilestones, realitySummary: realitySummary, progressReality: progressReality, fmtH: fmtH,
+    freshness: freshness, fmtUtcWib: fmtUtcWib, snapshotMismatch: snapshotMismatch, acceptanceKinds: acceptanceKinds, actionCenter: actionCenter,
+    decisionIndex: decisionIndex, decisionsFor: decisionsFor, filterDecisions: filterDecisions, splitIds: splitIds, KIND_ORDER: KIND_ORDER
   };
 });

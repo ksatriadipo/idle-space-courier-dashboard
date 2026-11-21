@@ -7,12 +7,13 @@
 <meta name="color-scheme" content="light dark">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data: blob:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
 <title>ISC Mission Control</title>
-<link rel="stylesheet" href="app.css">
+<link rel="stylesheet" href="app.css?v=7cfd9f7-20261121T133635Z">
 </head>
 <body>
 <a class="skip" href="#register">Skip to the task register</a>
 <div class="sky" aria-hidden="true"></div>
 <main class="pm" id="top">
+  <div class="stale-banner" id="stale-banner" role="alert" hidden></div>
   <header class="hero" id="hero">
     <div class="hero-copy">
       <div class="topbar">
@@ -24,11 +25,17 @@
         <span class="status-badge" id="proj-status" data-tone="neutral">Loading status…</span>
         <span class="snap" id="snap-time"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5l3.5 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span id="snap-text">Snapshot —</span></span>
       </div>
+      <div class="fresh" id="fresh" data-level="unknown">
+        <span class="fresh-lv" id="fresh-level">Snapshot</span>
+        <span>id <code id="fresh-id">—</code></span>
+        <span id="fresh-built">built —</span>
+        <span id="fresh-src">source commit —</span>
+      </div>
       <p class="take" id="takeaway" aria-live="polite">Loading the dataset…</p>
       <p class="lede">Built from a sanitised public snapshot of the project tracker (D-083). Technical, device and Director acceptance are separate gates and are never merged.</p>
       <p class="meta" id="meta"></p>
       <nav class="jump" aria-label="Dashboard sections">
-        <a href="#status">Overview</a><a href="#reality">Reality</a><a href="#galaxy">Galaxy</a><a href="#tracker">Tracker</a><a href="#timeline">Timeline</a><a href="#blockers">Blockers</a><a href="#sources">Sources</a>
+        <a href="#action">Action Center</a><a href="#workers">Workers</a><a href="#decisions-view">Decisions</a><a href="#status">Overview</a><a href="#reality">Reality</a><a href="#galaxy">Galaxy</a><a href="#tracker">Tracker</a><a href="#timeline">Timeline</a><a href="#blockers">Blockers</a><a href="#sources">Sources</a>
       </nav>
     </div>
     <div class="hero-art" id="hero-art" data-scene="fallback" role="img" aria-label="Illustration: an Idle Space Courier rocket floating above a small planet. Decorative.">
@@ -66,6 +73,58 @@
       </svg>
     </div>
   </header>
+
+  <section id="action" class="band" aria-labelledby="h-action">
+    <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><h2 id="h-action">Director Action Center</h2></div>
+    <div class="tiles" id="ac-tiles"></div>
+    <div class="card" aria-labelledby="h-ac-dec">
+      <h3 id="h-ac-dec">Decisions waiting for the Director</h3>
+      <div class="wrap"><table>
+        <thead><tr><th scope="col">Decision task</th><th scope="col">Question</th><th scope="col">Status</th><th scope="col">Unlocks (direct)</th><th scope="col" class="num">Unlockable h opt / base / cons</th><th scope="col" class="num">Downstream tasks · base h</th></tr></thead>
+        <tbody id="ac-dec-body"></tbody>
+      </table></div>
+      <p class="note">Open decision tasks in launch scope (node type DECISION or the director workstream, not yet accepted). Unlocks = open tasks that depend on it or name it as their release gate; unlockable effort = their summed estimates; downstream = everything that waits on it transitively.</p>
+    </div>
+    <div class="grid2">
+      <div class="card" aria-labelledby="h-ac-acc">
+        <h3 id="h-ac-acc">Acceptances waiting <span class="badge" id="ac-acc-count">0</span></h3>
+        <div class="wrap tall"><table>
+          <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Owner</th><th scope="col">Acceptance note</th></tr></thead>
+          <tbody id="ac-acc-body"></tbody>
+        </table></div>
+        <p class="note">Technically complete launch tasks (IMPLEMENTED / QA_PASS / technically complete) that no decision has accepted yet. Technical acceptances and spec locks are not listed: they are separate kinds.</p>
+      </div>
+      <div class="card" aria-labelledby="h-ac-crit">
+        <h3 id="h-ac-crit">Critical blockers</h3>
+        <div class="wrap tall"><table>
+          <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Waiting for</th></tr></thead>
+          <tbody id="ac-crit-body"></tbody>
+        </table></div>
+        <p class="note">HOLD or BLOCKED tasks on the launch dependency path (the tracker's launch-scope closure).</p>
+        <h4>Worker blockers needing the Director</h4>
+        <ul class="plain" id="ac-wb"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="workers" class="band" aria-labelledby="h-workers">
+    <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="8" cy="9" r="3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.5" cy="9" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 19c.6-3 2.6-4.5 5-4.5s4.4 1.5 5 4.5M12 19c.5-2.6 2.3-4.5 4.5-4.5S20.5 16.4 21 19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><h2 id="h-workers">Workers</h2></div>
+    <div class="workers" id="workers-grid"></div>
+    <p class="note" id="workers-note"></p>
+  </section>
+
+  <section id="decisions-view" class="band" aria-labelledby="h-decv">
+    <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6 3h9l4 4v14H6z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 11h7M9 15h7M9 7h4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><h2 id="h-decv">Decisions</h2></div>
+    <div class="card">
+      <div class="filters">
+        <label class="field grow" for="d-q">Search decisions (ID, title, text, task ID)<input id="d-q" type="search" autocomplete="off"></label>
+        <label class="field" for="d-status">Status<select id="d-status"><option value="">All</option><option value="in force">In force</option><option value="superseded in part">Superseded in part</option><option value="range note">Range note (not a decision)</option></select></label>
+        <span class="count" id="d-count" aria-live="polite"></span>
+      </div>
+      <div id="dec-list" class="declist"></div>
+      <p class="note" id="dec-source"></p>
+    </div>
+  </section>
 
   <section id="status" class="band" aria-labelledby="h-status">
     <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="currentColor"/></svg><h2 id="h-status">Mission Overview</h2></div>
@@ -142,20 +201,27 @@
         <tbody id="active-body"></tbody>
       </table></div>
     </div>
+    <div id="acceptance" class="card" aria-labelledby="h-acceptance">
+      <h3 id="h-acceptance">Acceptance kinds <span class="badge">ALL EXECUTABLE ROWS</span></h3>
+      <div class="tiles" id="ak-tiles"></div>
+      <p class="note">Mutually exclusive kinds (D-133). Implementation DONE never includes decision or specification rows: a spec lock accepted by a Director decision is counted as specification / decision accepted. Technical acceptance (acceptance text "TECHNICAL ACCEPTANCE / ACCEPTED") is not Director, device or release acceptance. Select a tile to filter the register.</p>
+    </div>
     <div id="register" class="card" aria-labelledby="h-register">
       <h3 id="h-register">Task register</h3>
       <div class="filters">
         <label class="field grow" for="f-q">Search ID or title<input id="f-q" type="search" autocomplete="off"></label>
         <label class="field" for="f-status">Status<select id="f-status"></select></label>
         <label class="field" for="f-ws">Workstream<select id="f-ws"></select></label>
+        <label class="field" for="f-owner">Owner<select id="f-owner"></select></label>
+        <label class="field" for="f-kind">Acceptance kind<select id="f-kind"></select></label>
         <button type="button" class="dl" id="reg-export">Export shown rows (CSV)</button>
         <span class="count" id="reg-count" aria-live="polite"></span>
       </div>
       <div class="wrap"><table class="reg">
-        <thead><tr id="reg-head"><th scope="col" data-sort="task_id">ID</th><th scope="col" data-sort="title">Task</th><th scope="col" data-sort="status">Status</th><th scope="col" data-sort="workstream">Workstream</th><th scope="col" data-sort="milestone">Milestone</th><th scope="col" class="num" data-sort="effort_base_h">Base h</th><th scope="col" data-sort="ladder">Ladder</th><th scope="col">Acceptance</th><th scope="col">Device</th><th scope="col" data-sort="decision_ref">Decision</th></tr></thead>
+        <thead><tr id="reg-head"><th scope="col" data-sort="task_id">ID</th><th scope="col" data-sort="title">Task</th><th scope="col" data-sort="status">Status</th><th scope="col" data-sort="acceptance_kind">Acceptance kind</th><th scope="col" data-sort="owner">Owner</th><th scope="col" data-sort="priority">Priority</th><th scope="col" data-sort="milestone">Milestone</th><th scope="col" class="num" data-sort="remaining_base_h">Remaining h</th><th scope="col">Acceptance gate</th><th scope="col" data-sort="decision_ref">Decisions</th></tr></thead>
         <tbody id="reg-body"></tbody>
       </table></div>
-      <p class="note">Done tasks stay in the register and show struck through; their title and status are unchanged in the data. Select a column heading to sort; select an ID to open the task detail. Deep links: <code>?q=</code>, <code>?status=</code>, <code>?ws=</code>, <code>?sort=</code> (+ <code>&amp;dir=desc</code>), <code>?task=</code>.</p>
+      <p class="note">Every task and subtask of the tracker is listed (containers included). Done tasks stay in the register and show struck through; their title and status are unchanged in the data. Remaining h = base estimate while a task is open, 0 once technically complete. Select a column heading to sort; select an ID to open the task detail; select a decision to open it. Deep links: <code>?q=</code>, <code>?status=</code>, <code>?ws=</code>, <code>?owner=</code>, <code>?kind=</code>, <code>?sort=</code> (+ <code>&amp;dir=desc</code>), <code>?task=</code>, <code>?decision=</code>.</p>
     </div>
   </section>
 
@@ -211,7 +277,7 @@
   <section id="sources" class="card" aria-labelledby="h-sources">
     <h2 id="h-sources">Sources</h2>
     <div class="wrap"><table>
-      <thead><tr><th scope="col">Dataset</th><th scope="col" class="num">Rows</th><th scope="col">SHA-256</th><th scope="col">Snapshot</th><th scope="col">Source commit</th><th scope="col">Export</th></tr></thead>
+      <thead><tr><th scope="col">Dataset</th><th scope="col" class="num">Rows</th><th scope="col">SHA-256</th><th scope="col">Snapshot id</th><th scope="col">Source commit</th><th scope="col">Export</th></tr></thead>
       <tbody id="src-body"></tbody>
     </table></div>
     <p class="note" id="src-note"></p>
@@ -221,6 +287,6 @@
   <footer>Static build of the sanitised public dataset; every figure, the Sources panel and the CSV exports come from the files listed above. The hero scene is drawn in the browser (WebGL, no images, no libraries). Generated by build_dashboard.py (D-083, D-090). No tracking, no external requests.</footer>
 </main>
 
-<script src="app.js"></script>
+<script src="app.js?v=7cfd9f7-20261121T133635Z"></script>
 </body>
 </html>
