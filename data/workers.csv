@@ -1,4 +1,4 @@
 worker,state,current_task,next_tasks,blocker,needs_director,branch,commit,updated_at,snapshot_id
-Worker A,IDLE,,,"No dependency-ready task: remaining backlog waits on Director decisions (GLT-096, GLT-100, GLT-041, SYS-006/027) or ADB GO",yes,[branch],c7a5cc8,2026-11-21T16:24:46Z,ea02109-20261121T163436Z
-Worker B,ACTIVE,GLT-041,SYS-006;SYS-027;GLT-037,,no,[branch],5e22884,2026-11-21T16:29:24Z,ea02109-20261121T163436Z
-Worker C,ACTIVE,GLT-095,,,no,[branch],d00e494,2026-11-21T16:29:31Z,ea02109-20261121T163436Z
+Worker A,ACTIVE,GLT-096-F2,GLT-096-F3,,no,[branch],c7a5cc8,2026-11-21T16:36:04Z,814b650-20261121T164002Z
+Worker B,ACTIVE,GLT-096-F1,,,no,[branch],5e22884,2026-11-21T16:37:05Z,814b650-20261121T164002Z
+Worker C,ACTIVE,GLT-095,,,no,[branch],d00e494,2026-11-21T16:29:31Z,814b650-20261121T164002Z
