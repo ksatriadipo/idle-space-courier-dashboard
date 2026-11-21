@@ -1,4 +1,4 @@
 worker,state,current_task,next_tasks,blocker,needs_director,branch,commit,updated_at,snapshot_id
-Worker A,IDLE,,GLT-031-LLR,GLT-031 done 650/650; revisions follow the Director batch B review of provisional names,yes,[branch],faab6da,2026-11-21T13:36:20Z,7cfd9f7-20261121T133635Z
-Worker B,IDLE,,,"QA jobs done (GLT-031-EDQA, PM-D133-QA); no approved dependency-ready task",no,[branch],5e22884,2026-11-21T13:36:21Z,7cfd9f7-20261121T133635Z
-Worker C,IDLE,,,PM-D133 done; lead merge + public acceptance,no,[branch],d00e494,2026-11-21T13:36:22Z,7cfd9f7-20261121T133635Z
+Worker A,IDLE,,GLT-031-LLR,GLT-031 done 650/650; revisions follow the Director batch B review of provisional names,yes,[branch],faab6da,2026-11-21T13:36:20Z,603a386-20261121T133840Z
+Worker B,IDLE,,,"QA jobs done (GLT-031-EDQA, PM-D133-QA); no approved dependency-ready task",no,[branch],5e22884,2026-11-21T13:36:21Z,603a386-20261121T133840Z
+Worker C,IDLE,,,PM-D133 done; lead merge + public acceptance,no,[branch],d00e494,2026-11-21T13:36:22Z,603a386-20261121T133840Z
