@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data: blob:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
 <title>ISC Mission Control</title>
-<link rel="stylesheet" href="app.css?v=29bacf3-20261121T164511Z">
+<link rel="stylesheet" href="app.css?v=2c79baa-20261121T170346Z">
 </head>
 <body>
 <a class="skip" href="#register">Skip to the task register</a>
@@ -78,12 +78,12 @@
     <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><h2 id="h-action">Director Action Center</h2></div>
     <div class="tiles" id="ac-tiles"></div>
     <div class="card" aria-labelledby="h-ac-dec">
-      <h3 id="h-ac-dec">Decisions waiting for the Director</h3>
+      <h3 id="h-ac-dec">Director decisions, triaged</h3>
       <div class="wrap"><table>
-        <thead><tr><th scope="col">Decision task</th><th scope="col">Question</th><th scope="col">Status</th><th scope="col">Unlocks (direct)</th><th scope="col" class="num">Unlockable h opt / base / cons</th><th scope="col" class="num">Downstream tasks · base h</th></tr></thead>
+        <thead><tr><th scope="col">Decision task</th><th scope="col">Question · recommendation · minimum action</th><th scope="col">Status</th><th scope="col">Blocked by now</th><th scope="col" class="num">Immediate unlock (tasks · base h)</th><th scope="col" class="num">Transitive downstream · base h</th></tr></thead>
         <tbody id="ac-dec-body"></tbody>
       </table></div>
-      <p class="note">Open decision tasks in launch scope (node type DECISION or the director workstream, not yet accepted). Unlocks = open tasks that depend on it or name it as their release gate; unlockable effort = their summed estimates; downstream = everything that waits on it transitively.</p>
+      <p class="note">Open decision tasks in launch scope (node type DECISION or the director workstream, not yet accepted), in three groups. <b>Ready</b> = every dependency is satisfied and no evidence is recorded as missing: these are the decisions to take now. <b>Waiting</b> = an open dependency, or the brief starts with "WAITING" (evidence such as a device session is still missing): do not decide yet. <b>Future</b> = on hold, deferred, or marked "FUTURE". <b>Immediate unlock</b> = open tasks that become dependency-ready the moment this decision is taken (all their other dependencies are already met); <b>transitive downstream</b> = everything that waits on it at any depth, which other gates may still hold. Unlocked effort is not completed effort.</p>
     </div>
     <div class="grid2">
       <div class="card" aria-labelledby="h-ac-acc">
@@ -171,11 +171,12 @@
     <div class="card" id="milestones">
       <h3>Progress by milestone <span class="badge">LAUNCH SCOPE</span></h3>
       <div class="wrap"><table class="mst">
-        <thead><tr><th scope="col">Milestone</th><th scope="col" class="num">Executable</th><th scope="col" class="num">DONE</th><th scope="col" class="num">Director accepted</th><th scope="col" class="num">Technically complete</th><th scope="col" class="num">In progress</th><th scope="col" class="num">Not started</th><th scope="col" class="num">Hold / blocked</th><th scope="col" class="num">Remaining base h</th><th scope="col" class="num">DONE %</th></tr></thead>
+        <thead><tr><th scope="col">Milestone</th><th scope="col" class="num">Executable</th><th scope="col" class="num">DONE</th><th scope="col" class="num">Director accepted (not DONE)</th><th scope="col" class="num">Awaiting acceptance</th><th scope="col" class="num">In progress</th><th scope="col" class="num">Not started</th><th scope="col" class="num">Hold / blocked</th><th scope="col" class="num">Other</th><th scope="col" class="num">&Sigma; check</th><th scope="col" class="num">Remaining base h</th><th scope="col" class="num">No estimate (task / decision)</th><th scope="col" class="num">DONE %</th><th scope="col" class="num">Technical readiness %</th></tr></thead>
         <tbody id="ms-body"></tbody>
         <tfoot id="ms-foot"></tfoot>
       </table></div>
-      <p class="note">Denominator per row = executable launch tasks in that milestone. Technically complete includes the Director-accepted column (not DONE); DONE + technically complete + in progress + not started + hold / blocked = executable. Remaining base h = base effort of rows that are neither DONE nor technically complete.</p>
+      <p class="note">Denominator per row = executable launch tasks in that milestone (EPIC / PARENT and CANCELLED excluded). The seven status columns are <b>mutually exclusive</b> and add up to Executable (&Sigma; check): DONE = DONE / RELEASED; Director accepted = status DIRECTOR_ACCEPTED, not DONE (technical, specification or visual acceptance &mdash; the kind is in the Acceptance view); Awaiting acceptance = IMPLEMENTED / QA_PASS (a QA_PASS marked "technically complete" counts once, here); Other = any other status value. <b>DONE %</b> = DONE / Executable. <b>Technical readiness %</b> = (DONE + Director accepted + Awaiting acceptance) / Executable. <b>Remaining base h</b> = base effort of rows in progress, not started or on hold / blocked. <b>No estimate</b> = those open rows with base effort 0: work tasks are a real estimation gap; Director decisions carry 0 by design (Director latency), so a decision-only milestone can show "not started" with 0 remaining hours.</p>
+      <p class="note" id="ms-check"></p>
       <p class="note" id="ms-deferred"></p>
     </div>
     <div class="grid2">
@@ -242,12 +243,13 @@
   <section id="blockers" class="band" aria-labelledby="h-blockers">
     <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3l9.5 17h-19z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 10v4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17.3" r="1.2" fill="currentColor"/></svg><h2 id="h-blockers">Blockers &amp; Decisions</h2></div>
     <div id="hold" class="card" aria-labelledby="h-hold">
-      <h3 id="h-hold">On hold or blocked before launch</h3>
+      <h3 id="h-hold">On hold or blocked before launch: downstream impact</h3>
       <div class="wrap"><table>
-        <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Milestone</th><th scope="col">Decision</th><th scope="col">Blocker / waiting for</th></tr></thead>
+        <thead><tr><th scope="col" class="num">#</th><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Blocker type</th><th scope="col">Class</th><th scope="col">Launch-target chain</th><th scope="col" class="num">Direct</th><th scope="col" class="num">Transitive</th><th scope="col" class="num">Launch scope</th><th scope="col" class="num">Held only by this (launch)</th><th scope="col" class="num">Shared</th><th scope="col" class="num">Launch base h held only by this</th><th scope="col">Next unlock action</th><th scope="col">Director</th></tr></thead>
         <tbody id="hold-body"></tbody>
       </table></div>
-      <p class="note">Post-launch and deferred items are left out of this list.</p>
+      <p class="note" id="hold-classes"></p>
+      <p class="note">From the canonical dependency graph (depends_on + release gates); open dependents only. <b>Held only by this</b> = dependents whose only blocker above them is this one, so removing it releases them; <b>shared</b> = they also wait on another blocker. Sorted by unlock impact: launch base hours held only by this blocker, then counts. <b>Launch-target chain</b> = the blocker or a dependent is a predecessor of a launch target; it is derived from dependencies only and is <b>not a verified critical path</b> (effort and duration data are incomplete). Inherited blocking is shown in each task's detail; no status is changed by this view.</p>
     </div>
     <div id="decisions" class="card" aria-labelledby="h-decisions">
       <h3 id="h-decisions">Decisions referenced</h3>
@@ -287,6 +289,6 @@
   <footer>Static build of the sanitised public dataset; every figure, the Sources panel and the CSV exports come from the files listed above. The hero scene is drawn in the browser (WebGL, no images, no libraries). Generated by build_dashboard.py (D-083, D-090). No tracking, no external requests.</footer>
 </main>
 
-<script src="app.js?v=29bacf3-20261121T164511Z"></script>
+<script src="app.js?v=2c79baa-20261121T170346Z"></script>
 </body>
 </html>

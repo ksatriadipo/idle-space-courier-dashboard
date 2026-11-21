@@ -309,3 +309,10 @@ details.dec dd { margin: 0; overflow-wrap: anywhere; }
 
 /* D-135: Director brief under a waiting decision in the Action Center */
 .ac-brief { margin-top: 4px; font-size: .84em; color: var(--ink-2); max-width: 72ch; white-space: normal; }
+
+/* Progress-by-milestone reconciliation (metrics audit) */
+.note.ok { color: var(--good-ink); } .note.bad, td.bad { color: var(--crit-ink); font-weight: 600; }
+
+/* Action Center triage groups */
+.ac-group td { font-weight: 600; font-size: .78rem; letter-spacing: .05em; text-transform: uppercase; padding-top: 14px; color: var(--ink-2); }
+.ac-ready td { color: var(--warn-ink); }

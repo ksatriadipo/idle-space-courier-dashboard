@@ -749,6 +749,9 @@
     o.remaining = o.total - o.done - o.technical;
     o.pct_done = o.total ? r1(o.done / o.total * 100) : 0;
     o.pct_done_or_tech = o.total ? r1((o.done + o.technical) / o.total * 100) : 0;
+    o.tech_ready = o.done + o.technical;                          // technical readiness = DONE + Director accepted + awaiting acceptance
+    o.pct_tech = o.pct_done_or_tech;
+    o.bucket_sum = o.done + o.director_accepted + o.tech_pending + o.in_progress + o.not_started + o.hold + o.blocked + o.other;   // exclusive buckets
     return o;
   }
   function launchKpi(tasks) {
@@ -780,10 +783,13 @@
     var g = {}, order = [];
     tasks.filter(isLaunch).forEach(function (r) {
       var m = r.milestone || '(none)';
-      if (!g[m]) { g[m] = emptyCounts(); g[m].milestone = m; g[m].rem_c = 0; order.push(m); }
+      if (!g[m]) { g[m] = emptyCounts(); g[m].milestone = m; g[m].rem_c = 0; g[m].noest_task = 0; g[m].noest_dec = 0; order.push(m); }
       var b = bucket(r.status);
       g[m].total++; g[m][b]++;
-      if (b !== 'done' && b !== 'director_accepted' && b !== 'tech_pending') g[m].rem_c += effC(r.effort_base_h);
+      if (b !== 'done' && b !== 'director_accepted' && b !== 'tech_pending') {
+        var e = effC(r.effort_base_h); g[m].rem_c += e;
+        if (!e) { if (isDecisionTask(r)) g[m].noest_dec++; else g[m].noest_task++; }   // open row without a base estimate
+      }
     });
     return order.map(function (m) {
       var o = finishCounts(g[m]); o.remaining_h = o.rem_c / 100; delete o.rem_c; return o;
@@ -802,6 +808,57 @@
   function progressReality(tasks, fc) {
     var lk = launchKpi(tasks), eff = effortSplit(tasks);
     return { kpi: lk, effort: eff, milestones: launchMilestones(tasks), summary: realitySummary(lk, eff, fc), critical_path: null };
+  }
+
+  // ---- HOLD / BLOCKED downstream impact (pure; mirrors dashboard/blockers.py, pinned by tests on both sides)
+  var BLK_COMPLETE = ['DONE', 'RELEASED', 'DIRECTOR_ACCEPTED', 'QA_PASS', 'IMPLEMENTED', 'CANCELLED'];
+  var BLK_DIRECTOR_RE = /\b(Director|GO|ADB|decision|approval)\b/i;
+  function blkOpen(r) { return BLK_COMPLETE.indexOf(r.status) < 0; }
+  function blkIds(v) { return String(v || '').split(';').map(function (x) { return x.trim(); }).filter(Boolean); }
+  function blkGraph(tasks) {
+    var by = {}, dep = {};
+    tasks.forEach(function (r) { by[r.task_id] = r; });
+    tasks.forEach(function (r) {
+      blkIds(r.depends_on).concat(blkIds(r.release_gate)).forEach(function (p) {
+        if (by[p] && p !== r.task_id) { (dep[p] = dep[p] || {})[r.task_id] = 1; }
+      });
+    });
+    var desc = function (x) {
+      var seen = {}, st = Object.keys(dep[x] || {});
+      while (st.length) { var u = st.pop(); if (seen[u] || !blkOpen(by[u])) continue; seen[u] = 1; st = st.concat(Object.keys(dep[u] || {})); }
+      return Object.keys(seen);
+    };
+    return { by: by, dep: dep, desc: desc };
+  }
+  function isBlocker(r) { return isExec(r) && (r.status === 'HOLD' || r.status === 'BLOCKED'); }
+  function blockerImpact(tasks) {
+    var G = blkGraph(tasks), by = G.by, D = {}, above = {};
+    var bl = tasks.filter(isBlocker);
+    bl.forEach(function (b) { D[b.task_id] = G.desc(b.task_id); D[b.task_id].forEach(function (d) { (above[d] = above[d] || {})[b.task_id] = 1; }); });
+    var eff = function (ids) { return ids.reduce(function (a, x) { return a + effC(by[x].effort_base_h); }, 0) / 100; };
+    var out = bl.map(function (b) {
+      var id = b.task_id, ds = D[id];
+      var direct = Object.keys(G.dep[id] || {}).filter(function (d) { return blkOpen(by[d]); });
+      var launch = ds.filter(function (d) { return isLaunch(by[d]); });
+      var sole = ds.filter(function (d) { var a = Object.keys(above[d] || {}); return a.length === 1 && a[0] === id; });
+      var soleL = sole.filter(function (d) { return isLaunch(by[d]); });
+      var chain = b.launch_path === 'yes' || ds.some(function (d) { return by[d].launch_path === 'yes'; });
+      var cls = isDeferred(b) ? 'deferred' : (launch.length || (isLaunch(b) && chain)) ? 'stops launch work' : !ds.length ? 'standalone' : 'stops non-launch work';
+      var gate = b.release_gate || '', g2 = (b.gate && b.gate !== 'none') ? ' · gate ' + b.gate : '';
+      return { task_id: id, title: b.title, status: b.status, milestone: b.milestone, type: b.status + (gate ? ' · release gate ' + gate : '') + g2,
+        next_action: gate ? 'Director GO: ' + gate : (String(b.blocker || '').trim() || 'no unlock action recorded'),
+        director: (gate || BLK_DIRECTOR_RE.test(b.blocker || '') || ['decision', 'device', 'supervised', 'store'].indexOf(b.gate) >= 0) ? 'yes' : 'no',
+        cls: cls, chain: chain ? 'yes' : '', direct: direct.length, transitive: ds.length, launch: launch.length, sole: sole.length, sole_launch: soleL.length,
+        shared: ds.length - sole.length, sole_launch_base_h: Math.round(eff(soleL) * 100) / 100, launch_base_h: Math.round(eff(launch) * 100) / 100 };
+    });
+    out.sort(function (a, b) { return b.sole_launch_base_h - a.sole_launch_base_h || b.sole_launch - a.sole_launch || b.launch - a.launch || b.transitive - a.transitive || cmpId(a.task_id, b.task_id); });
+    return out;
+  }
+  function inheritedBlocks(tasks) {          // open task id -> blocker ids above it (derived view; never changes a status)
+    var G = blkGraph(tasks), res = {};
+    tasks.filter(isBlocker).forEach(function (b) { G.desc(b.task_id).forEach(function (d) { (res[d] = res[d] || []).push(b.task_id); }); });
+    Object.keys(res).forEach(function (k) { res[k].sort(cmpId); });
+    return res;
   }
 
   // ---- D-133 (pure): freshness, acceptance kinds, Director Action Center, decisions, one-snapshot check
@@ -887,8 +944,22 @@
     var decisions = tasks.filter(function (t) { return isExec(t) && isDecisionTask(t) && isOpenTask(t) && !isDeferred(t); }).map(function (t) {
       var u = openDep(t.task_id), d = down(t.task_id);
       u.forEach(function (x) { union[x] = 1; });
-      return { task: t, unlocks: u, effort: eff(u), downstream: d.length, downstream_base: eff(d).base };
-    }).sort(function (a, b) { return b.downstream_base - a.downstream_base || b.downstream - a.downstream || cmpId(a.task.task_id, b.task.task_id); });
+      // triage (Director request): READY = every dependency satisfied and nothing recorded as missing; WAITING = open dependency or the
+      // blocker text starts with "WAITING"; FUTURE = HOLD / BLOCKED, deferred milestone, or blocker text starting with "FUTURE".
+      var depsOpen = blkIds(t.depends_on).concat(blkIds(t.release_gate)).filter(function (x) { return by[x] && blkOpen(by[x]); });
+      var bt = String(t.blocker || '').trim();
+      var triage = (t.status === 'HOLD' || t.status === 'BLOCKED' || isDeferred(t) || /^FUTURE/i.test(bt)) ? 'future'
+        : (depsOpen.length || /^WAITING/i.test(bt)) ? 'waiting' : 'ready';
+      // immediate unlock = open dependents whose every other dependency / release gate is already satisfied (they become dependency-ready)
+      var imm = u.filter(function (x) {
+        var r = by[x]; return blkIds(r.depends_on).concat(blkIds(r.release_gate)).every(function (y) { return y === t.task_id || !by[y] || !blkOpen(by[y]); });
+      });
+      return { task: t, unlocks: u, effort: eff(u), downstream: d.length, downstream_base: eff(d).base, triage: triage, deps_open: depsOpen,
+        immediate: imm, immediate_base: eff(imm).base };
+    }).sort(function (a, b) {
+      var o = { ready: 0, waiting: 1, future: 2 };
+      return o[a.triage] - o[b.triage] || b.immediate_base - a.immediate_base || b.downstream_base - a.downstream_base || b.downstream - a.downstream || cmpId(a.task.task_id, b.task.task_id);
+    });
     return {
       decisions: decisions,
       unlock: eff(Object.keys(union)), unlock_tasks: Object.keys(union).length,
@@ -925,6 +996,7 @@
     out.decisionsAll = decisionRefs(tasks.filter(isExec), 12);
     out.kinds = acceptanceKinds(tasks);
     out.action = actionCenter(tasks, data.workers || []);
+    out.blockers = blockerImpact(tasks); out.inherited = inheritedBlocks(tasks);
     return out;
   }
 
@@ -1227,18 +1299,25 @@
   function renderTables() {
     var c = state.calc, b;
     b = $('ms-body'); b.replaceChildren();
-    var lm = c.reality.milestones, sum = emptyCounts(), remC = 0;
+    var lm = c.reality.milestones, sum = emptyCounts(), remC = 0, neT = 0, neD = 0, bad = [];
+    var row = function (tr, r, rem, nt, nd) {
+      td(tr, r.total, 'num'); td(tr, r.done, 'num'); td(tr, r.director_accepted, 'num'); td(tr, r.tech_pending, 'num');
+      td(tr, r.in_progress, 'num'); td(tr, r.not_started, 'num'); td(tr, r.hold_blocked, 'num'); td(tr, r.other, 'num');
+      var ok = r.bucket_sum === r.total; if (!ok) bad.push(r.milestone || 'launch scope');
+      td(tr, ok ? '✓' : '✗ ' + r.bucket_sum, 'num' + (ok ? '' : ' bad'));
+      td(tr, fmtH(rem), 'num'); td(tr, nt + ' / ' + nd, 'num'); td(tr, r.pct_done + '%', 'num'); td(tr, r.pct_tech + '%', 'num');
+    };
     lm.forEach(function (r) {
-      var tr = b.insertRow();
-      td(tr, r.milestone); td(tr, r.total, 'num'); td(tr, r.done, 'num'); td(tr, r.director_accepted, 'num'); td(tr, r.technical, 'num');
-      td(tr, r.in_progress, 'num'); td(tr, r.not_started, 'num'); td(tr, r.hold_blocked, 'num'); td(tr, fmtH(r.remaining_h), 'num'); td(tr, r.pct_done + '%', 'num');
-      Object.keys(sum).forEach(function (key) { sum[key] += r[key]; }); remC += Math.round(r.remaining_h * 100);
+      var tr = b.insertRow(); td(tr, r.milestone); row(tr, r, r.remaining_h, r.noest_task, r.noest_dec);
+      Object.keys(sum).forEach(function (key) { sum[key] += r[key]; }); remC += Math.round(r.remaining_h * 100); neT += r.noest_task; neD += r.noest_dec;
     });
     finishCounts(sum);
     var ft = $('ms-foot'); ft.replaceChildren();
     var tr = ft.insertRow();
-    td(tr, 'Launch scope'); td(tr, sum.total, 'num'); td(tr, sum.done, 'num'); td(tr, sum.director_accepted, 'num'); td(tr, sum.technical, 'num');
-    td(tr, sum.in_progress, 'num'); td(tr, sum.not_started, 'num'); td(tr, sum.hold_blocked, 'num'); td(tr, fmtH(remC / 100), 'num'); td(tr, sum.pct_done + '%', 'num');
+    td(tr, 'Launch scope'); row(tr, sum, remC / 100, neT, neD);
+    // reconciliation assertions: every row's exclusive buckets add up to its total, and the footer equals the launch KPI population
+    if (sum.total !== c.reality.kpi.total) bad.push('footer ' + sum.total + ' != launch scope ' + c.reality.kpi.total);
+    var chk = $('ms-check'); if (chk) { chk.textContent = bad.length ? 'Reconciliation FAILED: ' + bad.join('; ') : 'Reconciliation OK: every row’s status columns add up to its executable count, and the footer equals the ' + c.reality.kpi.total + ' launch-scope tasks.'; chk.className = 'note ' + (bad.length ? 'bad' : 'ok'); }
     $('ms-deferred').textContent = deferredLine(c.reality.kpi);
     b = $('active-body'); b.replaceChildren();
     c.active.forEach(function (r) {
@@ -1246,11 +1325,16 @@
     });
     if (!c.active.length) emptyRow(b, 6, 'Nothing in progress.');
     b = $('hold-body'); b.replaceChildren();
-    c.hold.forEach(function (r) {
-      var tr = b.insertRow(); nodeTd(tr, taskButton(r.task_id), 'id'); titleTd(tr, r); chipTd(tr, r.status); td(tr, r.milestone);
-      nodeTd(tr, idList(splitIds(r.decision_ref), function (x) { return decButton(x); })); td(tr, r.blocker);
+    var bi = (c.blockers || []).filter(function (x) { return x.cls !== 'deferred'; });
+    bi.forEach(function (x, i) {
+      var tr = b.insertRow(); td(tr, String(i + 1), 'num'); nodeTd(tr, taskButton(x.task_id), 'id'); td(tr, x.title); td(tr, x.type); td(tr, x.cls); td(tr, x.chain || '-');
+      td(tr, x.direct, 'num'); td(tr, x.transitive, 'num'); td(tr, x.launch, 'num'); td(tr, x.sole + ' (' + x.sole_launch + ')', 'num'); td(tr, x.shared, 'num');
+      td(tr, fmtH(x.sole_launch_base_h), 'num'); td(tr, x.next_action); td(tr, x.director);
     });
-    if (!c.hold.length) emptyRow(b, 6, 'Nothing on hold or blocked before launch.');
+    if (!bi.length) emptyRow(b, 14, 'Nothing on hold or blocked before launch.');
+    var nDef = (c.blockers || []).length - bi.length;
+    var hn = $('hold-classes'); if (hn) hn.textContent = 'Classes: ' + bi.filter(function (x) { return x.cls === 'stops launch work'; }).length + ' stop launch work, ' +
+      bi.filter(function (x) { return x.cls === 'standalone'; }).length + ' standalone (no open dependents; residual risk on the task), ' + nDef + ' deferred post-launch (accepted deferral, listed in the register).';
     var decList = function (id, list, empty) {
       fill(id, list.length ? list.map(function (d) {
         return el('li', {}, [decButton(d.id, true), el('span', { text: d.count + (d.count === 1 ? ' task' : ' tasks') })]);
@@ -1334,23 +1418,32 @@
   function renderAction() {
     var A = state.calc.action, b;
     fill('ac-tiles', [
-      tile(A.decisions.length, 'Decisions waiting · unlock ' + A.unlock_tasks + ' tasks, ' + fmtH(A.unlock.base) + ' h base', A.decisions.length ? 'warn' : 'ok'),
+      tile(A.decisions.filter(function (d) { return d.triage === 'ready'; }).length, 'Ready for Director decision (' + A.decisions.filter(function (d) { return d.triage === 'waiting'; }).length + ' waiting for evidence, ' + A.decisions.filter(function (d) { return d.triage === 'future'; }).length + ' future)', A.decisions.some(function (d) { return d.triage === 'ready'; }) ? 'warn' : 'ok'),
       tile(A.acceptances.length, 'Acceptances waiting (technically complete)', A.acceptances.length ? 'warn' : 'ok'),
       tile(A.blockers.length, 'Critical blockers (hold / blocked on the launch path)', A.blockers.length ? 'bad' : 'ok'),
       tile(A.workerBlockers.length, 'Worker blockers needing the Director', A.workerBlockers.length ? 'bad' : 'ok')
     ]);
     b = $('ac-dec-body'); b.replaceChildren();
-    A.decisions.forEach(function (d) {
-      var tr = b.insertRow();
-      nodeTd(tr, taskButton(d.task.task_id), 'id');
-      var tc = tr.insertCell(); tc.appendChild(doc.createTextNode(d.task.title));
-      if (d.task.blocker) tc.appendChild(el('div', { cls: 'ac-brief', text: d.task.blocker }));   // Director brief for the decision (scope, criteria, consequences)
-      chipTd(tr, d.task.status);
-      nodeTd(tr, idList(d.unlocks, taskButton));
-      td(tr, fmtH(d.effort.opt) + ' / ' + fmtH(d.effort.base) + ' / ' + fmtH(d.effort.cons), 'num');
-      td(tr, d.downstream + ' · ' + fmtH(d.downstream_base) + ' h', 'num');
+    var TRI = { ready: 'READY FOR DIRECTOR DECISION', waiting: 'WAITING FOR EVIDENCE / DEPENDENCIES', future: 'FUTURE / NOT ACTIONABLE' };
+    ['ready', 'waiting', 'future'].forEach(function (k) {
+      var list = A.decisions.filter(function (d) { return d.triage === k; });
+      var hr = b.insertRow(); hr.className = 'ac-group ac-' + k; var hc = hr.insertCell(); hc.colSpan = 6; hc.textContent = TRI[k] + ' (' + list.length + ')';
+      list.forEach(function (d) {
+        var tr = b.insertRow();
+        nodeTd(tr, taskButton(d.task.task_id), 'id');
+        var tc = tr.insertCell(); tc.appendChild(doc.createTextNode(d.task.title));
+        if (d.task.blocker) tc.appendChild(el('div', { cls: 'ac-brief', text: d.task.blocker }));   // recommendation, consequences, minimum action
+        chipTd(tr, d.task.status);
+        var bc = tr.insertCell();
+        bc.appendChild(doc.createTextNode(d.deps_open.length ? 'Waiting on: ' : (k === 'ready' ? 'Ready: decide' : (k === 'future' ? 'Not actionable now' : 'Evidence pending'))));
+        if (d.deps_open.length) bc.appendChild(idList(d.deps_open, taskButton));
+        var ic = tr.insertCell(); ic.className = 'num';
+        ic.appendChild(doc.createTextNode(d.immediate.length + ' task' + (d.immediate.length === 1 ? '' : 's') + ' · ' + fmtH(d.immediate_base) + ' h '));
+        if (d.immediate.length) ic.appendChild(idList(d.immediate, taskButton));
+        td(tr, d.downstream + ' · ' + fmtH(d.downstream_base) + ' h', 'num');
+      });
+      if (!list.length) emptyRow(b, 6, 'None.');
     });
-    if (!A.decisions.length) emptyRow(b, 6, 'No decision is waiting for the Director.');
     $('ac-acc-count').textContent = String(A.acceptances.length);
     b = $('ac-acc-body'); b.replaceChildren();
     A.acceptances.forEach(function (t) {
@@ -1447,6 +1540,9 @@
       var dd = DETAIL_IDS[f[0]] ? el('dd', {}, [idList(splitIds(v), taskButton)]) : el('dd', { text: show(v) });
       dl.appendChild(el('div', { cls: f[0] === 'blocker' || f[0] === 'acceptance_status' ? 'wide' : '' }, [el('dt', { text: f[1] }), dd]));
     });
+    var inh = (state.calc && state.calc.inherited && state.calc.inherited[r.task_id]) || [];   // derived from the dependency graph; status unchanged
+    dl.appendChild(el('div', { cls: 'wide' }, [el('dt', { text: 'Inherited block (derived)' }),
+      inh.length ? el('dd', {}, [idList(inh, taskButton)]) : el('dd', { text: '—' })]));
     var decs = decisionsFor(r, state.decIdx);
     var dd = el('dd', { cls: 'decrefs' });
     decs.forEach(function (d) { dd.appendChild(el('div', {}, [decButton(d.id, true), ' ', d.known ? d.title : '(not in the decision log)'])); });
@@ -1642,6 +1738,7 @@
     decisionRefs: decisionRefs, sortRegister: sortRegister, SORT_KEYS: SORT_KEYS,
     isDeferred: isDeferred, isLaunch: isLaunch, bucket: bucket, techReason: techReason, launchKpi: launchKpi, effortSplit: effortSplit,
     launchMilestones: launchMilestones, realitySummary: realitySummary, progressReality: progressReality, fmtH: fmtH,
+    blockerImpact: blockerImpact, inheritedBlocks: inheritedBlocks,
     freshness: freshness, fmtUtcWib: fmtUtcWib, snapshotMismatch: snapshotMismatch, acceptanceKinds: acceptanceKinds, actionCenter: actionCenter,
     decisionIndex: decisionIndex, decisionsFor: decisionsFor, filterDecisions: filterDecisions, splitIds: splitIds, KIND_ORDER: KIND_ORDER
   };
