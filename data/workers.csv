@@ -1,4 +1,4 @@
 worker,state,current_task,next_tasks,blocker,needs_director,branch,commit,updated_at,snapshot_id
-Worker A,IDLE,,,GLT-031 finished and frozen,no,[branch],c7a5cc8,2026-11-21T16:14:39Z,51ee837-20261121T161523Z
-Worker B,IDLE,,,"QA jobs done (GLT-031-EDQA, PM-D133-QA); no approved dependency-ready task",no,[branch],5e22884,2026-11-21T13:36:21Z,51ee837-20261121T161523Z
-Worker C,IDLE,,,PM-D133 done; lead merge + public acceptance,no,[branch],d00e494,2026-11-21T13:36:22Z,51ee837-20261121T161523Z
+Worker A,IDLE,,,"No dependency-ready task: remaining backlog waits on Director decisions (GLT-096, GLT-100, GLT-041, SYS-006/027) or ADB GO",yes,[branch],c7a5cc8,2026-11-21T16:24:46Z,954bb44-20261121T162459Z
+Worker B,IDLE,,,"No dependency-ready task: remaining backlog waits on Director decisions (GLT-096, GLT-100, GLT-041, SYS-006/027) or ADB GO",yes,[branch],5e22884,2026-11-21T16:24:47Z,954bb44-20261121T162459Z
+Worker C,IDLE,,,"No dependency-ready task: remaining backlog waits on Director decisions (GLT-096, GLT-100, GLT-041, SYS-006/027) or ADB GO",yes,[branch],d00e494,2026-11-21T16:24:48Z,954bb44-20261121T162459Z
