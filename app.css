@@ -316,3 +316,52 @@ details.dec dd { margin: 0; overflow-wrap: anywhere; }
 /* Action Center triage groups */
 .ac-group td { font-weight: 600; font-size: .78rem; letter-spacing: .05em; text-transform: uppercase; padding-top: 14px; color: var(--ink-2); }
 .ac-ready td { color: var(--warn-ink); }
+
+/* ================= Global UI refinement (Director, presentation only) =================
+   Reusable components: .method (collapsed definitions / method panel), .footline (one-line status footer),
+   semantic status chips, hover + sticky table headers, clamped Director briefs, consistent card rhythm. */
+.card { padding: 18px 20px; border-radius: 16px; }
+.card > h3 { font-size: 14.5px; font-weight: 720; letter-spacing: .01em; margin: 0 0 12px; }
+.band { gap: 16px; }
+.band-head h2 { font-size: 18px; }
+details.method { margin-top: 12px; border-top: 1px dashed var(--line); padding-top: 8px; }
+details.method > summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 650;
+  color: var(--accent-ink); letter-spacing: .02em; padding: 2px 10px 2px 6px; border-radius: 999px; background: var(--chip-bg); }
+details.method > summary::-webkit-details-marker { display: none; }
+details.method > summary::before { content: "i"; display: inline-grid; place-items: center; width: 14px; height: 14px; border-radius: 50%; font: 700 10px/1 system-ui;
+  border: 1px solid currentColor; }
+details.method[open] > summary { margin-bottom: 6px; }
+details.method > summary:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+details.method p.note { margin: 6px 0 0; }
+p.note.footline { margin: 10px 0 0; font-size: 11.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+p.note.footline:hover, p.note.footline:focus { white-space: normal; }
+p.note.footline.bad { color: var(--crit-ink); white-space: normal; }
+p.note.footline.ok::before { content: "\2713  "; }
+.wrap { border-radius: 10px; }
+thead th { position: sticky; top: 0; z-index: 1; background: var(--surface); }
+tbody tr:hover > td { background: var(--chip-bg); }
+td { line-height: 1.4; }
+.ac-group td { background: var(--surface-2) !important; }
+.ac-brief { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; cursor: pointer; }
+.ac-brief.open { display: block; -webkit-line-clamp: unset; }
+.ac-brief:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+.chip.st-DONE, .chip.st-RELEASED { color: var(--good-ink); border-color: var(--good-ink); background: color-mix(in srgb, var(--good) 14%, transparent); }
+.chip.st-DIRECTOR_ACCEPTED { color: var(--teal); border-color: var(--teal); }
+.chip.st-QA_PASS, .chip.st-IMPLEMENTED { color: var(--violet); border-color: var(--violet); }
+.chip.st-IN_PROGRESS { color: var(--accent-ink); border-color: var(--accent-ink); }
+.chip.st-READY, .chip.st-PLANNED { color: var(--muted); border-color: var(--line); }
+.chip.st-HOLD { color: var(--warn-ink); border-color: var(--warn-ink); background: color-mix(in srgb, var(--warning) 12%, transparent); }
+.chip.st-BLOCKED { color: var(--crit-ink); border-color: var(--crit-ink); background: color-mix(in srgb, var(--critical) 12%, transparent); }
+button.more { margin-top: 10px; font: 600 12.5px system-ui; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--accent-ink); color: var(--accent-ink);
+  background: transparent; cursor: pointer; }
+button.more:hover { background: var(--chip-bg); }
+button.more:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+@media (max-width: 640px) {
+  .card { padding: 14px; }
+  p.note.footline { white-space: normal; }
+}
+
+/* hero: one-line metadata (full text on hover / focus; the snapshot chip above keeps the key facts visible) */
+#meta { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+#meta:hover, #meta:focus { white-space: normal; }
+details.defs > summary { cursor: pointer; }

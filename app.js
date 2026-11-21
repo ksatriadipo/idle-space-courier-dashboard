@@ -1434,7 +1434,13 @@
         var tr = b.insertRow();
         nodeTd(tr, taskButton(d.task.task_id), 'id');
         var tc = tr.insertCell(); tc.appendChild(doc.createTextNode(d.task.title));
-        if (d.task.blocker) tc.appendChild(el('div', { cls: 'ac-brief', text: d.task.blocker }));   // recommendation, consequences, minimum action
+        if (d.task.blocker) {
+          var br = el('div', { cls: 'ac-brief', text: d.task.blocker, title: 'Click to expand or collapse' });
+          br.tabIndex = 0; br.setAttribute('role', 'button'); br.setAttribute('aria-expanded', 'false');
+          var tog = function () { var o = br.classList.toggle('open'); br.setAttribute('aria-expanded', String(o)); };
+          br.addEventListener('click', tog); br.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tog(); } });
+          tc.appendChild(br);
+        }
         chipTd(tr, d.task.status);
         var bc = tr.insertCell();
         bc.appendChild(doc.createTextNode(d.deps_open.length ? 'Waiting on: ' : (k === 'ready' ? 'Ready: decide' : (k === 'future' ? 'Not actionable now' : 'Evidence pending'))));
@@ -1493,8 +1499,28 @@
     }));
   }
 
+  var DEC_PREVIEW = 12;
+  // ---- progressive disclosure (UI only): static methodology notes move into one collapsed "Details" panel per card; notes that
+  // carry live status (they have an id: reconciliation, classes, deferred counts, chart notes) stay visible as a compact footer line.
+  function disclose(root) {
+    if (!root || typeof root.querySelectorAll !== 'function') return;   // presentation-only enhancement: never blocks data rendering
+    try { discloseInner(root); } catch (e) { /* older engines without :scope keep the notes inline */ }
+  }
+  function discloseInner(root) {
+    Array.prototype.forEach.call(root.querySelectorAll('.card, .band'), function (card) {
+      if (card.querySelector(':scope > details.method')) return;
+      var notes = Array.prototype.filter.call(card.querySelectorAll(':scope > p.note'), function (p) { return !p.id; });
+      if (!notes.length) return;
+      var det = el('details', { cls: 'method' }, [el('summary', { text: 'Details: definitions and method' })]);
+      notes.forEach(function (p) { det.appendChild(p); });
+      card.appendChild(det);
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('p.note[id]'), function (p) { p.classList.add('footline'); });
+  }
   function renderDecisions() {
-    var decs = filterDecisions(state.data.decisions || [], state.dfilter), box = $('dec-list');
+    var all = filterDecisions(state.data.decisions || [], state.dfilter), box = $('dec-list');
+    var filtered = !!(state.dfilter && (state.dfilter.q || state.dfilter.status));
+    var decs = (state.decAll || filtered) ? all : all.slice(0, DEC_PREVIEW);
     box.replaceChildren();
     decs.forEach(function (d) {
       var det = el('details', { cls: 'dec', id: 'dec-' + d.decision_id, 'data-status': d.status });
@@ -1516,6 +1542,11 @@
       box.appendChild(det);
     });
     if (!decs.length) box.appendChild(el('p', { cls: 'note', text: 'No decision matches the search.' }));
+    if (!filtered && all.length > DEC_PREVIEW) {
+      var more = el('button', { cls: 'more', type: 'button', text: state.decAll ? 'Show the newest ' + DEC_PREVIEW + ' only' : 'Show all ' + all.length + ' decisions' });
+      more.addEventListener('click', function () { state.decAll = !state.decAll; renderDecisions(); });
+      box.appendChild(more);
+    }
     var all = (state.data.decisions || []).length;
     $('d-count').textContent = decs.length + ' of ' + all + ' decisions shown';
     var m = state.manifest;
@@ -1721,6 +1752,7 @@
       state.decIdx = decisionIndex(state.data.decisions);
       state.byId = {}; state.data.tasks.forEach(function (t) { state.byId[t.task_id] = t; });
       renderFreshness(); renderHeader(); renderAction(); renderWorkers(); renderTables(); setupFilters(); renderDecisions(); renderKinds(); renderRegister(); renderSources(); renderCharts();
+      disclose(doc);
       var t; win.addEventListener('resize', function () { win.clearTimeout(t); t = win.setTimeout(renderCharts, 150); });
       win.setInterval(renderFreshness, 5 * 60 * 1000);   // the STALE banner follows the viewer's clock while the page stays open
       doc.documentElement.setAttribute('data-ready', '1');
