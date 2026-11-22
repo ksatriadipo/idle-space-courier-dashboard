@@ -1,4 +1,4 @@
 worker,state,current_task,next_tasks,blocker,needs_director,branch,commit,updated_at,snapshot_id
-Worker A,IDLE,,SYS-022-PACE,"Glow fix done ([commit]); waiting for Director: O1c GO, restyle A/B/C, merge GO",yes,[branch],8527f96,2026-11-22T19:57:53Z,0eae28b-20261122T195759Z
-Worker B,ACTIVE,POLISH-UI-P3-BATCH,,"S10 reward polish done ([commit]), awaiting Director visual acceptance",yes,[branch],fe5cc75,2026-11-22T19:53:51Z,0eae28b-20261122T195759Z
-Worker C,ACTIVE,BUG-HOME-MONUMENT-STAGE,BUG-HUD-TEXT,UXC-030 visual QA done ([commit]: 1 P1 / 11 P2 / 13 P3); now P1-01 Home stage investigation + HUD text fixes,no,[branch],32d7a95,2026-11-22T19:05:24Z,0eae28b-20261122T195759Z
+Worker A,IDLE,,SYS-022-PACE,"Glow fix done ([commit]); waiting for Director: O1c GO, restyle A/B/C, merge GO",yes,[branch],8527f96,2026-11-22T19:57:53Z,2b7c7e6-20261122T201916Z
+Worker B,ACTIVE,POLISH-UI-P3-BATCH,,"S10 reward polish done ([commit]), awaiting Director visual acceptance",yes,[branch],fe5cc75,2026-11-22T19:53:51Z,2b7c7e6-20261122T201916Z
+Worker C,IDLE,,,"Home stage + HUD text done ([commit]); waiting for Director: P2-03 label, hardening GO, merge GO",yes,[branch],880e2f4,2026-11-22T20:19:07Z,2b7c7e6-20261122T201916Z
