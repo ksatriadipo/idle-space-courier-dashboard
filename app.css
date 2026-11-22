@@ -525,3 +525,15 @@ table.src td:nth-child(4), table.src td:nth-child(5) { color: var(--ink-2); font
 .hero-badges > * { min-width: 0; max-width: 100%; }
 .snap { flex-wrap: wrap; overflow-wrap: anywhere; }
 #snap-text { min-width: 0; overflow-wrap: anywhere; }
+
+/* ================= PM-UI-R3 mobile page length (D-174, presentation only) =================
+   Phones show the first 8 acceptance rows; the rest stay in the DOM (tr.acc-more) and appear with "Show all". The status line keeps the
+   total and the per-status counts; "Jump to Critical blockers" keeps that card one tap away. Desktop and mid widths are unchanged. */
+.acc-sum { margin: -4px 0 10px; font-size: 12.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.jump-crit, .acc-toggle { display: none; }
+@media (max-width: 640px) {
+  table.acc:not(.acc-all) tbody tr.acc-more { display: none; }
+  .acc-toggle:not([hidden]) { display: inline-flex; align-items: center; justify-content: center; }
+  .jump-crit { display: inline-flex; align-items: center; min-height: 44px; margin: 0 0 8px; font-weight: 650; color: var(--accent-ink); }
+  .jump-crit:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+}

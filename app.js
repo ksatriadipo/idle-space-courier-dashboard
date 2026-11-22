@@ -1463,6 +1463,7 @@
       var tr = b.insertRow(); nodeTd(tr, taskButton(t.task_id), 'id'); titleTd(tr, t); chipTd(tr, t.status); td(tr, t.owner); td(tr, t.acceptance_status);
     });
     if (!A.acceptances.length) emptyRow(b, 5, 'No acceptance is waiting.');
+    renderAccPreview(A.acceptances, b);
     b = $('ac-crit-body'); b.replaceChildren();
     A.blockers.forEach(function (t) {
       var tr = b.insertRow(); nodeTd(tr, taskButton(t.task_id), 'id'); titleTd(tr, t); chipTd(tr, t.status);
@@ -1505,6 +1506,41 @@
   }
 
   var DEC_PREVIEW = 12;
+  // ---- PM-UI-R3 (D-174, UI only): on phones the acceptance list shows the first ACC_PREVIEW rows; the other rows stay in the DOM with
+  // class acc-more (CSS hides them below 641 px until "Show all"). No row is removed, the count badge and status chips are unchanged.
+  var ACC_PREVIEW = 8;
+  function accPreview(rows, limit) {
+    var n = 0;
+    Array.prototype.forEach.call(rows || [], function (tr, i) {
+      var more = i >= limit;
+      if (tr.classList) tr.classList.toggle('acc-more', more);
+      if (more) n++;
+    });
+    return n;
+  }
+  function accStatusLine(list) {
+    var c = {};
+    (list || []).forEach(function (t) { c[t.status] = (c[t.status] || 0) + 1; });
+    var parts = Object.keys(c).sort(function (a, b) { return c[b] - c[a] || (a < b ? -1 : 1); }).map(function (k) { return k + ' ' + c[k]; });
+    return (list || []).length + ' waiting' + (parts.length ? ' · ' + parts.join(' · ') : '');
+  }
+  function renderAccPreview(list, body) {
+    var hidden = list.length ? accPreview(body.rows, ACC_PREVIEW) : 0;
+    var table = body.parentNode, btn = $('ac-acc-more'), sum = $('ac-acc-sum');
+    if (sum) sum.textContent = accStatusLine(list);
+    if (!btn || !table) return;
+    var sync = function () {
+      table.classList.toggle('acc-all', !!state.accAll);
+      btn.textContent = state.accAll ? 'Show less' : 'Show all ' + list.length;
+      btn.setAttribute('aria-expanded', String(!!state.accAll));
+    };
+    btn.hidden = !hidden;
+    btn.onclick = function () {
+      state.accAll = !state.accAll; sync();
+      if (!state.accAll) { var h = $('h-ac-acc'); if (h && h.scrollIntoView) h.scrollIntoView({ block: 'start' }); }
+    };
+    sync();
+  }
   // ---- progressive disclosure (UI only): static methodology notes move into one collapsed "Details" panel per card; notes that
   // carry live status (they have an id: reconciliation, classes, deferred counts, chart notes) stay visible as a compact footer line.
   function disclose(root) {
@@ -1807,6 +1843,6 @@
     blockerImpact: blockerImpact, inheritedBlocks: inheritedBlocks,
     freshness: freshness, fmtUtcWib: fmtUtcWib, snapshotMismatch: snapshotMismatch, acceptanceKinds: acceptanceKinds, actionCenter: actionCenter,
     decisionIndex: decisionIndex, decisionsFor: decisionsFor, filterDecisions: filterDecisions, splitIds: splitIds, KIND_ORDER: KIND_ORDER,
-    stackLabels: stackLabels
+    stackLabels: stackLabels, accPreview: accPreview, accStatusLine: accStatusLine, ACC_PREVIEW: ACC_PREVIEW
   };
 });
