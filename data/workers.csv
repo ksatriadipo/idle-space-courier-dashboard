@@ -1,4 +1,4 @@
 worker,state,current_task,next_tasks,blocker,needs_director,branch,commit,updated_at,snapshot_id
-Worker A,ACTIVE,BUG-REWARD-GLOW-FIXTURES,SYS-022-PACE,Restyle brief done ([commit]); O1c waits for Director GO,yes,[branch],0aeebc6,2026-11-22T19:24:36Z,394d4d9-20261122T192456Z
-Worker B,ACTIVE,POLISH-S10-REWARD,,"P1 investigations done ([commit]): both capture limitations, no game bug; now rocket framing polish on S10 reward + hangar",no,[branch],5433b5f,2026-11-22T18:27:55Z,394d4d9-20261122T192456Z
-Worker C,ACTIVE,BUG-HOME-MONUMENT-STAGE,BUG-HUD-TEXT,UXC-030 visual QA done ([commit]: 1 P1 / 11 P2 / 13 P3); now P1-01 Home stage investigation + HUD text fixes,no,[branch],32d7a95,2026-11-22T19:05:24Z,394d4d9-20261122T192456Z
+Worker A,ACTIVE,BUG-REWARD-GLOW-FIXTURES,SYS-022-PACE,Restyle brief done ([commit]); O1c waits for Director GO,yes,[branch],0aeebc6,2026-11-22T19:24:36Z,07ae309-20261122T195408Z
+Worker B,ACTIVE,POLISH-UI-P3-BATCH,,"S10 reward polish done ([commit]), awaiting Director visual acceptance",yes,[branch],fe5cc75,2026-11-22T19:53:51Z,07ae309-20261122T195408Z
+Worker C,ACTIVE,BUG-HOME-MONUMENT-STAGE,BUG-HUD-TEXT,UXC-030 visual QA done ([commit]: 1 P1 / 11 P2 / 13 P3); now P1-01 Home stage investigation + HUD text fixes,no,[branch],32d7a95,2026-11-22T19:05:24Z,07ae309-20261122T195408Z
