@@ -495,3 +495,33 @@ table.src td:nth-child(4), table.src td:nth-child(5) { color: var(--ink-2); font
   .tile[role="button"] { min-height: 64px; }
   .ids { gap: 0 10px; }
 }
+
+/* ================= PM-UI-R2.1 (D-172, presentation only) =================
+   Three layout defects from the round-2 screenshots. No data, formula or status logic; theme tokens only. */
+
+/* (R2.1-1) Acceptances waiting: the Action Center pair shares one row only when each card is wide enough (>= ~520 px of table);
+   below that the two cards stack. In two-column mode the acceptance table uses fixed column widths and wraps long text,
+   so it fits its card instead of running past the right edge. Stacked phone cards (<= 640 px) are unchanged. */
+@media (max-width: 1180px) { .ac-pair { grid-template-columns: minmax(0, 1fr); } }
+@media (min-width: 641px) {
+  table.acc { table-layout: fixed; }
+  table.acc th { white-space: normal; }
+  table.acc th:nth-child(1) { width: 92px; }
+  table.acc th:nth-child(3) { width: 112px; }
+  table.acc th:nth-child(4) { width: 84px; }
+  table.acc td { overflow-wrap: anywhere; }
+  table.acc td.id { white-space: normal; }
+}
+
+/* (R2.1-2) Critical blockers: never clipped. The list is short and every row is a launch-path warning, so it is not a fixed-height
+   scroller (that hid rows behind the "Worker blockers" heading); the heading below gets clear separation. */
+.wrap.crit { max-height: none; overflow-y: visible; }
+.wrap.crit td { overflow-wrap: anywhere; }
+.card > .wrap.crit ~ h4 { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
+
+/* (R2.1-3) Phone: long unbroken tokens (snapshot ids, commit hashes, timestamps) in the stale banner and the hero snapshot line
+   wrap inside the viewport; the banner stays fully visible (nothing truncated or hidden). */
+.stale-banner { overflow-wrap: anywhere; min-width: 0; max-width: 100%; }
+.hero-badges > * { min-width: 0; max-width: 100%; }
+.snap { flex-wrap: wrap; overflow-wrap: anywhere; }
+#snap-text { min-width: 0; overflow-wrap: anywhere; }
