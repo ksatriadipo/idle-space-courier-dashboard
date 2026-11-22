@@ -7,7 +7,7 @@
 <meta name="color-scheme" content="light dark">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; connect-src 'self'; img-src 'self' data: blob:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'">
 <title>ISC Mission Control</title>
-<link rel="stylesheet" href="app.css?v=6dd88ad-20261121T180900Z">
+<link rel="stylesheet" href="app.css?v=6dc21a1-20261122T161613Z">
 </head>
 <body>
 <a class="skip" href="#register">Skip to the task register</a>
@@ -27,9 +27,9 @@
       </div>
       <div class="fresh" id="fresh" data-level="unknown">
         <span class="fresh-lv" id="fresh-level">Snapshot</span>
-        <span>id <code id="fresh-id">—</code></span>
-        <span id="fresh-built">built —</span>
-        <span id="fresh-src">source commit —</span>
+        <span class="fresh-kv"><span class="fk">ID</span> <code id="fresh-id">—</code></span>
+        <span class="fresh-kv" id="fresh-built">built —</span>
+        <span class="fresh-kv" id="fresh-src">source commit —</span>
       </div>
       <p class="take" id="takeaway" aria-live="polite">Loading the dataset…</p>
       <p class="lede" title="Built from a sanitised public snapshot of the project tracker (D-083). Technical, device and Director acceptance are separate gates and are never merged.">Sanitised public snapshot (D-083) · technical, device and Director acceptance are tracked separately.</p>
@@ -76,11 +76,11 @@
 
   <section id="action" class="band" aria-labelledby="h-action">
     <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><h2 id="h-action">Director Action Center</h2></div>
-    <div class="tiles" id="ac-tiles"></div>
-    <div class="card" aria-labelledby="h-ac-dec">
-      <h3 id="h-ac-dec">Director decisions, triaged</h3>
-      <div class="wrap"><table>
-        <thead><tr><th scope="col">Decision task</th><th scope="col">Question · recommendation · minimum action</th><th scope="col">Status</th><th scope="col">Blocked by now</th><th scope="col" class="num">Immediate unlock (tasks · base h)</th><th scope="col" class="num">Transitive downstream · base h</th></tr></thead>
+    <div class="tiles primary" id="ac-tiles"></div>
+    <div class="card ac-card" aria-labelledby="h-ac-dec">
+      <h3 id="h-ac-dec">Director decisions, triaged <span class="h-hint">ready to decide first</span></h3>
+      <div class="wrap"><table class="stack ac-dec">
+        <thead><tr><th scope="col">Decision task</th><th scope="col">Question · recommendation · minimum action</th><th scope="col">Status</th><th scope="col">Blocked by now</th><th scope="col">Impact (unlock now · downstream)</th></tr></thead>
         <tbody id="ac-dec-body"></tbody>
       </table></div>
       <p class="note">Open decision tasks in launch scope (node type DECISION or the director workstream, not yet accepted), in three groups. <b>Ready</b> = every dependency is satisfied and no evidence is recorded as missing: these are the decisions to take now. <b>Waiting</b> = an open dependency, or the brief starts with "WAITING" (evidence such as a device session is still missing): do not decide yet. <b>Future</b> = on hold, deferred, or marked "FUTURE". <b>Immediate unlock</b> = open tasks that become dependency-ready the moment this decision is taken (all their other dependencies are already met); <b>transitive downstream</b> = everything that waits on it at any depth, which other gates may still hold. Unlocked effort is not completed effort.</p>
@@ -88,7 +88,7 @@
     <div class="grid2">
       <div class="card" aria-labelledby="h-ac-acc">
         <h3 id="h-ac-acc">Acceptances waiting <span class="badge" id="ac-acc-count">0</span></h3>
-        <div class="wrap tall"><table>
+        <div class="wrap tall"><table class="stack">
           <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Owner</th><th scope="col">Acceptance note</th></tr></thead>
           <tbody id="ac-acc-body"></tbody>
         </table></div>
@@ -96,7 +96,7 @@
       </div>
       <div class="card" aria-labelledby="h-ac-crit">
         <h3 id="h-ac-crit">Critical blockers</h3>
-        <div class="wrap tall"><table>
+        <div class="wrap tall"><table class="stack">
           <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Status</th><th scope="col">Waiting for</th></tr></thead>
           <tbody id="ac-crit-body"></tbody>
         </table></div>
@@ -132,7 +132,7 @@
     <div id="reality" class="card reality" aria-labelledby="h-reality">
       <h3 id="h-reality">Progress reality <span class="badge">LAUNCH SCOPE</span></h3>
       <p class="rsum" id="reality-summary"></p>
-      <div class="tiles" id="reality-tiles"></div>
+      <div class="tiles secondary" id="reality-tiles"></div>
       <h4 class="rh">Base effort over launch scope</h4>
       <div class="rbar" id="reality-bar" role="img" aria-label="Base effort over launch scope"></div>
       <div class="legend" id="reality-legend"></div>
@@ -155,7 +155,7 @@
       </details>
     </div>
     <h3 class="sub">Launch scope by status</h3>
-    <div class="tiles" id="kpi-tiles"></div>
+    <div class="tiles secondary" id="kpi-tiles"></div>
     <p class="note" id="kpi-deferred"></p>
     <p class="note">Executable tasks are tasks, requirement items, gates, sessions and decisions. Epics and parent rows (node type EPIC / PARENT) are excluded so parent and child effort is never counted twice.</p>
   </section>
@@ -170,7 +170,7 @@
     </div>
     <div class="card" id="milestones">
       <h3>Progress by milestone <span class="badge">LAUNCH SCOPE</span></h3>
-      <div class="wrap"><table class="mst">
+      <div class="wrap mst-wrap" tabindex="0" role="region" aria-label="Progress by milestone table, scrolls sideways on narrow screens"><table class="mst">
         <thead><tr><th scope="col">Milestone</th><th scope="col" class="num">Executable</th><th scope="col" class="num">DONE</th><th scope="col" class="num">Director accepted (not DONE)</th><th scope="col" class="num">Awaiting acceptance</th><th scope="col" class="num">In progress</th><th scope="col" class="num">Not started</th><th scope="col" class="num">Hold / blocked</th><th scope="col" class="num">Other</th><th scope="col" class="num">&Sigma; check</th><th scope="col" class="num">Remaining base h</th><th scope="col" class="num">No estimate (task / decision)</th><th scope="col" class="num">DONE %</th><th scope="col" class="num">Technical readiness %</th></tr></thead>
         <tbody id="ms-body"></tbody>
         <tfoot id="ms-foot"></tfoot>
@@ -197,14 +197,14 @@
     <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 9h10M7 13h10M7 17h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><h2 id="h-tracker">Execution Tracker</h2></div>
     <div id="active" class="card" aria-labelledby="h-active">
       <h3 id="h-active">In progress now</h3>
-      <div class="wrap"><table>
+      <div class="wrap"><table class="stack">
         <thead><tr><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Workstream</th><th scope="col">Milestone</th><th scope="col">Started</th><th scope="col">Acceptance</th></tr></thead>
         <tbody id="active-body"></tbody>
       </table></div>
     </div>
     <div id="acceptance" class="card" aria-labelledby="h-acceptance">
       <h3 id="h-acceptance">Acceptance kinds <span class="badge">ALL EXECUTABLE ROWS</span></h3>
-      <div class="tiles" id="ak-tiles"></div>
+      <div class="tiles secondary" id="ak-tiles"></div>
       <p class="note">Mutually exclusive kinds (D-133). Implementation DONE never includes decision or specification rows: a spec lock accepted by a Director decision is counted as specification / decision accepted. Technical acceptance (acceptance text "TECHNICAL ACCEPTANCE / ACCEPTED") is not Director, device or release acceptance. Select a tile to filter the register.</p>
     </div>
     <div id="register" class="card" aria-labelledby="h-register">
@@ -218,7 +218,7 @@
         <button type="button" class="dl" id="reg-export">Export shown rows (CSV)</button>
         <span class="count" id="reg-count" aria-live="polite"></span>
       </div>
-      <div class="wrap"><table class="reg">
+      <div class="wrap"><table class="reg stack">
         <thead><tr id="reg-head"><th scope="col" data-sort="task_id">ID</th><th scope="col" data-sort="title">Task</th><th scope="col" data-sort="status">Status</th><th scope="col" data-sort="acceptance_kind">Acceptance kind</th><th scope="col" data-sort="owner">Owner</th><th scope="col" data-sort="priority">Priority</th><th scope="col" data-sort="milestone">Milestone</th><th scope="col" class="num" data-sort="remaining_base_h">Remaining h</th><th scope="col">Acceptance gate</th><th scope="col" data-sort="decision_ref">Decisions</th></tr></thead>
         <tbody id="reg-body"></tbody>
       </table></div>
@@ -230,7 +230,7 @@
     <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M3 12h18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="6" cy="12" r="2.5" fill="currentColor"/><circle cx="13" cy="12" r="2.5" fill="currentColor"/><path d="M19 7v10" stroke="currentColor" stroke-width="2"/></svg><h2 id="h-timeline">Mission Timeline</h2></div>
     <div id="forecast" class="card" aria-labelledby="h-forecast">
       <h3 id="h-forecast">Launch forecast <span class="badge" id="fc-label">PROVISIONAL</span></h3>
-      <div class="tiles" id="fc-tiles"></div>
+      <div class="tiles forecast" id="fc-tiles"></div>
       <p class="note" id="fc-note"></p>
     </div>
     <div id="gantt" class="card" aria-labelledby="h-gantt">
@@ -244,7 +244,7 @@
     <div class="band-head"><svg class="ico" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 3l9.5 17h-19z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M12 10v4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="12" cy="17.3" r="1.2" fill="currentColor"/></svg><h2 id="h-blockers">Blockers &amp; Decisions</h2></div>
     <div id="hold" class="card" aria-labelledby="h-hold">
       <h3 id="h-hold">On hold or blocked before launch: downstream impact</h3>
-      <div class="wrap"><table>
+      <div class="wrap"><table class="stack hold">
         <thead><tr><th scope="col" class="num">#</th><th scope="col">ID</th><th scope="col">Task</th><th scope="col">Blocker type</th><th scope="col">Class</th><th scope="col">Launch-target chain</th><th scope="col" class="num">Direct</th><th scope="col" class="num">Transitive</th><th scope="col" class="num">Launch scope</th><th scope="col" class="num">Held only by this (launch)</th><th scope="col" class="num">Shared</th><th scope="col" class="num">Launch base h held only by this</th><th scope="col">Next unlock action</th><th scope="col">Director</th></tr></thead>
         <tbody id="hold-body"></tbody>
       </table></div>
@@ -261,24 +261,24 @@
     </div>
   </section>
 
-  <section class="grid2 band" aria-label="Resources">
+  <section class="grid2 band band-res" aria-label="Resources">
     <div class="card" id="resources">
       <h3>Resources used (recorded runs)</h3>
-      <div class="tiles" id="res-tiles"></div>
+      <div class="tiles secondary" id="res-tiles"></div>
       <p class="note" id="res-note"></p>
     </div>
     <div class="card">
       <h3>Runs by date</h3>
-      <div class="wrap"><table>
+      <div class="wrap"><table class="stack">
         <thead><tr><th scope="col">Date</th><th scope="col" class="num">Runs</th><th scope="col" class="num">Worker min</th><th scope="col" class="num">Lock min</th></tr></thead>
         <tbody id="res-body"></tbody>
       </table></div>
     </div>
   </section>
 
-  <section id="sources" class="card" aria-labelledby="h-sources">
+  <section id="sources" class="card sources" aria-labelledby="h-sources">
     <h2 id="h-sources">Sources</h2>
-    <div class="wrap"><table>
+    <div class="wrap"><table class="stack src">
       <thead><tr><th scope="col">Dataset</th><th scope="col" class="num">Rows</th><th scope="col">SHA-256</th><th scope="col">Snapshot id</th><th scope="col">Source commit</th><th scope="col">Export</th></tr></thead>
       <tbody id="src-body"></tbody>
     </table></div>
@@ -289,6 +289,6 @@
   <footer>Static build of the sanitised public dataset; every figure, the Sources panel and the CSV exports come from the files listed above. The hero scene is drawn in the browser (WebGL, no images, no libraries). Generated by build_dashboard.py (D-083, D-090). No tracking, no external requests.</footer>
 </main>
 
-<script src="app.js?v=6dd88ad-20261121T180900Z"></script>
+<script src="app.js?v=6dc21a1-20261122T161613Z"></script>
 </body>
 </html>

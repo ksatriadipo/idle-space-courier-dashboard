@@ -1071,8 +1071,9 @@
     var ps = $('proj-status'); ps.textContent = c.status.label; ps.setAttribute('data-tone', c.status.tone);
     $('snap-text').textContent = 'Tracker last changed ' + m.snapshot.replace('T', ' ') + ' WIB';
     renderOverview();
-    $('meta').textContent = 'Snapshot ' + (m.snapshot_id || m.snapshot) + ' · built ' + fmtUtcWib(m.built_at) + ' · source commit ' + m.source_commit +
-      ' · tracker changelog ' + m.snapshot.replace('T', ' ') + ' · forecast ' + m.forecast.label;
+    // PM-UI-R2 (presentation only): snapshot id, build time and source commit are already in the freshness strip and the tracker time is in the
+    // snapshot chip, so this line only adds what is not shown there (forecast label) and points to the full provenance in Sources.
+    $('meta').textContent = 'Forecast ' + m.forecast.label + ' · full provenance (file hashes, row counts, snapshot id per file) in Sources';
     var k = c.reality.kpi;
     fill('kpi-tiles', [
       tile(k.total, 'Executable launch tasks (denominator)'), tile(k.done, 'DONE or released', 'ok'),
@@ -1087,7 +1088,7 @@
     $('fc-label').textContent = m.forecast.label;
     var names = { opt: 'Optimistic', base: 'Base (P50)', cons: 'Conservative' };
     fill('fc-tiles', c.forecast.map(function (f) {
-      return tile(fmtDate(f.launch), names[f.scenario] + ' · ' + m.forecast.label.toLowerCase(), f.scenario === 'cons' ? 'warn' : '');
+      return tile(fmtDate(f.launch), names[f.scenario] + ' · ' + m.forecast.label.toLowerCase(), f.scenario === 'cons' ? 'warn' : f.scenario === 'base' ? 'base' : '');
     }));
     $('fc-note').textContent = m.forecast.note;
   }
@@ -1260,7 +1261,9 @@
       'The dashed line is the snapshot date (' + fmtDate(today) + '); the gold diamond marks the latest finish of each milestone.';
     if (!rows.length) { box.textContent = 'No scheduled tasks in the base scenario.'; return; }
     var W = Math.max(300, box.clientWidth || 800), rowH = 18, gap = 6, padT = 22, lw = 0;
-    rows.forEach(function (r) { lw = Math.max(lw, textW(r.milestone)); });
+    // PM-UI-R2: on narrow charts long milestone names are shortened on the axis only (full name stays in the tooltip and aria-label)
+    var lab = function (s) { return W < 560 && s.length > 12 ? s.slice(0, 11) + '…' : s; };
+    rows.forEach(function (r) { lw = Math.max(lw, textW(lab(r.milestone))); });
     var showDates = W >= 640, padL = Math.ceil(lw) + 10, padR = showDates ? 84 : 12, H = padT + rows.length * (rowH + gap);
     var lo = Math.min(dayNum(today), Math.min.apply(null, rows.map(function (r) { return dayNum(r.start); })));
     var hi = Math.max.apply(null, rows.map(function (r) { return dayNum(r.finish); })) + 1;
@@ -1283,7 +1286,7 @@
     var tip = tipFor(box);
     rows.forEach(function (r, i) {
       var yy = padT + i * (rowH + gap);
-      svg.appendChild(sv('text', { x: padL - 8, y: yy + rowH / 2 + 4, 'text-anchor': 'end' }, r.milestone));
+      svg.appendChild(sv('text', { x: padL - 8, y: yy + rowH / 2 + 4, 'text-anchor': 'end' }, lab(r.milestone)));
       var bar = sv('rect', { x: x(dayNum(r.start)), y: yy, width: Math.max(4, x(dayNum(r.finish) + 1) - x(dayNum(r.start))), height: rowH, rx: 4,
         style: { fill: 'var(--series-1)' } });
       svg.appendChild(bar);
@@ -1429,9 +1432,9 @@
     var TRI = { ready: 'READY FOR DIRECTOR DECISION', waiting: 'WAITING FOR EVIDENCE / DEPENDENCIES', future: 'FUTURE / NOT ACTIONABLE' };
     ['ready', 'waiting', 'future'].forEach(function (k) {
       var list = A.decisions.filter(function (d) { return d.triage === k; });
-      var hr = b.insertRow(); hr.className = 'ac-group ac-' + k; var hc = hr.insertCell(); hc.colSpan = 6; hc.textContent = TRI[k] + ' (' + list.length + ')';
+      var hr = b.insertRow(); hr.className = 'ac-group ac-' + k; var hc = hr.insertCell(); hc.colSpan = 5; hc.textContent = TRI[k] + ' (' + list.length + ')';
       list.forEach(function (d) {
-        var tr = b.insertRow();
+        var tr = b.insertRow(); tr.className = 'ac-row ac-row-' + k;
         nodeTd(tr, taskButton(d.task.task_id), 'id');
         var tc = tr.insertCell(); tc.appendChild(doc.createTextNode(d.task.title));
         if (d.task.blocker) {
@@ -1445,12 +1448,14 @@
         var bc = tr.insertCell();
         bc.appendChild(doc.createTextNode(d.deps_open.length ? 'Waiting on: ' : (k === 'ready' ? 'Ready: decide' : (k === 'future' ? 'Not actionable now' : 'Evidence pending'))));
         if (d.deps_open.length) bc.appendChild(idList(d.deps_open, taskButton));
-        var ic = tr.insertCell(); ic.className = 'num';
-        ic.appendChild(doc.createTextNode(d.immediate.length + ' task' + (d.immediate.length === 1 ? '' : 's') + ' · ' + fmtH(d.immediate_base) + ' h '));
-        if (d.immediate.length) ic.appendChild(idList(d.immediate, taskButton));
-        td(tr, d.downstream + ' · ' + fmtH(d.downstream_base) + ' h', 'num');
+        // PM-UI-R2: immediate unlock and transitive downstream share one "Impact" cell (same figures, two lines) to lower table density
+        var ic = tr.insertCell(); ic.className = 'impact';
+        var im = el('div', { cls: 'imp-now' }, [el('b', { text: d.immediate.length + ' task' + (d.immediate.length === 1 ? '' : 's') + ' · ' + fmtH(d.immediate_base) + ' h' }), ' unlocked now']);
+        ic.appendChild(im);
+        if (d.immediate.length) ic.appendChild(el('div', { cls: 'imp-ids' }, [idList(d.immediate, taskButton)]));
+        ic.appendChild(el('div', { cls: 'imp-down', text: d.downstream + ' downstream · ' + fmtH(d.downstream_base) + ' h (all depths)' }));
       });
-      if (!list.length) emptyRow(b, 6, 'None.');
+      if (!list.length) emptyRow(b, 5, 'None.');
     });
     $('ac-acc-count').textContent = String(A.acceptances.length);
     b = $('ac-acc-body'); b.replaceChildren();
@@ -1523,6 +1528,25 @@
       p.addEventListener('click', tog);
       p.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); tog(); } });
     });
+  }
+  // ---- PM-UI-R2 responsive tables (UI only): on narrow screens a table.stack shows each row as a card; every body cell gets its column
+  // heading as data-label (CSS shows it via attr()). Rows whose cell count differs from the header (group rows, detail rows, empty rows)
+  // are left unlabelled and span the card. No cell content is changed.
+  function stackLabels(table) {
+    if (!table || !table.tHead || !table.tHead.rows || !table.tHead.rows.length) return 0;
+    var heads = Array.prototype.map.call(table.tHead.rows[0].cells, function (th) { return String(th.textContent || '').replace(/\s+/g, ' ').trim(); });
+    var n = 0;
+    Array.prototype.forEach.call(table.tBodies || [], function (tb) {
+      Array.prototype.forEach.call(tb.rows, function (tr) {
+        if (tr.cells.length !== heads.length) return;
+        Array.prototype.forEach.call(tr.cells, function (c, i) { if (heads[i]) { c.setAttribute('data-label', heads[i]); n++; } });
+      });
+    });
+    return n;
+  }
+  function labelTables(root) {
+    if (!root || typeof root.querySelectorAll !== 'function') return;
+    try { Array.prototype.forEach.call(root.querySelectorAll('table.stack'), stackLabels); } catch (e) { /* presentation only */ }
   }
   function renderDecisions() {
     var all = filterDecisions(state.data.decisions || [], state.dfilter), box = $('dec-list');
@@ -1619,6 +1643,7 @@
     });
     if (!rows.length) emptyRow(b, 10, 'No task matches the filters.');
     $('reg-count').textContent = rows.length + ' of ' + state.data.tasks.length + ' rows shown';
+    labelTables(doc);
   }
 
   function setupFilters() {
@@ -1759,7 +1784,7 @@
       state.decIdx = decisionIndex(state.data.decisions);
       state.byId = {}; state.data.tasks.forEach(function (t) { state.byId[t.task_id] = t; });
       renderFreshness(); renderHeader(); renderAction(); renderWorkers(); renderTables(); setupFilters(); renderDecisions(); renderKinds(); renderRegister(); renderSources(); renderCharts();
-      disclose(doc);
+      disclose(doc); labelTables(doc);
       var t; win.addEventListener('resize', function () { win.clearTimeout(t); t = win.setTimeout(renderCharts, 150); });
       win.setInterval(renderFreshness, 5 * 60 * 1000);   // the STALE banner follows the viewer's clock while the page stays open
       doc.documentElement.setAttribute('data-ready', '1');
@@ -1781,6 +1806,7 @@
     launchMilestones: launchMilestones, realitySummary: realitySummary, progressReality: progressReality, fmtH: fmtH,
     blockerImpact: blockerImpact, inheritedBlocks: inheritedBlocks,
     freshness: freshness, fmtUtcWib: fmtUtcWib, snapshotMismatch: snapshotMismatch, acceptanceKinds: acceptanceKinds, actionCenter: actionCenter,
-    decisionIndex: decisionIndex, decisionsFor: decisionsFor, filterDecisions: filterDecisions, splitIds: splitIds, KIND_ORDER: KIND_ORDER
+    decisionIndex: decisionIndex, decisionsFor: decisionsFor, filterDecisions: filterDecisions, splitIds: splitIds, KIND_ORDER: KIND_ORDER,
+    stackLabels: stackLabels
   };
 });

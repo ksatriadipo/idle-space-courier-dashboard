@@ -1,4 +1,4 @@
 worker,state,current_task,next_tasks,blocker,needs_director,branch,commit,updated_at,snapshot_id
-Worker A,ACTIVE,S1-P6,,,no,[branch],c7a5cc8,2026-11-21T17:59:21Z,6dd88ad-20261121T180900Z
-Worker B,ACTIVE,GLT-096-F2,GLT-096-F3;S1-P1,,no,[branch],c6e4b16,2026-11-21T17:55:12Z,6dd88ad-20261121T180900Z
-Worker C,ACTIVE,SYS-023,SYS-022,,no,[branch],d00e494,2026-11-21T16:42:21Z,6dd88ad-20261121T180900Z
+Worker A,IDLE,,SYS-022;SYS-010,"SYS-022 evidence + sim knobs done ([commit], [commit]); Director: pick CAND-2/CAND-1 + T3 restatement, GO for the Unity confirmation sweep",yes,[branch],d02f3de,2026-11-22T06:10:31Z,6dc21a1-20261122T161613Z
+Worker B,IDLE,,POST-S1-CAND,"Step-6 dry-run done ([commit]). Needs Director: UXC-006 approval (rec. approve, LOW risk), AST-WP-01 scope GO for xm-icons (rec. GO as separate step after green [branch] suite), Unity suite GO",yes,[branch],e2c264e,2026-11-22T05:51:52Z,6dc21a1-20261122T161613Z
+Worker C,IDLE,,UXC-030;UXC-031,UXC-030 code complete ([commit]); needs Director GO for the Unity capture run,yes,[branch],3a22f94,2026-11-22T05:55:11Z,6dc21a1-20261122T161613Z

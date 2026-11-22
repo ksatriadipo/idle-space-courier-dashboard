@@ -370,3 +370,128 @@ details.defs > summary { cursor: pointer; }
 p.note.footline { cursor: pointer; }
 p.note.footline.open { white-space: normal; }
 p.note.footline:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px; }
+
+/* ================= PM-UI-R2 (D-148 round 2, presentation only) =================
+   Action Center density, responsive stacked tables, condensed hero provenance, KPI hierarchy, spacing rhythm, Galaxy / Timeline / Sources.
+   No data, formula or status logic lives here; every rule only restyles existing elements. */
+
+/* (5) spacing rhythm: one section gap, one card gap, anchors land below the top edge */
+.pm { gap: 36px; }
+section[id], .card[id] { scroll-margin-top: 16px; }
+.card > h3 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; }
+.card > h3 .badge { margin-left: 0; }
+.h-hint { font-size: 12px; font-weight: 600; color: var(--ink-2); letter-spacing: .02em; }
+h3.sub { margin: 8px 0 0; }
+.note { line-height: 1.5; }
+.legend { margin-top: 12px; }
+.chart + .legend { padding-top: 10px; border-top: 1px solid var(--line); }
+th, td { padding: 8px 10px; }
+
+/* (3) hero: condensed, labelled provenance strip (snapshot id, build time + age, source commit stay visible; nothing collapsed) */
+.hero-copy { gap: 12px; }
+.fresh { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px 14px; padding: 8px 12px; font-size: 12px; line-height: 1.45; }
+.fresh-kv { min-width: 0; overflow-wrap: anywhere; color: #e6e2ff; }
+.fresh .fk { display: inline-block; min-width: 2.2em; font-weight: 700; color: #c9c5ee; text-transform: uppercase; letter-spacing: .05em; font-size: 11.5px; }
+@media (min-width: 821px) {
+  .fresh { grid-template-columns: auto minmax(0, 1fr); }
+  .fresh .fresh-lv { grid-row: span 3; align-self: center; padding-right: 12px; border-right: 1px solid rgba(255, 255, 255, 0.18); }
+}
+#meta { white-space: normal; overflow: visible; }
+.hero .lede { font-size: 12.5px; }
+
+/* (4) KPI hierarchy: Action Center tiles are primary (large value, tone rail); status / reality / kind / resource tiles are secondary */
+.tiles.primary { grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 14px; }
+.tiles.primary .tile { padding: 14px 16px 14px 18px; border-left: 4px solid var(--neutral); gap: 6px; }
+.tiles.primary .tile.ok { border-left-color: var(--good); }
+.tiles.primary .tile.warn { border-left-color: var(--warning); }
+.tiles.primary .tile.bad { border-left-color: var(--critical); }
+.tiles.primary .tile .v { font-size: 34px; font-weight: 800; line-height: 1; }
+.tiles.primary .tile .l { font-size: 13px; color: var(--ink); font-weight: 600; }
+.tiles.secondary { grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 10px; }
+.tiles.secondary .tile { padding: 10px 12px; gap: 2px; }
+.tiles.secondary .tile .v { font-size: 20px; font-weight: 700; }
+.tiles.secondary .tile .l { font-size: 12px; }
+.tiles.forecast .tile.base { border: 2px solid var(--series-1); }
+.tiles.forecast .tile.base .v { font-size: 28px; font-weight: 800; }
+
+/* (1) Action Center: ready decisions stand out, waiting / future rows are quieter (still fully visible, never collapsed) */
+.ac-dec td { padding-top: 10px; padding-bottom: 10px; }
+.ac-dec tr.ac-row-ready > td:first-child { box-shadow: inset 4px 0 0 var(--warning); padding-left: 14px; }
+.ac-dec tr.ac-row-ready > td { background: color-mix(in srgb, var(--warning) 7%, transparent); }
+.ac-dec tr.ac-row-waiting > td, .ac-dec tr.ac-row-future > td { color: var(--ink-2); }
+.ac-dec tr.ac-row-waiting .ac-brief, .ac-dec tr.ac-row-future .ac-brief { -webkit-line-clamp: 1; }
+.ac-dec tr.ac-row-waiting .ac-brief.open, .ac-dec tr.ac-row-future .ac-brief.open { -webkit-line-clamp: unset; }
+.ac-dec td.impact { min-width: 170px; font-variant-numeric: tabular-nums; }
+.imp-now b { color: var(--ink); font-weight: 700; }
+.imp-ids { margin-top: 2px; }
+.imp-down { margin-top: 4px; font-size: 12px; color: var(--ink-2); }
+.ac-group td { border-bottom: 2px solid var(--axis); }
+
+/* (6) Galaxy: milestone table keeps its sideways scroll with a sticky first column; Sources: hashes wrap, repeated ids are quieter */
+.mst-wrap:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+table.mst th:first-child, table.mst td:first-child { position: sticky; left: 0; background: var(--surface); z-index: 1; }
+table.mst thead th:first-child { z-index: 2; }
+table.mst tbody tr:hover > td:first-child { background: var(--surface-2); }
+.galaxy { margin-top: 4px; }
+.sources > h2 { margin: 0 0 12px; }
+table.src code.hash { display: inline-block; max-width: 34ch; word-break: break-all; }
+table.src td:nth-child(4), table.src td:nth-child(5) { color: var(--ink-2); font-size: 12px; }
+
+/* (2) mobile: complex tables become stacked cards with labelled fields, readable fonts */
+@media (max-width: 640px) {
+  body { font-size: 15px; }
+  input, select { font-size: 16px; }
+  table { font-size: 14px; }
+  th { font-size: 12px; }
+  .note, p.note.footline { font-size: 13px; }
+  .chip, .badge, .kind, code, .hash { font-size: 12px; }
+  .legend, .count, .field { font-size: 13px; }
+  .detail dt, .worker dt, details.dec dt, .defs dt, .defs dd, .ddate, .dcount, .h-hint, .imp-down { font-size: 12px; }
+  .tile .l, .ov .d, .ov .k { font-size: 12.5px; }
+  .fresh-lv, .fresh .fk, details.method > summary, .ac-group td { font-size: 12px; }
+  .ac-brief { font-size: 13px; }
+  .wrap.tall { max-height: none; overflow-y: visible; }
+  table.stack thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  table.stack, table.stack tbody, table.stack tr, table.stack td { display: block; width: 100%; }
+  table.stack tr { border: 1px solid var(--line); border-radius: 12px; padding: 8px 12px; margin: 0 0 10px; background: var(--surface-2); }
+  table.stack tbody tr:hover > td { background: transparent; }
+  table.stack td { border: 0; padding: 5px 0; text-align: left; white-space: normal; }
+  table.stack td.num { text-align: left; }
+  table.stack td[data-label]::before { content: attr(data-label); display: block; font-size: 12px; font-weight: 650; color: var(--ink-2);
+    text-transform: uppercase; letter-spacing: .04em; margin-bottom: 2px; }
+  table.stack td.id[data-label] { font-size: 15px; }
+  table.stack tr.ac-group { border: 0; border-radius: 0; background: none; padding: 14px 0 6px; margin: 0; }
+  table.stack tr.ac-group td { background: none !important; border-bottom: 2px solid var(--axis); }
+  table.stack tr.detail { padding: 0; margin-top: -6px; }
+  table.stack tr.detail > td { border-radius: 0 0 12px 12px; padding: 10px 12px; }
+  .ac-dec tr.ac-row-ready { border-left: 4px solid var(--warning); background: color-mix(in srgb, var(--warning) 9%, var(--surface-2)); }
+  .ac-dec tr.ac-row-ready > td:first-child { box-shadow: none; padding-left: 0; }
+  .ac-dec tr.ac-row-ready > td { background: transparent; }
+  table.src code.hash { max-width: 100%; }
+  /* wide tables (register 10 columns, hold 14 columns): two fields per line inside the card, ID and title full width */
+  table.stack.reg tr:not(.detail), table.stack.hold tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px; }
+  table.stack.reg td:nth-child(-n+2), table.stack.hold td:nth-child(2), table.stack.hold td:nth-child(3),
+  table.stack.hold td:nth-child(13), table.stack.reg td:only-child, table.stack.hold td:only-child { grid-column: 1 / -1; }
+  .tiles.primary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .tiles.primary .tile .v { font-size: 28px; }
+  .tiles.secondary .tile .v { font-size: 19px; }
+  .pm { gap: 28px; }
+}
+@media (max-width: 480px) {
+  .tiles.primary .tile { padding: 12px 12px 12px 14px; }
+  .hero-art { min-height: 150px; }
+  .fresh { font-size: 12.5px; }
+}
+
+/* (2) touch: every interactive control is at least 44 x 44 px on touch screens and narrow viewports */
+@media (max-width: 640px), (pointer: coarse) {
+  button, input, select, .jump a, th button.sort { min-height: 44px; }
+  .jump a { display: inline-flex; align-items: center; padding: 6px 14px; }
+  button.lnk, button.idbtn { display: inline-flex; align-items: center; min-height: 44px; min-width: 44px; padding: 0 4px; box-sizing: border-box; }
+  th button.sort { display: inline-flex; align-items: center; }
+  details > summary { min-height: 44px; display: flex; align-items: center; }
+  details.method > summary { display: inline-flex; min-height: 44px; padding: 4px 12px 4px 8px; }
+  .ac-brief[role="button"], p.note.footline[role="button"] { min-height: 44px; padding-block: 6px; }
+  .tile[role="button"] { min-height: 64px; }
+  .ids { gap: 0 10px; }
+}
