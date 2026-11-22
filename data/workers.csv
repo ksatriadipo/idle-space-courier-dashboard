@@ -1,4 +1,4 @@
 worker,state,current_task,next_tasks,blocker,needs_director,branch,commit,updated_at,snapshot_id
-Worker A,ACTIVE,SYS-022-PACE,,O1b sim knob + isolated Unity sweep (D-175),no,[branch],dba6543,2026-11-22T18:25:14Z,f957161-20261122T182520Z
-Worker B,IDLE,,PM-UI-R2,"UXC-006 model merged into [branch] ([commit]) after targeted run PASS; Director: PM-UI-R2.1 visual acceptance, OQ-49",yes,[branch],32d7a95,2026-11-22T17:50:32Z,f957161-20261122T182520Z
-Worker C,ACTIVE,UXC-030,,Command Center live again ([commit]); venv pinned ([commit]); allowlist ([commit]); now game visual QA of the UXC-030 captures,no,[branch],4d02e69,2026-11-22T18:25:13Z,f957161-20261122T182520Z
+Worker A,ACTIVE,SYS-022-PACE,,O1b sim knob + isolated Unity sweep (D-175),no,[branch],dba6543,2026-11-22T18:25:14Z,13b6879-20261122T182801Z
+Worker B,ACTIVE,POLISH-S10-REWARD,,"P1 investigations done ([commit]): both capture limitations, no game bug; now rocket framing polish on S10 reward + hangar",no,[branch],5433b5f,2026-11-22T18:27:55Z,13b6879-20261122T182801Z
+Worker C,ACTIVE,UXC-030,,Command Center live again ([commit]); venv pinned ([commit]); allowlist ([commit]); now game visual QA of the UXC-030 captures,no,[branch],4d02e69,2026-11-22T18:25:13Z,13b6879-20261122T182801Z
