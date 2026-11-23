@@ -11,7 +11,7 @@
   "spec_accepted": "Specification / decision accepted",
   "technical_accepted": "Technical acceptance"
  },
- "built_at": "2026-11-23T09:52:32Z",
+ "built_at": "2026-11-23T09:56:28Z",
  "changelog_seq": 4538,
  "decision": "D-083; public-data policy D-087; dashboard-first D-133",
  "decision_log": {
@@ -36,7 +36,7 @@
    ],
    "name": "decisions.csv",
    "rows": 178,
-   "sha256": "f7e3d400d7183f8416bd7ea0f5c0ec78b2739a17a1a2d1f2a175de40ab0ba85c"
+   "sha256": "b5c8a9c26cc7f369d0ccaf02473c5c05f131655f6676da104ce52ef0f52dcc42"
   },
   {
    "columns": [
@@ -49,7 +49,7 @@
    ],
    "name": "runs.csv",
    "rows": 170,
-   "sha256": "9fec8cde77b3a42f94082f6d1263ae1d9a5cf5471e317cf568112215274c1c31"
+   "sha256": "3d1b01649e74c7353780db8d6d55a0b23ebc9402f412d830af40b28beb7316ca"
   },
   {
    "columns": [
@@ -61,7 +61,7 @@
    ],
    "name": "schedule.csv",
    "rows": 321,
-   "sha256": "499856fcc907a6659f6f4eed192ceb66db766e300c3f1a7354795c02b4b72f67"
+   "sha256": "c550de9481b27527f2fd8d98040fdf702158eeec2d99fb137252c110fee2403f"
   },
   {
    "columns": [
@@ -96,7 +96,7 @@
    ],
    "name": "tasks.csv",
    "rows": 476,
-   "sha256": "5098af7586c0ba9726f15f4d2c9269fca8aea98fcdc4ba15b7979c708a5d16b4"
+   "sha256": "987a6c5e52b45c3402a122d3a2abca67d5698f176e49fb8f5b87d5652c2ed3d5"
   },
   {
    "columns": [
@@ -113,7 +113,7 @@
    ],
    "name": "workers.csv",
    "rows": 3,
-   "sha256": "fbddbfcac8b27eb1709a90b89209ed2c631ab093b769d50fa52403e05c4dda13"
+   "sha256": "8d48c39a5a07e3ffb00c3cf8848ecbfdf48225a143bbb1696fb63507e43049a0"
   }
  ],
  "forecast": {
@@ -196,7 +196,7 @@
  },
  "snapshot": "2026-11-23T16:52:25",
  "snapshot_basis": "latest entry of the tracker changelog (local time); not the build time",
- "snapshot_id": "e8cb133-20261123T095232Z",
+ "snapshot_id": "e8cb133-20261123T095628Z",
  "snapshot_utc": "2026-11-23T09:52:25Z",
  "source_commit": "e8cb133",
  "source_commit_time": "2026-11-23T16:52:30+07:00",
