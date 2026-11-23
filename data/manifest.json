@@ -11,13 +11,13 @@
   "spec_accepted": "Specification / decision accepted",
   "technical_accepted": "Technical acceptance"
  },
- "built_at": "2026-11-23T04:43:37Z",
- "changelog_seq": 3994,
+ "built_at": "2026-11-23T04:50:09Z",
+ "changelog_seq": 3997,
  "decision": "D-083; public-data policy D-087; dashboard-first D-133",
  "decision_log": {
-  "newest": "D-178",
+  "newest": "D-179",
   "path": "DECISION-LOG.md",
-  "rows": 161
+  "rows": 162
  },
  "files": [
   {
@@ -35,8 +35,8 @@
     "snapshot_id"
    ],
    "name": "decisions.csv",
-   "rows": 161,
-   "sha256": "96c5996a9796c5b497d16b22e794b91c3ac1ab9d898b690a6562ef68ccd51eab"
+   "rows": 162,
+   "sha256": "d539963c3e9abc7681ade9a34dde2af2ed834c66b1cb9c628ce3ad1347bb74ab"
   },
   {
    "columns": [
@@ -49,7 +49,7 @@
    ],
    "name": "runs.csv",
    "rows": 170,
-   "sha256": "2c159183503569b990ab484bbc29245d908088052853cc63b8e22d8468b504cf"
+   "sha256": "37ab1e5f8256d1c836443c6f8225e06d199eec21543b68613c91f3fe17765589"
   },
   {
    "columns": [
@@ -61,7 +61,7 @@
    ],
    "name": "schedule.csv",
    "rows": 327,
-   "sha256": "c786ebdb6e365770aa23bf9ffd3ae154ba1840d3be3d7fc0bfa6cc66ebb7009e"
+   "sha256": "901cb90035ee56a44ebcb8c195a8b62c34790d0a699cdee009f709d239d3dc6e"
   },
   {
    "columns": [
@@ -96,7 +96,7 @@
    ],
    "name": "tasks.csv",
    "rows": 444,
-   "sha256": "6631bf764acb020aa574e58fcba7d53e13833f8b9c5c6461e59f910ae473b550"
+   "sha256": "99694ad3158f0d7a4919fabf6313fc8c8f37d28e7676c5b11d1ce2f76dd1335e"
   },
   {
    "columns": [
@@ -113,7 +113,7 @@
    ],
    "name": "workers.csv",
    "rows": 3,
-   "sha256": "ea45050168d3e1775f70af3d0627672f327e1b61f67ac71dba560de359a6f7ab"
+   "sha256": "4039520eb7b80265440fa584e24eaf616af66a473709ead8607bae6e9df78622"
   }
  ],
  "forecast": {
@@ -194,12 +194,12 @@
    "snapshot_id"
   ]
  },
- "snapshot": "2026-11-23T11:43:03",
+ "snapshot": "2026-11-23T11:50:01",
  "snapshot_basis": "latest entry of the tracker changelog (local time); not the build time",
- "snapshot_id": "ad32ca4-20261123T044337Z",
- "snapshot_utc": "2026-11-23T04:43:03Z",
- "source_commit": "ad32ca4",
- "source_commit_time": "2026-11-23T11:43:34+07:00",
+ "snapshot_id": "c3b3dfb-20261123T045009Z",
+ "snapshot_utc": "2026-11-23T04:50:01Z",
+ "source_commit": "c3b3dfb",
+ "source_commit_time": "2026-11-23T11:50:06+07:00",
  "stale_after_hours": 6,
  "title": "ISC 2.0 Project Execution Dashboard",
  "worker_commits": [
