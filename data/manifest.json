@@ -11,15 +11,37 @@
   "spec_accepted": "Specification / decision accepted",
   "technical_accepted": "Technical acceptance"
  },
- "built_at": "2026-11-24T07:45:12Z",
- "changelog_seq": 6018,
+ "built_at": "2026-11-24T08:03:27Z",
+ "changelog_seq": 6019,
  "decision": "D-083; public-data policy D-087; dashboard-first D-133",
  "decision_log": {
-  "newest": "D-209",
+  "newest": "D-210",
   "path": "DECISION-LOG.md",
-  "rows": 192
+  "rows": 193
  },
  "files": [
+  {
+   "columns": [
+    "date",
+    "token_method",
+    "recorded_tokens",
+    "input_tokens",
+    "cache_creation_tokens",
+    "cache_read_tokens",
+    "output_tokens",
+    "token_runs",
+    "worker_runs",
+    "worker_h",
+    "unity_lock_h",
+    "unity_lock_runs",
+    "done_transitions",
+    "remaining_base_h_launch",
+    "snapshot_id"
+   ],
+   "name": "daily_metrics.csv",
+   "rows": 7,
+   "sha256": "a76fbb604247a1011ae0129f614347854c7a3e81525673f9e0d544a37d0d3d37"
+  },
   {
    "columns": [
     "decision_id",
@@ -35,8 +57,8 @@
     "snapshot_id"
    ],
    "name": "decisions.csv",
-   "rows": 192,
-   "sha256": "5081dbacafa8f903d847c47ccef1bf2e95a79c7f1752b38b2cb11cfeae0237d7"
+   "rows": 193,
+   "sha256": "df63c99fbcb6859001edb4d57acf9a1d3e31f94cf193fcd0de2ccf44e7ad80cd"
   },
   {
    "columns": [
@@ -48,8 +70,8 @@
     "snapshot_id"
    ],
    "name": "runs.csv",
-   "rows": 186,
-   "sha256": "568b075687817eee4826e0881f379199efd29502d6ab4585b27d63a5e979f204"
+   "rows": 187,
+   "sha256": "9c4f90a81843b86824f7503da1c2ea9e7d479fba8e969fdeba1c778655babc55"
   },
   {
    "columns": [
@@ -61,7 +83,7 @@
    ],
    "name": "schedule.csv",
    "rows": 261,
-   "sha256": "ff41315a81e5a1524544850d4d6eef8a1272bf89c21bcf0f213e1a0e0346312f"
+   "sha256": "db3f0cdb2a12564292c994198035e85ff9dd99926f3d0957c02e815fb6541156"
   },
   {
    "columns": [
@@ -96,7 +118,7 @@
    ],
    "name": "tasks.csv",
    "rows": 522,
-   "sha256": "8f373c60e2a58a8efa7b926f6a03d4407a3a87e664179fdfed60be3723ba0d51"
+   "sha256": "b1b261de3f6c1aa8ccbbaf21069a86cb1329a49d5503e74ffb2fa93ee9e8f384"
   },
   {
    "columns": [
@@ -113,7 +135,7 @@
    ],
    "name": "workers.csv",
    "rows": 3,
-   "sha256": "facf186bee8d45c0aa72da51da1179bdf91a20604bec8084df1440ae1a67f7cd"
+   "sha256": "e19948370dfbee010929d50e81c1ad81358091a9fa9b1d01639d85048a0ada37"
   }
  ],
  "forecast": {
@@ -123,6 +145,23 @@
  "manifest_version": 2,
  "project": "Idle Space Courier 2.0",
  "schema": {
+  "daily_metrics.csv": [
+   "date",
+   "token_method",
+   "recorded_tokens",
+   "input_tokens",
+   "cache_creation_tokens",
+   "cache_read_tokens",
+   "output_tokens",
+   "token_runs",
+   "worker_runs",
+   "worker_h",
+   "unity_lock_h",
+   "unity_lock_runs",
+   "done_transitions",
+   "remaining_base_h_launch",
+   "snapshot_id"
+  ],
   "decisions.csv": [
    "decision_id",
    "date",
@@ -194,12 +233,12 @@
    "snapshot_id"
   ]
  },
- "snapshot": "2026-11-24T14:38:12",
+ "snapshot": "2026-11-24T14:56:03",
  "snapshot_basis": "latest entry of the tracker changelog (local time); not the build time",
- "snapshot_id": "2224690-20261124T074512Z",
- "snapshot_utc": "2026-11-24T07:38:12Z",
- "source_commit": "2224690",
- "source_commit_time": "2026-11-24T14:45:09+07:00",
+ "snapshot_id": "e4b334d-20261124T080327Z",
+ "snapshot_utc": "2026-11-24T07:56:03Z",
+ "source_commit": "e4b334d",
+ "source_commit_time": "2026-11-24T15:03:25+07:00",
  "stale_after_hours": 6,
  "title": "ISC 2.0 Project Execution Dashboard",
  "worker_commits": [

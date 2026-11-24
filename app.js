@@ -1355,12 +1355,40 @@
     ]);
     var through = c.resByDate.reduce(function (a, r) { return /^\d{4}-\d{2}-\d{2}$/.test(r.date) && r.date > a ? r.date : a; }, '');
     $('res-note').textContent = 'Data through ' + (through || 'UNKNOWN') + ' (refreshed at every checkpoint, D-203). ' +
-      'Worker hours = summed agent time per run, not elapsed project time (parallel runs overlap). Unity-lock hours count known runs only; ' +
-      'lock minutes, Lead minutes and Director review minutes not recorded are UNKNOWN. Token usage and worker identities are not published (D-087).';
+      'Worker hours = summed agent time per worker run, not elapsed project time (parallel runs overlap). Denominators differ: worker hours and ' +
+      'unknown duration count worker runs only; Unity-lock hours here count runs of every kind (worker, Lead, device) whose run row has lock minutes, ' +
+      'so known + unknown lock runs add up to all runs, not to the worker-run count. Lock time per day from the unity-batch summaries is in the ' +
+      'daily indicators below. Lead and Director minutes not recorded are UNKNOWN. Worker identities are not published (D-087).';
     b = $('res-body'); b.replaceChildren();
     c.resByDate.forEach(function (r) {
       var tr = b.insertRow(); td(tr, r.date); td(tr, r.runs, 'num'); td(tr, r.worker_min, 'num'); td(tr, r.lock_min, 'num');
     });
+    // D-210 daily production indicators: aggregates only; tokens kept apart by measurement method (never compared across methods)
+    var dm = state.data.daily_metrics || [];
+    var tot = {}, cover = 0;
+    dm.forEach(function (r) {
+      if (!r.token_method) return;
+      tot[r.token_method] = (tot[r.token_method] || 0) + (num(r.recorded_tokens) || 0); cover++;
+    });
+    var fmtM = function (v) { return v ? (Math.round(v / 1e5) / 10) + ' M' : '-'; };
+    fill('tok-tiles', [
+      tile(fmtM(tot.harness_total), 'Recorded tokens to 22 Nov (harness total per run)'),
+      tile(fmtM(tot.transcript_usage), 'Recorded tokens from 23 Nov (input + cache creation + output)'),
+      tile(cover + ' of ' + dm.length, 'Days with token data')
+    ]);
+    b = $('daily-body'); b.replaceChildren();
+    dm.forEach(function (r) {
+      var tr = b.insertRow(), u = function (v) { return v === '' || v === undefined ? 'UNKNOWN' : v; };
+      td(tr, r.date); td(tr, r.token_method || 'UNKNOWN'); td(tr, u(r.recorded_tokens), 'num'); td(tr, u(r.input_tokens), 'num');
+      td(tr, u(r.cache_creation_tokens), 'num'); td(tr, u(r.cache_read_tokens), 'num'); td(tr, u(r.output_tokens), 'num');
+      td(tr, r.worker_h, 'num'); td(tr, r.unity_lock_h, 'num'); td(tr, r.done_transitions, 'num'); td(tr, u(r.remaining_base_h_launch), 'num');
+    });
+    $('daily-note').textContent = 'Data through ' + (dm.length ? dm[dm.length - 1].date : 'UNKNOWN') + ', refreshed at every checkpoint (resource sync, D-210). ' +
+      'Recorded tokens are not billed tokens or cost. The two token methods measure different things (to 22 Nov: one harness total per run; from 23 Nov: ' +
+      'input + cache creation + output summed over every turn, with cache reads shown separately), so days across the 23 Nov boundary are not comparable ' +
+      'and no historical efficiency comparison is shown. Unity-lock hours come from the unity-batch run summaries (all runs, incl. refused ones at 0 s). ' +
+      'DONE transitions count status changes to DONE that day, a tracker event, not a measure of value. Remaining base hours (launch scope) are recorded ' +
+      'from 24 Nov onward; earlier days are UNKNOWN. Per-worker and Lead token detail stays internal (D-087).';
   }
 
   // ---------------------------------------------------------------- D-133 views: freshness, Action Center, workers, decisions, kinds
