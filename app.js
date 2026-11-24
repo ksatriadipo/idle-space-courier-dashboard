@@ -1350,11 +1350,13 @@
     $('dec-note').textContent = 'Decision IDs from the decision_ref column; counts are executable tasks that reference each decision. Select a decision to open it in the Decisions view.';
     var t = c.resTotal;
     fill('res-tiles', [
-      tile(t.worker_h, 'Worker hours (summed agent time, not elapsed)'), tile(t.worker_runs, 'Worker runs'),
-      tile(t.lock_h, 'Unity-lock hours (known runs)'), tile(t.unknown_runs, 'Worker runs with unknown duration')
+      tile(t.worker_h, 'Worker hours'), tile(t.worker_runs, 'Worker runs'),
+      tile(t.lock_h, 'Unity-lock hours'), tile(t.unknown_runs, 'Unknown duration')
     ]);
-    $('res-note').textContent = 'Only measured runs are summed. Lead minutes and Director review minutes are not recorded (UNKNOWN). ' +
-      'Token usage and worker identities are not published (D-087).';
+    var through = c.resByDate.reduce(function (a, r) { return /^\d{4}-\d{2}-\d{2}$/.test(r.date) && r.date > a ? r.date : a; }, '');
+    $('res-note').textContent = 'Data through ' + (through || 'UNKNOWN') + ' (refreshed at every checkpoint, D-203). ' +
+      'Worker hours = summed agent time per run, not elapsed project time (parallel runs overlap). Unity-lock hours count known runs only; ' +
+      'lock minutes, Lead minutes and Director review minutes not recorded are UNKNOWN. Token usage and worker identities are not published (D-087).';
     b = $('res-body'); b.replaceChildren();
     c.resByDate.forEach(function (r) {
       var tr = b.insertRow(); td(tr, r.date); td(tr, r.runs, 'num'); td(tr, r.worker_min, 'num'); td(tr, r.lock_min, 'num');
