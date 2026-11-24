@@ -1,4 +1,4 @@
 worker,state,current_task,next_tasks,blocker,needs_director,branch,commit,updated_at,snapshot_id
-Worker A,ACTIVE,GL100-ZONE-VISUALS,GLT-115-REC;ZONE2-SLICE,,no,[branch],427c901,2026-11-24T09:05:12Z,d874f53-20261124T090559Z
-Worker B,ACTIVE,GL100-PROG-EXPORT,,GL100-PROG-EXPORT waits for Worker C GL100-PROG-TAGS,no,[branch],1d2e0c3,2026-11-24T08:59:39Z,d874f53-20261124T090559Z
-Worker C,ACTIVE,GLT-101,,,no,[branch],ceb9680,2026-11-24T06:57:52Z,d874f53-20261124T090559Z
+Worker A,ACTIVE,GL100-ZONE-VISUALS,GLT-115-REC;ZONE2-SLICE,,no,[branch],427c901,2026-11-24T09:05:12Z,eb3eea6-20261124T092949Z
+Worker B,ACTIVE,INT-POST-S1-BATCH4,UXC-006-UI;UXC-004,,no,[branch],c2cae0d,2026-11-24T09:10:38Z,eb3eea6-20261124T092949Z
+Worker C,IDLE,,,GL100-PROG-TAGS: 7 progression rockets have design-level islands (nudge vs V-S1 hover rule),yes,[branch],a8907a1,2026-11-24T09:28:20Z,eb3eea6-20261124T092949Z
