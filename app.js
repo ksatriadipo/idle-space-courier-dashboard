@@ -1363,6 +1363,16 @@
     c.resByDate.forEach(function (r) {
       var tr = b.insertRow(); td(tr, r.date); td(tr, r.runs, 'num'); td(tr, r.worker_min, 'num'); td(tr, r.lock_min, 'num');
     });
+    // D-229 main repository sync (aggregates only; no remote URL or branch names are published)
+    var gs = (state.data.git_sync || [])[0] || {};
+    var dash = function (v) { return v === '' || v === undefined ? 'UNKNOWN' : v; };
+    fill('sync-tiles', [
+      tile(dash(gs.status), 'Last sync status'), tile(dash(gs.last_push_utc).replace('T', ' ').replace('Z', ' UTC'), 'Last successful remote push'),
+      tile(dash(gs.integration_ahead) + ' / ' + dash(gs.integration_behind), 'Integration branch ahead / behind remote'),
+      tile(dash(gs.unpushed_commits), 'Unpushed commits (named branches)')
+    ]);
+    $('sync-note').textContent = 'Checked ' + dash(gs.checked_utc) + ' at the checkpoint (D-229). Integration branch = the single integration line; ' +
+      'named branches are pushed without force after each checkpoint. Remote location and branch names are not published.';
     // D-210 daily production indicators: aggregates only; tokens kept apart by measurement method (never compared across methods)
     var dm = state.data.daily_metrics || [];
     var tot = {}, cover = 0;
