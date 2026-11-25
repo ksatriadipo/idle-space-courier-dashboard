@@ -1,2 +1,2 @@
 checked_utc,scope,integration_ahead,integration_behind,unpushed_commits,unbacked_commits,last_push_utc,status,snapshot_id
-2026-11-25T15:50:15Z,main game repository,0,0,0,0,2026-11-25T15:50:12Z,OK,eff7350-20261125T155019Z
+2026-11-25T15:56:40Z,main game repository,0,0,5,0,2026-11-25T15:50:12Z,REJECTED,9108dd1-20261125T155645Z
