@@ -1,4 +1,4 @@
 worker,state,current_task,next_tasks,blocker,needs_director,branch,commit,updated_at,snapshot_id
-Worker A,IDLE,,,,no,[branch],5540d60,2026-11-24T13:32:04Z,c4bfc5b-20261125T162304Z
-Worker B,IDLE,,UXC-006-UI,,no,[branch],53bdd01,2026-11-24T17:11:36Z,c4bfc5b-20261125T162304Z
-Worker C,IDLE,ZONE2-MERGE,UXC-004,,no,[branch],700082d,2026-11-24T16:19:35Z,c4bfc5b-20261125T162304Z
+Worker A,IDLE,,,,no,[branch],5540d60,2026-11-24T13:32:04Z,689d1a8-20261125T164308Z
+Worker B,IDLE,,UXC-006-UI,,no,[branch],53bdd01,2026-11-24T17:11:36Z,689d1a8-20261125T164308Z
+Worker C,IDLE,ZONE2-MERGE,UXC-004,,no,[branch],700082d,2026-11-24T16:19:35Z,689d1a8-20261125T164308Z
