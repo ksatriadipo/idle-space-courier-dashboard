@@ -1,4 +1,4 @@
 worker,state,current_task,next_tasks,blocker,needs_director,branch,commit,updated_at,snapshot_id
-Worker A,IDLE,,,session closed (D-251); next package = fresh session from handoff,no,[branch],2a68a3c,2026-11-27T14:42:27Z,a4b593e-20261127T155254Z
-Worker B,IDLE,,,session closed (D-251); next package = fresh session from handoff,no,[branch],2a68a3c,2026-11-27T14:42:28Z,a4b593e-20261127T155254Z
-Worker C,IDLE,,,session closed (D-251); next package = fresh session from handoff,no,[branch],2a68a3c,2026-11-27T14:42:30Z,a4b593e-20261127T155254Z
+Worker A,IDLE,,,session closed (D-251); next package = fresh session from handoff,no,[branch],2a68a3c,2026-11-27T14:42:27Z,ff836f2-20261127T162906Z
+Worker B,IDLE,,,session closed (D-251); next package = fresh session from handoff,no,[branch],2a68a3c,2026-11-27T14:42:28Z,ff836f2-20261127T162906Z
+Worker C,IDLE,,,session closed (D-251); next package = fresh session from handoff,no,[branch],2a68a3c,2026-11-27T14:42:30Z,ff836f2-20261127T162906Z
