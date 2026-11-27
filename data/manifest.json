@@ -11,13 +11,13 @@
   "spec_accepted": "Specification / decision accepted",
   "technical_accepted": "Technical acceptance"
  },
- "built_at": "2026-11-27T07:47:37Z",
- "changelog_seq": 7692,
+ "built_at": "2026-11-27T08:09:48Z",
+ "changelog_seq": 7704,
  "decision": "D-083; public-data policy D-087; dashboard-first D-133",
  "decision_log": {
-  "newest": "D-248",
+  "newest": "D-249",
   "path": "DECISION-LOG.md",
-  "rows": 230
+  "rows": 231
  },
  "files": [
   {
@@ -40,7 +40,7 @@
    ],
    "name": "daily_metrics.csv",
    "rows": 10,
-   "sha256": "ee8ca7f1e8c0bfbea8a2a331eac8539b8f91d76974e88736d990ef51e795b7f8"
+   "sha256": "d6cd264967bf835a17b045af60eaf34c6b68a0e67accb2ef74c2fa23538b8f81"
   },
   {
    "columns": [
@@ -57,8 +57,8 @@
     "snapshot_id"
    ],
    "name": "decisions.csv",
-   "rows": 230,
-   "sha256": "5cf7e4ac87ed2826ed3d49863f4bfe93b357a9243cfb3c40e8523049af1a946f"
+   "rows": 231,
+   "sha256": "2896ffc1c72a2b49f680b0308438e72ea4675f1b9647cf622f3195a94f25a82e"
   },
   {
    "columns": [
@@ -74,7 +74,7 @@
    ],
    "name": "git_sync.csv",
    "rows": 1,
-   "sha256": "12f1b09da024d3ae53eeaca88a7fb63eef2d994be2bfe7124e59efd696224bd5"
+   "sha256": "32af35c943b475660dad8908ed202ee2a8df38a8f34d94f43bdd4de964135b92"
   },
   {
    "columns": [
@@ -86,8 +86,8 @@
     "snapshot_id"
    ],
    "name": "runs.csv",
-   "rows": 250,
-   "sha256": "607e7b2e1057920b9188776704235db9a415304ea3c3b9066406a4ef0cbb49ff"
+   "rows": 251,
+   "sha256": "6f2f806af9aa1398ace77f79f6189cb17cca4be0e9cbc3ac9c8735c69f1ccd4e"
   },
   {
    "columns": [
@@ -99,7 +99,7 @@
    ],
    "name": "schedule.csv",
    "rows": 162,
-   "sha256": "571bd912cf6e376207c2d75bc7a25a97b64c2be30c031221b27fd53576ef5a6c"
+   "sha256": "bebaa28379c0e00118ba75bd994a4b234d8209a8034a8fb52c66167e651d7eb8"
   },
   {
    "columns": [
@@ -133,8 +133,8 @@
     "snapshot_id"
    ],
    "name": "tasks.csv",
-   "rows": 636,
-   "sha256": "b635395958f8a40b6d42ea66ffc9dfca1653134e6d72527ad5c0ee9b25e3b93b"
+   "rows": 638,
+   "sha256": "225484cb71cace04239ac7099102d2c8d1e5b2b172a4b95ca48d87ba00c03d5e"
   },
   {
    "columns": [
@@ -151,7 +151,7 @@
    ],
    "name": "workers.csv",
    "rows": 3,
-   "sha256": "d45136d8faf0405ee85cb788aa209c9791e425ef8f2f64c4765df166bc4ef2ca"
+   "sha256": "f4b4a1b16fe08544fd725e1224370738627bc5774d7b23043728b0918c8eef3d"
   }
  ],
  "forecast": {
@@ -260,16 +260,16 @@
    "snapshot_id"
   ]
  },
- "snapshot": "2026-11-27T14:46:03",
+ "snapshot": "2026-11-27T15:07:31",
  "snapshot_basis": "latest entry of the tracker changelog (local time); not the build time",
- "snapshot_id": "2d922a7-20261127T074737Z",
- "snapshot_utc": "2026-11-27T07:46:03Z",
- "source_commit": "2d922a7",
- "source_commit_time": "2026-11-27T14:47:35+07:00",
+ "snapshot_id": "1b4a5b2-20261127T080948Z",
+ "snapshot_utc": "2026-11-27T08:07:31Z",
+ "source_commit": "1b4a5b2",
+ "source_commit_time": "2026-11-27T15:09:46+07:00",
  "stale_after_hours": 6,
  "title": "ISC 2.0 Project Execution Dashboard",
  "worker_commits": [
-  "1b34e69",
+  "7fa94e9",
   "9440f82"
  ]
 }

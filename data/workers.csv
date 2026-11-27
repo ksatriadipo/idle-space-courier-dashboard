@@ -1,4 +1,4 @@
 worker,state,current_task,next_tasks,blocker,needs_director,branch,commit,updated_at,snapshot_id
-Worker A,IDLE,,,standby (D-247 low-resource; no heavy execution); session hit API limit after D246 suite,no,[branch],1b34e69,2026-11-27T06:45:52Z,2d922a7-20261127T074737Z
-Worker B,IDLE,,,parked (D-247 low-resource); next work in HEAVY-VALIDATION-QUEUE,no,[branch],9440f82,2026-11-27T07:46:01Z,2d922a7-20261127T074737Z
-Worker C,IDLE,,,parked (D-247 low-resource); next work in HEAVY-VALIDATION-QUEUE,no,[branch],9440f82,2026-11-27T07:46:03Z,2d922a7-20261127T074737Z
+Worker A,IDLE,GP-VISUAL,,,no,[branch],7fa94e9,2026-11-27T08:06:29Z,1b4a5b2-20261127T080948Z
+Worker B,IDLE,,,parked (D-247 low-resource); next work in HEAVY-VALIDATION-QUEUE,no,[branch],9440f82,2026-11-27T07:46:01Z,1b4a5b2-20261127T080948Z
+Worker C,IDLE,,,parked (D-247 low-resource); next work in HEAVY-VALIDATION-QUEUE,no,[branch],9440f82,2026-11-27T07:46:03Z,1b4a5b2-20261127T080948Z
