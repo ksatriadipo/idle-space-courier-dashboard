@@ -1,4 +1,4 @@
 worker,state,current_task,next_tasks,blocker,needs_director,branch,commit,updated_at,snapshot_id
-Worker A,IDLE,,,standby: device / visual defect correction only (D-246),no,[branch],f3e0339,2026-11-27T05:44:58Z,1f10152-20261127T055353Z
-Worker B,ACTIVE,GP-STAGEA-QA,,,no,[branch],288a93e,2026-11-27T05:45:00Z,1f10152-20261127T055353Z
-Worker C,IDLE,,,parked after D-246 C1-C4 ([branch] integrated),no,[branch],174ada9,2026-11-27T05:52:51Z,1f10152-20261127T055353Z
+Worker A,IDLE,,,standby (D-247 low-resource; no heavy execution); session hit API limit after D246 suite,no,[branch],1b34e69,2026-11-27T06:45:52Z,d1c1000-20261127T064928Z
+Worker B,ACTIVE,GP-STAGEA-QA,,,no,[branch],288a93e,2026-11-27T05:45:00Z,d1c1000-20261127T064928Z
+Worker C,IDLE,,,parked after D-246 C1-C4 ([branch] integrated),no,[branch],174ada9,2026-11-27T05:52:51Z,d1c1000-20261127T064928Z
