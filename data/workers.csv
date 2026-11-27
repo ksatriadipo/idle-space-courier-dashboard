@@ -1,4 +1,4 @@
 worker,state,current_task,next_tasks,blocker,needs_director,branch,commit,updated_at,snapshot_id
-Worker A,IDLE,,,,no,[branch],5540d60,2026-11-24T13:32:04Z,94686be-20261127T025035Z
-Worker B,IDLE,,UXC-006-UI,,no,[branch],53bdd01,2026-11-24T17:11:36Z,94686be-20261127T025035Z
-Worker C,IDLE,ZONE2-MERGE,UXC-004,,no,[branch],700082d,2026-11-24T16:19:35Z,94686be-20261127T025035Z
+Worker A,IDLE,DOCK-FINAL,,Visual acceptance of DOCK-FINAL-sheet.png (option C station envelope 0.745),yes,[branch],6621d95,2026-11-27T03:23:27Z,1d5ac0f-20261127T044907Z
+Worker B,IDLE,,UXC-006-UI,,no,[branch],53bdd01,2026-11-24T17:11:36Z,1d5ac0f-20261127T044907Z
+Worker C,IDLE,ZONE2-MERGE,UXC-004,,no,[branch],700082d,2026-11-24T16:19:35Z,1d5ac0f-20261127T044907Z
