@@ -1,4 +1,4 @@
 worker,state,current_task,next_tasks,blocker,needs_director,branch,commit,updated_at,snapshot_id
-Worker A,IDLE,D245-INTEG,,,no,[branch],f3e0339,2026-11-27T05:29:00Z,4d56f5d-20261127T053330Z
-Worker B,IDLE,,UXC-006-UI,,no,[branch],53bdd01,2026-11-24T17:11:36Z,4d56f5d-20261127T053330Z
-Worker C,IDLE,ZONE2-MERGE,UXC-004,,no,[branch],700082d,2026-11-24T16:19:35Z,4d56f5d-20261127T053330Z
+Worker A,IDLE,,,standby: device / visual defect correction only (D-246),no,[branch],f3e0339,2026-11-27T05:44:58Z,ca9c789-20261127T054913Z
+Worker B,ACTIVE,GP-STAGEA-QA,,,no,[branch],288a93e,2026-11-27T05:45:00Z,ca9c789-20261127T054913Z
+Worker C,ACTIVE,DIRECTOR-PLAYTEST,GLT115-DUP,,no,[branch],f3e0339,2026-11-27T05:45:01Z,ca9c789-20261127T054913Z
