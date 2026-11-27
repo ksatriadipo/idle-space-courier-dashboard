@@ -1,4 +1,4 @@
 worker,state,current_task,next_tasks,blocker,needs_director,branch,commit,updated_at,snapshot_id
-Worker A,IDLE,GP-VISUAL,,,no,[branch],7fa94e9,2026-11-27T08:06:29Z,1b4a5b2-20261127T080948Z
-Worker B,IDLE,,,parked (D-247 low-resource); next work in HEAVY-VALIDATION-QUEUE,no,[branch],9440f82,2026-11-27T07:46:01Z,1b4a5b2-20261127T080948Z
-Worker C,IDLE,,,parked (D-247 low-resource); next work in HEAVY-VALIDATION-QUEUE,no,[branch],9440f82,2026-11-27T07:46:03Z,1b4a5b2-20261127T080948Z
+Worker A,IDLE,,,session closed (D-251); next package = fresh session from handoff,no,[branch],2a68a3c,2026-11-27T14:42:27Z,282a6ce-20261127T144424Z
+Worker B,IDLE,,,session closed (D-251); next package = fresh session from handoff,no,[branch],2a68a3c,2026-11-27T14:42:28Z,282a6ce-20261127T144424Z
+Worker C,IDLE,,,session closed (D-251); next package = fresh session from handoff,no,[branch],2a68a3c,2026-11-27T14:42:30Z,282a6ce-20261127T144424Z
